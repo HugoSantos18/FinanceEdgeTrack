@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceEdgeTrack", "FinanceEdgeTrack\FinanceEdgeTrack.csproj", "{DC9F120D-1635-47FA-8685-1C2CC54CBC08}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DC9F120D-1635-47FA-8685-1C2CC54CBC08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC9F120D-1635-47FA-8685-1C2CC54CBC08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC9F120D-1635-47FA-8685-1C2CC54CBC08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC9F120D-1635-47FA-8685-1C2CC54CBC08}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {239EC172-9751-458D-A236-F8F87996A542}
+	EndGlobalSection
+EndGlobal

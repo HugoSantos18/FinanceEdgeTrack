@@ -7,7 +7,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 
 public class Meta : Categoria
 {
-    public decimal ValorAssociado { get; set; }
+    public decimal ValorAlvo { get; set; }
 
     public decimal UltimoDepositoEmReais { get; set; }  
     
@@ -22,8 +22,10 @@ public class Meta : Categoria
     public DateTime DataInicio { get; set; }
 
     public DateTime DataAlvo { get; set; }
-    
+
     public Status Status { get; set; } = default!;
+
+    public bool Concluida { get; set; } = default!;
 
     public List<AporteMetas>? Aportes { get; set; } = new();
 

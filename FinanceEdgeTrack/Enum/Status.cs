@@ -2,7 +2,7 @@
 
 public enum Status
 {
-    Concluido,
     EmAberto,
+    Concluido,
     Cancelada
 }

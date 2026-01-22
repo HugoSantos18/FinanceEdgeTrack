@@ -1,4 +1,5 @@
 ﻿using FinanceEdgeTrack.Domain.Models.Abstract;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,8 +18,8 @@ public class Lancamento
     [ForeignKey(nameof(CategoriaId))]
     public Categoria Categoria { get; set; } = default!;
 
-    public Guid UserId { get; set; }
+    public string UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public AplicationUser? User { get; set; }  
+    public IdentityUser User { get; set; }  
 }

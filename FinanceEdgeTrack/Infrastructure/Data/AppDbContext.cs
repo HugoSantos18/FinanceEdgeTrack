@@ -2,6 +2,7 @@
 using FinanceEdgeTrack.Domain.Models.Abstract;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
@@ -18,6 +19,7 @@ public class AppDbContext : IdentityDbContext
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+
         // TPH (Herança de classes e tabelas)
         model.Entity<Categoria>()
              .ToTable("Categorias")
@@ -46,11 +48,11 @@ public class AppDbContext : IdentityDbContext
 
 
         // Metas
-         model.Entity<Meta>()
-        .HasMany(m => m.Aportes)
-        .WithOne(a => a.Meta)
-        .HasForeignKey(a => a.MetaId)
-        .OnDelete(DeleteBehavior.Cascade);
+        model.Entity<Meta>()
+       .HasMany(m => m.Aportes)
+       .WithOne(a => a.Meta)
+       .HasForeignKey(a => a.MetaId)
+       .OnDelete(DeleteBehavior.Cascade);
 
         model.Entity<Meta>()
             .Property(m => m.ValorAlvo)
@@ -83,6 +85,7 @@ public class AppDbContext : IdentityDbContext
        .HasForeignKey(l => l.UserId)
        .OnDelete(DeleteBehavior.Cascade);
 
+
         model.Entity<Lancamento>()
        .HasOne(l => l.Categoria)
        .WithMany()
@@ -91,7 +94,7 @@ public class AppDbContext : IdentityDbContext
 
         model.Entity<Lancamento>()
             .HasKey(l => l.Id);
-
+         
         model.Entity<Lancamento>()
             .Property(l => l.DataLancamento)
             .IsRequired();
@@ -127,5 +130,8 @@ public class AppDbContext : IdentityDbContext
         model.Entity<Despesa>()
             .Property(d => d.Data)
             .IsRequired();
+
+
+        base.OnModelCreating(model);
     }
 }

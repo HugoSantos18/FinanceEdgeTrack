@@ -1,12 +1,9 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FinanceEdgeTrack.Domain.Models;
+namespace FinanceEdgeTrack.Application.Dtos.Read;
 
-
-[Table("AporteMetas")]
-public class AporteMetas
+public class AporteMetasDTO
 {
     public Guid Id { get; set; }
 
@@ -14,9 +11,5 @@ public class AporteMetas
     [Range(1, double.MaxValue)]
     public decimal Valor { get; set; }
 
-    public Guid MetaId { get; set; }
-
-    [ForeignKey(nameof(MetaId))]
-    public Meta Meta { get; set; } = default!;
-
+    public Meta? Meta { get; set; } 
 }

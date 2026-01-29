@@ -1,12 +1,12 @@
-﻿using FinanceEdgeTrack.Domain.Models.Abstract;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace FinanceEdgeTrack.Domain.Models;
+namespace FinanceEdgeTrack.Application.Dtos.Read;
 
-public class Receita : Categoria
+public class ReceitaDTO : CategoriaBaseDTO
 {
     [Required(ErrorMessage = "É obrigatório informar o valor da receita.")]
     [Range(1, double.MaxValue)]
     public double Valor { get; set; }
+    
     public DateTime Data { get; set; }
 }

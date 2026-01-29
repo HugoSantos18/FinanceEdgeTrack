@@ -7,16 +7,22 @@ namespace FinanceEdgeTrack.Domain.Models;
 
 public class Meta : Categoria
 {
+    [Required(ErrorMessage = "É obrigatório informar o valor alvo da Meta para alcança-lá. :)")]
+    [Range(1, double.MaxValue)]
     public decimal ValorAlvo { get; set; }
 
-    public decimal UltimoDepositoEmReais { get; set; }  
+    [Range(1, double.MaxValue)]
+    public decimal UltimoDepositoEmReais { get; set; } = default!; 
     
     public DateTime DataUltimoDeposito { get; set; }
-    
+
+    [Range(0.0, 0.1)]
     public float PorcentagemAtual { get; set; }
 
+    [Range(0.0, 0.1)]
     public float PorcentagemRestante { get; set; }
 
+    [Range(0, double.MaxValue)]
     public decimal ValorRestante { get; set; }
 
     public DateTime DataInicio { get; set; }

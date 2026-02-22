@@ -1,6 +1,7 @@
 using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FinanceEdgeTrack.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+
 // Swagger configuration
 
 // Configure the HTTP request pipeline.
@@ -35,6 +37,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
+    ApiExtensionMiddleware.ConfigureExceptionHandler(app);
 }
 
 app.UseHttpsRedirection();

@@ -5,7 +5,6 @@ namespace FinanceEdgeTrack.Extensions;
 
 public static class ApiExtensionMiddleware
 {
-
     public static void ConfigureExceptionHandler(IApplicationBuilder app)
     {
         app.UseExceptionHandler(exceptionHandlerApp =>
@@ -19,7 +18,6 @@ public static class ApiExtensionMiddleware
 
                 if (exceptionHandlerFeature != null)
                 {
-
                     await context.Response.WriteAsync(new ErrorDetails()
                     {
                         MessageError = exceptionHandlerFeature.Error.Message,

@@ -24,11 +24,9 @@
     <Folder Include="Application\Interfaces\" />
     <Folder Include="Application\Services\" />
     <Folder Include="Controllers\" />
-    <Folder Include="Infrastructure\Interfaces\" />
     <Folder Include="Migrations\" />
     <Folder Include="Pagination\" />
     <Folder Include="Validations\" />
-    <Folder Include="Infrastructure\Repositories\" />
   </ItemGroup>
 
 </Project>

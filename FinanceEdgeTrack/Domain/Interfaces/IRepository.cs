@@ -6,12 +6,12 @@ public interface IRepository<T>
 {
     Task<T>? Get(Expression<Func<T, bool>> predicade);
 
-    IEnumerable<T>? GetAll();
+    Task<IEnumerable<T>>? GetAll();
 
-    T Create(T entity);
+    Task<T> Create(T entity);
 
-    T? Update(T entity);
+    Task<T>? Update(T entity);
 
-    T? Delete(T entity);
+    Task<T>? Delete(T entity);
 
 }

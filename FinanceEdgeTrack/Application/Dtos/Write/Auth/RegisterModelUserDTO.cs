@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace FinanceEdgeTrack.Application.Dtos.Write;
+namespace FinanceEdgeTrack.Application.Dtos.Write.Auth;
 
 public class RegisterModelUserDTO
 {
@@ -12,9 +12,14 @@ public class RegisterModelUserDTO
     [Required]
     [EmailAddress]
     public string Email { get; set; } = default!;
-    
+
+    [Required]
     [PasswordPropertyText]
     public string Password { get; set; } = default!;
+
+    [Required] 
+    [PasswordPropertyText]
+    public string ConfirmPassword { get; set; } = default!; 
 
     [Phone]
     public string Telefone { get; set; } = default!;

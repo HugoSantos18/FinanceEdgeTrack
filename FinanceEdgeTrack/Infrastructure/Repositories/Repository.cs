@@ -9,46 +9,41 @@ namespace FinanceEdgeTrack.Infrastructure.Repositories;
 public class Repository<T> : IRepository<T> where T : class
 {
     protected readonly AppDbContext _context;
-    private readonly IUnitOfWork _uof;
 
-    public Repository(AppDbContext context, IUnitOfWork uof)
+    public Repository(AppDbContext context)
     {
         this._context = context;
-        this._uof = uof;
     }
 
-    public T Create(T entity)
+    public async Task<T> Create(T entity)
     {
         if (entity is null)
             throw new ArgumentNullException(nameof(entity));
 
 
         _context.Set<T>().Add(entity);
-
-        _uof.Commit();
+        await _context.SaveChangesAsync();
 
         return entity;
     }
 
-    public T Delete(T entity)
+    public async Task<T> Delete(T entity)
     {
         if (entity is null)
             throw new ArgumentNullException(nameof(entity));
 
         _context.Set<T>().Remove(entity);
-
-        _uof.Commit();
+        await _context.SaveChangesAsync();
 
         return entity;
     }
-    public T Update(T entity)
+    public async Task<T> Update(T entity)
     {
         if (entity is null)
             throw new ArgumentNullException(nameof(entity));
 
         _context.Entry(entity).State = EntityState.Modified;
-
-        _uof.Commit();
+        await _context.SaveChangesAsync();
 
         return entity;
     }
@@ -63,9 +58,9 @@ public class Repository<T> : IRepository<T> where T : class
         return entity;
     }
 
-    public IEnumerable<T> GetAll()
+    public async Task<IEnumerable<T>> GetAll()
     {
-        return _context.Set<T>().ToList();
+        return await _context.Set<T>().ToListAsync();
     }
 
 

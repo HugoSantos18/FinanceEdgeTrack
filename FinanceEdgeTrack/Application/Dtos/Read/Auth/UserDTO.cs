@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace FinanceEdgeTrack.Application.Dtos.Read;
+namespace FinanceEdgeTrack.Application.Dtos.Read.Auth;
 
 public class UserDTO
 {

@@ -2,6 +2,11 @@ using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FinanceEdgeTrack.Error.Extensions;
+using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Domain.Models.Abstract;
+using FinanceEdgeTrack.Infrastructure.Repositories;
+using FinanceEdgeTrack.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +33,13 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAporteMetasRepository, AporteMetasRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<ILancamentoRepository, LancamentoRepository>();
+builder.Services.AddScoped<IMetaRepository, MetaRepository>();
 
 
 // Swagger configuration

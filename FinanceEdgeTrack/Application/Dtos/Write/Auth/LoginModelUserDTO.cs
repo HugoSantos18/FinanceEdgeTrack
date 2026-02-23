@@ -1,8 +1,7 @@
-﻿
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace FinanceEdgeTrack.Application.Dtos.Write;
+namespace FinanceEdgeTrack.Application.Dtos.Write.Auth;
 
 public class LoginModelUserDTO
 {

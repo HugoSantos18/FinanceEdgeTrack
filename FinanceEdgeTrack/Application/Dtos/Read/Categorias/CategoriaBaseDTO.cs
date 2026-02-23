@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FinanceEdgeTrack.Application.Dtos.Read;
+namespace FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 
 public class CategoriaBaseDTO
 {

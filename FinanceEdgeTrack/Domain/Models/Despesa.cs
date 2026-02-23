@@ -7,7 +7,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Despesa : Categoria
 {
     [Required(ErrorMessage = "É obrigatório informar o valor da despesa.")]
-    [Range(1, double.MaxValue)]
+    [Range(typeof(decimal), "1", "999999999999")]
     public decimal Valor { get; set; }
 
     public bool Fixa { get; set; }

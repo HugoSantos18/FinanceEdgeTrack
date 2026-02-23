@@ -1,5 +1,5 @@
-﻿using FinanceEdgeTrack.Domain.Models.Abstract;
-using FinanceEdgeTrack.Enum;
+﻿using FinanceEdgeTrack.Domain.Enum;
+using FinanceEdgeTrack.Domain.Models.Abstract;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 

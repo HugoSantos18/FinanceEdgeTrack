@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Enum;
+﻿using FinanceEdgeTrack.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace FinanceEdgeTrack.Application.Dtos.Read;

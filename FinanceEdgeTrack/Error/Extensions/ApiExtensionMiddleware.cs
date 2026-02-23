@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using FinanceEdgeTrack.Error;
 
-namespace FinanceEdgeTrack.Extensions;
+namespace FinanceEdgeTrack.Error.Extensions;
 
 public static class ApiExtensionMiddleware
 {
@@ -11,7 +11,7 @@ public static class ApiExtensionMiddleware
         {
             exceptionHandlerApp.Run(async context =>
             {
-                context.Response.StatusCode = (int)StatusCodes.Status500InternalServerError;
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 context.Response.ContentType = "application/json";
 
                 var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();

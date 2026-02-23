@@ -1,7 +1,7 @@
 using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using FinanceEdgeTrack.Extensions;
+using FinanceEdgeTrack.Error.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

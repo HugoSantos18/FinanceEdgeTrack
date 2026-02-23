@@ -1,8 +1,8 @@
 ﻿using FinanceEdgeTrack.Infrastructure.Data;
-using FinanceEdgeTrack.Infrastructure.Interfaces;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using FinanceEdgeTrack.Domain.Interfaces;
 
 namespace FinanceEdgeTrack.Infrastructure.Repositories;
 

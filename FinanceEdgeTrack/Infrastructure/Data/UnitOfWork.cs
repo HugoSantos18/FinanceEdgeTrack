@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Infrastructure.Interfaces;
+﻿using FinanceEdgeTrack.Domain.Interfaces;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 

@@ -1,6 +1,6 @@
 ﻿using FinanceEdgeTrack.Infrastructure.Repositories;
 
-namespace FinanceEdgeTrack.Infrastructure.Interfaces;
+namespace FinanceEdgeTrack.Domain.Interfaces;
 
 public interface IUnitOfWork
 {

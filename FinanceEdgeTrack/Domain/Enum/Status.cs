@@ -1,4 +1,4 @@
-﻿namespace FinanceEdgeTrack.Enum;
+﻿namespace FinanceEdgeTrack.Domain.Enum;
 
 public enum Status
 {

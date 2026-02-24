@@ -7,6 +7,7 @@ using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Domain.Models.Abstract;
 using FinanceEdgeTrack.Infrastructure.Repositories;
 using FinanceEdgeTrack.Application.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -21,9 +21,9 @@ public class Lancamento
     public Categoria Categoria { get; set; } = default!;
 
     [Required]
-    public string UserId { get; set; }
+    public string? UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public IdentityUser User { get; set; }  
+    public ApplicationUser? User { get; set; }  
 
 }

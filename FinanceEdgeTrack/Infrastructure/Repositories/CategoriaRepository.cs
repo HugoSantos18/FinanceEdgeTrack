@@ -1,6 +1,6 @@
 ﻿using FinanceEdgeTrack.Domain.Models.Abstract;
-using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Infrastructure.Data;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 namespace FinanceEdgeTrack.Infrastructure.Repositories;
 

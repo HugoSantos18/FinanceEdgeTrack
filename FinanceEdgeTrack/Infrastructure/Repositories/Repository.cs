@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 namespace FinanceEdgeTrack.Infrastructure.Repositories;
 

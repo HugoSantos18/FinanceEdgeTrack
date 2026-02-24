@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces;
+﻿using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Infrastructure.Data;
 using System.Linq.Expressions;

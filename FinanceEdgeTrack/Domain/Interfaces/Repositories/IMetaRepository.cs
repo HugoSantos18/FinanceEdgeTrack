@@ -1,4 +1,4 @@
-﻿namespace FinanceEdgeTrack.Domain.Interfaces;
+﻿namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 public interface IMetaRepository
 {

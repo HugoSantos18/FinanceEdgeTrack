@@ -2,11 +2,13 @@
 using FinanceEdgeTrack.Domain.Models.Abstract;
 using System.ComponentModel.DataAnnotations;
 using FinanceEdgeTrack.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
 public class Meta : Categoria
 {
+
     [Required(ErrorMessage = "É obrigatório informar o valor alvo da Meta para alcança-lá. :)")]
     [Range(typeof(decimal), "1", "999999999999")]
     public decimal ValorAlvo { get; set; }
@@ -67,18 +69,14 @@ public class Meta : Categoria
         Aportes.Add(novoAporte);
 
         AtualizarHistoricoAporte(novoAporte.Valor);
-        AddValor(novoAporte.Valor);
-        AttValorRestante();
+        AdicionareAtualizarValorAporte(novoAporte.Valor);
         PorcentagemAtual = CalcularPorcentagemAtual();
     }
 
-    private decimal AddValor(decimal novoValor)
+    private void AdicionareAtualizarValorAporte(decimal novoValor)
     {
-        return ValorAtual += novoValor;
-    }
-    private decimal AttValorRestante()
-    {
-        return ValorRestante = ValorAlvo - ValorAtual;
+        ValorAtual += novoValor;
+        ValorRestante = ValorAlvo - ValorAtual;
     }
 
     public void AtualizarHistoricoAporte(decimal novoValor)

@@ -1,16 +1,14 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 namespace FinanceEdgeTrack.Application.Services;
 
 public class MetaService
 {
-    private readonly IMeta _meta;
     private readonly IMetaRepository _metaRepository;
 
-   public MetaService(IMeta meta, IMetaRepository metaRepository)
+    public MetaService(IMetaRepository metaRepository)
     {
-        this._meta = meta;  
-        this._metaRepository = metaRepository; 
+        this._metaRepository = metaRepository;
     }
 }

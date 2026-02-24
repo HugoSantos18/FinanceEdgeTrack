@@ -1,8 +1,7 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Infrastructure.Repositories;
 
-namespace FinanceEdgeTrack.Domain.Interfaces;
+namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 public interface ILancamentoRepository
 {

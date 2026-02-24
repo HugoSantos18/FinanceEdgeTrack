@@ -1,4 +1,5 @@
 ﻿using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Infrastructure.Repositories;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;

@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace FinanceEdgeTrack.Domain.Interfaces;
+namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 public interface IRepository<T>
 {

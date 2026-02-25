@@ -3,6 +3,7 @@ using FinanceEdgeTrack.Domain.Models.Abstract;
 using System.ComponentModel.DataAnnotations;
 using FinanceEdgeTrack.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Mapster;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
@@ -103,5 +104,17 @@ public class Meta : Categoria
         }
         else
             throw new InvalidOperationException("Meta ainda não finalizada, complete o valor alvo para poder finalizar.");
+    }
+
+
+    public decimal ValorTotalAportes()
+    {
+        decimal total = 0;
+        foreach(var ap in Aportes)
+        {
+            total += ap.Valor;
+        }
+
+        return total;
     }
 }

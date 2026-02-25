@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FinanceEdgeTrack.Application.Dtos.Read.Auth;
 
-public class UserDTO
+public class ApplicationUserDTO
 {
     [Required]
     [MaxLength(20)]

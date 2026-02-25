@@ -1,4 +1,6 @@
-﻿using FinanceEdgeTrack.Domain.Enum;
+﻿using FinanceEdgeTrack.Application.Dtos.Read.Metas;
+using FinanceEdgeTrack.Domain.Enum;
+using FinanceEdgeTrack.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
@@ -16,5 +18,4 @@ public class CreateMetaDTO
     
     public DateTime DataAlvo { get; set; }
     
-    public Status Status { get; set; } = default!;
 }

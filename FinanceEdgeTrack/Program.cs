@@ -8,11 +8,12 @@ using FinanceEdgeTrack.Domain.Models.Abstract;
 using FinanceEdgeTrack.Infrastructure.Repositories;
 using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
+using Mapster;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddMapster();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -37,11 +38,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAporteMetasRepository, AporteMetasRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<ILancamentoRepository, LancamentoRepository>();
 builder.Services.AddScoped<IMetaRepository, MetaRepository>();
-
 
 // Swagger configuration
 

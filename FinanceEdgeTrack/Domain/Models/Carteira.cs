@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -20,4 +22,9 @@ public class Carteira
     [Required]
     public decimal Saldo { get; set; } = default!;
 
+
+    public decimal AdicionarSaldo(decimal valor)
+    {
+        return Saldo += valor;
+    }
 }

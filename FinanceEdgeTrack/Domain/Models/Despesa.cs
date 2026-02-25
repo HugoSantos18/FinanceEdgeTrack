@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using FinanceEdgeTrack.Domain.Models.Abstract;
+using Mapster;
 
 namespace FinanceEdgeTrack.Domain.Models;
 

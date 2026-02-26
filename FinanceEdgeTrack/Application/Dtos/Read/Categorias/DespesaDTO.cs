@@ -2,13 +2,17 @@
 
 namespace FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 
-public class DespesaDTO : CategoriaBaseDTO
+public class DespesaDTO 
 {
-    [Required(ErrorMessage = "É obrigatório informar o valor da despesa.")]
-    [Range(1, 99999999)]
+    public Guid DespesaId { get; set; } 
+
+    public string Titulo { get; set; } = default!;
+
+    public string? Descricao { get; set; }
+
     public decimal Valor { get; set; }
-    
+
     public bool Fixa { get; set; }
-    
+
     public DateTime Data { get; set; }
 }

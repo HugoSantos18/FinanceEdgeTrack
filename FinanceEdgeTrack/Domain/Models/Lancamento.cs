@@ -1,7 +1,7 @@
 ﻿using Mapster;
-using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using FinanceEdgeTrack.Domain.Validations;
 
 
 namespace FinanceEdgeTrack.Domain.Models;
@@ -14,14 +14,21 @@ public class Lancamento
     [Required]
     public DateTime DataLancamento { get; set; }
 
-    [Required]
-    public Guid CategoriaId { get; set; }
+    [OptionalCategoryAtributte]
+    public Guid? ReceitaId { get; set; }
 
-    [ForeignKey(nameof(CategoriaId))]
-    public Categoria Categoria { get; set; } = default!;
+    [ForeignKey(nameof(ReceitaId))]
+    public Receita? Receita { get; set; }
+
+    [OptionalCategoryAtributte]
+    public Guid? DespesaId { get; set; }
+
+    [ForeignKey(nameof(DespesaId))]
+    public Despesa? Despesa { get; set; }
+
 
     [Required]
-    public string? UserId { get; set; }
+    public string UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public ApplicationUser? User { get; set; }  

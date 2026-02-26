@@ -1,11 +1,12 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Domain.Models.Abstract;
 using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
+using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 
 
 namespace FinanceEdgeTrack.Application.Mappings;
@@ -17,7 +18,25 @@ public static class MapsterMappingConfig
     /// </summary>
     public static void ConfigurarMapeamento()
     {
-        TypeAdapterConfig<Categoria, CategoriaBaseDTO>
+        TypeAdapterConfig<CreateDespesaDTO, Despesa>
+            .NewConfig();
+
+        TypeAdapterConfig<CreateMetaDTO, Meta>
+            .NewConfig();
+
+        TypeAdapterConfig<CreateReceitaDTO, Receita>
+            .NewConfig();
+
+        TypeAdapterConfig<UpdateDespesaDTO, Despesa>
+            .NewConfig();
+
+        TypeAdapterConfig<UpdateMetaDTO, Meta>
+            .NewConfig();
+
+        TypeAdapterConfig<UpdateReceitaDTO, Receita>
+            .NewConfig();
+
+        TypeAdapterConfig<UpdateLancamentoDTO, Lancamento>
             .NewConfig();
 
         TypeAdapterConfig<ApplicationUser, ApplicationUserDTO>
@@ -27,9 +46,6 @@ public static class MapsterMappingConfig
             .NewConfig();
 
         TypeAdapterConfig<AporteMetas, AporteMetasDTO>
-            .NewConfig();
-
-        TypeAdapterConfig<Carteira, CarteiraDTO>
             .NewConfig();
 
         TypeAdapterConfig<Despesa, DespesaDTO>

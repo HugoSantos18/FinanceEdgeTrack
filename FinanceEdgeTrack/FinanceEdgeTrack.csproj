@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Dtos\Write\Lancamentos\" />
     <Folder Include="Infrastructure\Data\Migrations\" />
     <Folder Include="Logging\" />
     <Folder Include="Application\Pagination\" />

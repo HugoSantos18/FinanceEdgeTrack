@@ -1,34 +1,77 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Error;
+using MapsterMapper;
 
 namespace FinanceEdgeTrack.Application.Services
 {
     public class DespesaService : IDespesaService
     {
-        public Task AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto)
+        private readonly IUnitOfWork _uof;
+        private readonly ICarteiraService _carteiraService;
+        private readonly ICurrentUserService _currentUser;
+        private readonly IMapper _mapper;
+
+        public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, ICurrentUserService currentUser)
         {
-            throw new NotImplementedException();
+            this._mapper = mapper;
+            this._uof = uof;
+            this._carteiraService = carteira;
+            _currentUser = currentUser;
         }
 
-        public Task<DespesaDTO> CreateDespesaAsync(DespesaDTO despesaDto)
+        public async Task<DespesaDTO> ObterDespesaPorIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var despesa = await _uof.DespesaRepository.Get(d => d.DespesaId == id);
+
+            return _mapper.Map<DespesaDTO>(despesa);
         }
 
-        public Task<IReadOnlyList<DespesaDTO>> ListarDespesasAsync()
+        public async Task<IReadOnlyList<DespesaDTO>> ListarDespesasAsync()
         {
-            throw new NotImplementedException();
+            var despesas = await _uof.DespesaRepository.GetAll();
+
+            return _mapper.Map<IReadOnlyList<DespesaDTO>>(despesas);
         }
 
-        public Task<DespesaDTO> ObterDespesaPorIdAsync(Guid id)
+        public async Task<DespesaDTO> CreateDespesaAsync(CreateDespesaDTO despesaDto)
         {
-            throw new NotImplementedException();
+            var despesa = _mapper.Map<Despesa>(despesaDto);
+
+            await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, despesa.Valor);
+            await _uof.DespesaRepository.Create(despesa);
+
+            return _mapper.Map<DespesaDTO>(despesa);
         }
 
-        public Task RemoverDespesaAsync(Guid id)
+        public async Task AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto)
         {
-            throw new NotImplementedException();
+            var despesa = await _uof.DespesaRepository.Get(d => d.DespesaId == id);
+
+            if (despesa is null)
+                throw new KeyNotFoundException(ErrorMessages.NotFoundDespesaMessage);
+
+            despesa.Titulo = despesaDto.Titulo;
+            despesa.Descricao = despesaDto.Descricao;
+            despesa.Data = despesaDto.Data;
+            despesa.Valor = despesaDto.Valor;
+
+            await _uof.DespesaRepository.Update(despesa)!;
+        }
+
+
+        public async Task RemoverDespesaAsync(Guid id)
+        {
+            var despesaRemovida = await _uof.DespesaRepository.Get(d => d.DespesaId == id);
+
+            if (despesaRemovida is null)
+                throw new KeyNotFoundException(ErrorMessages.NotFoundDespesaMessage);
+
+            await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, despesaRemovida.Valor);
+            await _uof.DespesaRepository.Delete(despesaRemovida)!;
         }
     }
 }

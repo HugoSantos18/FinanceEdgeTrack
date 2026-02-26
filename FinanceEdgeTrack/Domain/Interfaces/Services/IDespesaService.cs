@@ -5,7 +5,7 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Services;
 
 public interface IDespesaService
 {
-    Task<DespesaDTO> CreateDespesaAsync(DespesaDTO despesaDto);
+    Task<DespesaDTO> CreateDespesaAsync(CreateDespesaDTO despesaDto);
     
     Task AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto);
  

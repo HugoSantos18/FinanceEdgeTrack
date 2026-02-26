@@ -1,5 +1,4 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Domain.Models.Abstract;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -12,7 +11,10 @@ public class AppDbContext : IdentityDbContext
     {
     }
 
-    DbSet<Categoria> Categorias { get; set; }
+    DbSet<Receita> Receitas { get; set; }
+    DbSet<Despesa> Despesas { get; set; }
+    DbSet<Meta> Metas { get; set; }
+    DbSet<Carteira> Carteiras { get; set; }
     DbSet<AporteMetas> AporteMetas { get; set; }
     DbSet<Lancamento> Lancamentos { get; set; }
 
@@ -20,30 +22,30 @@ public class AppDbContext : IdentityDbContext
     protected override void OnModelCreating(ModelBuilder model)
     {
 
-        // TPH (Herança de classes e tabelas)
-        model.Entity<Categoria>()
-             .ToTable("Categorias")
-             .HasDiscriminator<string>("TipoCategoria")
-             .HasValue<Meta>("Meta")
-             .HasValue<Despesa>("Despesa")
-             .HasValue<Receita>("Receita");
-
-        model.Entity<Meta>().ToTable("Categorias");
-        model.Entity<Receita>().ToTable("Categorias");
-        model.Entity<Despesa>().ToTable("Categorias");
-
-
         // Categorias
-        model.Entity<Categoria>()
-            .HasKey(c => c.CategoriaId);
+        model.Entity<Receita>()
+            .HasKey(r => r.ReceitaId);
 
-        model.Entity<Categoria>()
+        model.Entity<Receita>()
             .Property(c => c.Titulo)
             .HasMaxLength(150)
             .IsRequired();
 
-        model.Entity<Categoria>()
+        model.Entity<Receita>()
             .Property(c => c.Descricao)
+            .HasMaxLength(200);
+
+        // despesa
+        model.Entity<Despesa>()
+            .HasKey(d => d.DespesaId);
+
+        model.Entity<Despesa>()
+            .Property(d => d.Titulo)
+            .HasMaxLength(150)
+            .IsRequired();
+
+        model.Entity<Despesa>()
+            .Property(d => d.Descricao)
             .HasMaxLength(200);
 
 
@@ -78,60 +80,97 @@ public class AppDbContext : IdentityDbContext
             .HasKey(a => a.Id);
 
 
-        // Lançamento
-        model.Entity<Lancamento>()
-       .HasOne(l => l.User)
-       .WithMany()
-       .HasForeignKey(l => l.UserId)
-       .OnDelete(DeleteBehavior.Cascade);
+        // Carteira
+        model.Entity<Carteira>(entity =>
+        {
+            entity.ToTable("Carteira");
+            entity.HasKey(c => c.CarteiraId);
+
+            entity.Property(s => s.Saldo)
+           .HasPrecision(15, 2);
 
 
-        model.Entity<Lancamento>()
-       .HasOne(l => l.Categoria)
-       .WithMany()
-       .HasForeignKey(l => l.CategoriaId)
-       .OnDelete(DeleteBehavior.Restrict);
-
-        model.Entity<Lancamento>()
-            .HasKey(l => l.Id);
-         
-        model.Entity<Lancamento>()
-            .Property(l => l.DataLancamento)
-            .IsRequired();
+            entity.HasOne(c => c.User)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
+          
+        });
 
 
-        // Receita
-        model.Entity<Receita>()
+        // User
+        model.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasOne(u => u.Carteira)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        });
+
+        model.Entity<Lancamento>(entity =>
+        {
+            entity.ToTable("Lancamentos");
+            entity.HasKey(l => l.LancamentoId);
+
+            entity.Property(l => l.DataLancamento)
+                  .IsRequired();
+
+            // -----------------------------
+            // Lancamento -> Receita (opcional)
+            // -----------------------------
+            entity.HasOne(l => l.Receita)
+                  .WithMany() // Receita NÃO precisa conhecer os lançamentos
+                  .HasForeignKey(l => l.ReceitaId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // -----------------------------
+            // Lancamento -> Despesa (opcional)
+            // -----------------------------
+            entity.HasOne(l => l.Despesa)
+                  .WithMany() // Despesa NÃO precisa conhecer os lançamentos
+                  .HasForeignKey(l => l.DespesaId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // -----------------------------
+            // Lancamento -> Usuário
+            // -----------------------------
+            entity.HasOne(l => l.User)
+                  .WithMany()
+                  .HasForeignKey(l => l.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+            // Receita
+            model.Entity<Receita>()
             .Property(r => r.Valor)
             .HasPrecision(15, 2)
             .IsRequired();
 
-        model.Entity<Receita>()
-            .Property(r => r.Titulo)
-            .HasMaxLength(150)
-            .IsRequired();
+            model.Entity<Receita>()
+                .Property(r => r.Titulo)
+                .HasMaxLength(150)
+                .IsRequired();
 
-        model.Entity<Receita>()
-            .Property(r => r.Data)
-            .IsRequired();
-
-
-        // Despesa
-        model.Entity<Despesa>()
-            .Property(d => d.Valor)
-            .HasPrecision(15, 2)
-            .IsRequired();
-
-        model.Entity<Despesa>()
-            .Property(d => d.Titulo)
-            .HasMaxLength(150)
-            .IsRequired();
-
-        model.Entity<Despesa>()
-            .Property(d => d.Data)
-            .IsRequired();
+            model.Entity<Receita>()
+                .Property(r => r.Data)
+                .IsRequired();
 
 
-        base.OnModelCreating(model);
+            // Despesa
+            model.Entity<Despesa>()
+                .Property(d => d.Valor)
+                .HasPrecision(15, 2)
+                .IsRequired();
+
+            model.Entity<Despesa>()
+                .Property(d => d.Titulo)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            model.Entity<Despesa>()
+                .Property(d => d.Data)
+                .IsRequired();
+
+
+            base.OnModelCreating(model);
+        }
     }
-}

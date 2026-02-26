@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
@@ -17,7 +18,14 @@ public class ApplicationUser : IdentityUser
     public decimal ValorTotalGasto { get; set; } = default!;
 
     // atributo que será atualizado sempre que fizer um lançamento para acompanhar histórico do user
-    public int TotalLancamentos { get; set; } = 0; 
+    public int TotalLancamentos { get; set; } = 0;
+
+    [Required]
+    public int CarteiraId { get; set; }
+   
+    [ForeignKey(nameof(CarteiraId))]
+    public Carteira Carteira { get; set; }
+
 
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiration { get; set; }

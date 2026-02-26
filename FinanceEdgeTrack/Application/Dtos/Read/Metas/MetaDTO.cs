@@ -4,8 +4,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FinanceEdgeTrack.Application.Dtos.Read.Metas;
 
-public class MetaDTO : CategoriaBaseDTO
+public class MetaDTO 
 {
+    public Guid MetaId { get; set; } 
+
+    public string Titulo { get; set; } = default!;
+    
+    public string? Descricao { get; set; }
+
     public decimal ValorAlvo { get; set; }
 
     public decimal ValorRestante { get; set; }

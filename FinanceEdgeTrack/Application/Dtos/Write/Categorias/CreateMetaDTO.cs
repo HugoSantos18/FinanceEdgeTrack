@@ -7,6 +7,10 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateMetaDTO
 {
+    public Guid CategoriaId { get; set; }
+    
+    public string? Descricao { get; set; }
+    
     [Required(ErrorMessage = "É necessário ter um título para a Meta.")]
     public string Titulo { get; set; } = default!;
     

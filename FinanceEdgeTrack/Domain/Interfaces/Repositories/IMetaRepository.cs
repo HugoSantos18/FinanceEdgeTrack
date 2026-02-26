@@ -1,6 +1,8 @@
-﻿namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
+﻿using FinanceEdgeTrack.Domain.Models;
 
-public interface IMetaRepository
+namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
+
+public interface IMetaRepository : IRepository<Meta>
 {
     // Metas com filtros para: Maior aporte, ultima modificação, pagination.
 

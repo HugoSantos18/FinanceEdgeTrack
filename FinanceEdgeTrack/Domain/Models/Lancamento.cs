@@ -1,5 +1,4 @@
-﻿using FinanceEdgeTrack.Domain.Models.Abstract;
-using Mapster;
+﻿using Mapster;
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -10,7 +9,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 [Table("Lancamento")]
 public class Lancamento
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid LancamentoId { get; set; } = Guid.NewGuid();
 
     [Required]
     public DateTime DataLancamento { get; set; }

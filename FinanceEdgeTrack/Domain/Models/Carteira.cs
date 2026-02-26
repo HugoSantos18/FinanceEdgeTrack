@@ -27,4 +27,9 @@ public class Carteira
     {
         return Saldo += valor;
     }
+
+    public decimal DescontarSaldo(decimal valor)
+    {
+        return Saldo -= valor;
+    }
 }

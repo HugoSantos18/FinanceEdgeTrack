@@ -1,9 +1,8 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Infrastructure.Repositories;
 
 namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
-public interface ILancamentoRepository : IRepository<Lancamento>
+public interface IDespesaRepository : IRepository<Despesa>
 {
 
     // métodos com filtros e paginação posteriormente.

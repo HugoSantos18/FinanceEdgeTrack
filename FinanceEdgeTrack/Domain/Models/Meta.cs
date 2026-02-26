@@ -1,5 +1,4 @@
 ﻿using FinanceEdgeTrack.Domain.Enum;
-using FinanceEdgeTrack.Domain.Models.Abstract;
 using System.ComponentModel.DataAnnotations;
 using FinanceEdgeTrack.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +6,14 @@ using Mapster;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
-public class Meta : Categoria
+public class Meta
 {
+    public Guid MetaId { get; set; } = Guid.NewGuid();
+
+    [Required(ErrorMessage = "É necessário um título para a categoria")]
+    public string Titulo { get; set; } = default!;
+
+    public string? Descricao { get; set; }
 
     [Required(ErrorMessage = "É obrigatório informar o valor alvo da Meta para alcança-lá. :)")]
     [Range(typeof(decimal), "1", "999999999999")]

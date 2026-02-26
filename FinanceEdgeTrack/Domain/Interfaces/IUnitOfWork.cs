@@ -6,11 +6,12 @@ namespace FinanceEdgeTrack.Domain.Interfaces;
 public interface IUnitOfWork
 {
     // Propriedades dos repositories com get somente.
-    ICategoriaRepository CategoriaRepository { get; }
-    IAporteMetasRepository AporteMetasRepository { get; }
+    ICarteiraRepository CarteiraRepository { get; }
+    IReceitaRepository ReceitaRepository { get; }
+    IDespesaRepository DespesaRepository { get; }
     ILancamentoRepository LancamentoRepository { get; }
     IMetaRepository MetaRepository { get; }
 
-    void CommitAsync();
+    Task CommitAsync();
     void Dispose();
 }

@@ -4,6 +4,8 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateReceitaDTO
 {
+    public Guid CategoriaId { get; set; }
+
     [Required(ErrorMessage = "É necessário um título para o lançamento.")]
     public string Titulo { get; set; } = default!;
 

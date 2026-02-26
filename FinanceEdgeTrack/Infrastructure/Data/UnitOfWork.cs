@@ -9,26 +9,27 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _context;
 
     // variáveis para armazenar os repositórios instanciados.
-    private ICategoriaRepository? _categoriaRepository;
-    private IAporteMetasRepository? _aporteMetasRepository;
+    private ICarteiraRepository? _carteiraRepository;
+    private IDespesaRepository? _despesaRepository;
+    private IReceitaRepository? _receitaRepository;
     private IMetaRepository? _metaRepository;
     private ILancamentoRepository? _lancamentoRepository;
 
 
     // instancia da interface de cada repositorio para utilizar.
-    public ICategoriaRepository CategoriaRepository
+    public IDespesaRepository DespesaRepository
     {
         get
         {
-            return _categoriaRepository = _categoriaRepository ?? new CategoriaRepository(_context);
+            return _despesaRepository = _despesaRepository ?? new DespesaRepository(_context);
         }
     }
 
-    public IAporteMetasRepository AporteMetasRepository
+    public IReceitaRepository ReceitaRepository
     {
         get
         {
-            return _aporteMetasRepository = _aporteMetasRepository ?? new AporteMetasRepository(_context);
+            return _receitaRepository = _receitaRepository ?? new ReceitaRepository(_context);
         }
     }
 
@@ -48,13 +49,20 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public ICarteiraRepository CarteiraRepository
+    {
+        get
+        {
+            return _carteiraRepository = _carteiraRepository ?? new CarteiraRepository(_context);
+        }
+    }
 
     public UnitOfWork(AppDbContext context)
     {
         this._context = context;
     }
 
-    public async void CommitAsync()
+    public async Task CommitAsync()
     {
         await _context.SaveChangesAsync();
     }

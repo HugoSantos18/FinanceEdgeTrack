@@ -21,13 +21,13 @@ public class CarteiraService : ICarteiraService
     {
         if(valor <= 0)
         {
-            throw new InvalidOperationException(ErrorMessages.MoreThanZero);
+            throw new InvalidOperationException(ResultMessages.MoreThanZero);
         }
         
         var carteira = await _uof.CarteiraRepository.Get(u => u.UserId == userId);
 
         if (carteira is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundUser);
+            throw new KeyNotFoundException(ResultMessages.NotFoundUser);
 
         carteira.Saldo += valor;
 
@@ -40,13 +40,13 @@ public class CarteiraService : ICarteiraService
         var carteira = await _uof.CarteiraRepository.Get(c => c.UserId == userId);
 
         if (carteira is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundUser);
+            throw new KeyNotFoundException(ResultMessages.NotFoundUser);
 
         if (valor <= 0)
-            throw new InvalidOperationException(ErrorMessages.MoreThanZero);
+            throw new InvalidOperationException(ResultMessages.MoreThanZero);
 
         if (valor >= carteira.Saldo)
-            throw new InvalidOperationException(ErrorMessages.InvalidPrice);
+            throw new InvalidOperationException(ResultMessages.InvalidPrice);
 
         carteira.Saldo -= valor;
 
@@ -59,7 +59,7 @@ public class CarteiraService : ICarteiraService
         var carteira = await _uof.CarteiraRepository.Get(c => c.UserId == userId);
 
         if (carteira is null)
-            throw new KeyNotFoundException(ErrorMessages.WalletNotFound);
+            throw new KeyNotFoundException(ResultMessages.WalletNotFound);
 
         return carteira.Saldo;
     }

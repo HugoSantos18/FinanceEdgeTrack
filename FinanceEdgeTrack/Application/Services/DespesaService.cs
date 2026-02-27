@@ -52,7 +52,7 @@ namespace FinanceEdgeTrack.Application.Services
             var despesa = await _uof.DespesaRepository.Get(d => d.DespesaId == id);
 
             if (despesa is null)
-                throw new KeyNotFoundException(ErrorMessages.NotFoundDespesaMessage);
+                throw new KeyNotFoundException(ResultMessages.NotFoundDespesa);
 
             despesa.Titulo = despesaDto.Titulo;
             despesa.Descricao = despesaDto.Descricao;
@@ -68,7 +68,7 @@ namespace FinanceEdgeTrack.Application.Services
             var despesaRemovida = await _uof.DespesaRepository.Get(d => d.DespesaId == id);
 
             if (despesaRemovida is null)
-                throw new KeyNotFoundException(ErrorMessages.NotFoundDespesaMessage);
+                throw new KeyNotFoundException(ResultMessages.NotFoundDespesa);
 
             await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, despesaRemovida.Valor);
             await _uof.DespesaRepository.Delete(despesaRemovida)!;

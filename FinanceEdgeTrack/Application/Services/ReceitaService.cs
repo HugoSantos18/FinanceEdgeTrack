@@ -54,7 +54,7 @@ public class ReceitaService : IReceitaService
         var receita = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
         
         if (receita is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundReceiveMessage);
+            throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
         
         receita.Titulo = receitaDto.Titulo;
         receita.Descricao = receitaDto.Descricao;
@@ -70,7 +70,7 @@ public class ReceitaService : IReceitaService
         var receitaRemovida = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
         
         if (receitaRemovida is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundReceiveMessage);
+            throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
      
         await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, receitaRemovida.Valor);
         await _uof.ReceitaRepository.Delete(receitaRemovida)!;

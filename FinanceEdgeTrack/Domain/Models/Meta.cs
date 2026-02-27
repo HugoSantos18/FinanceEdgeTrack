@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using FinanceEdgeTrack.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
+using System.Threading.Tasks;
+using FinanceEdgeTrack.Error;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
@@ -74,24 +76,49 @@ public class Meta
         Aportes ??= new List<AporteMetas>();
         Aportes.Add(novoAporte);
 
-        AtualizarHistoricoAporte(novoAporte.Valor);
         AdicionareAtualizarValorAporte(novoAporte.Valor);
         PorcentagemAtual = CalcularPorcentagemAtual();
+        DataUltimoDeposito = DateTime.UtcNow;
+    }
+
+    public void RemoverAporte(AporteMetas aporteRemovido)
+    {
+        if (aporteRemovido is null)
+            throw new ArgumentNullException(nameof(aporteRemovido));
+
+        int aporteAnterior = (Aportes.IndexOf(aporteRemovido) - 1); 
+        Aportes.Remove(aporteRemovido);
+
+        DescontareAtualizarValorAporte(aporteRemovido.Valor);
+        AtualizarHistoricoAporteRemoved(aporteAnterior);
     }
 
     private void AdicionareAtualizarValorAporte(decimal novoValor)
     {
         ValorAtual += novoValor;
         ValorRestante = ValorAlvo - ValorAtual;
-    }
-
-    public void AtualizarHistoricoAporte(decimal novoValor)
-    {
-        DataUltimoDeposito = DateTime.UtcNow;
         UltimoDepositoEmReais = novoValor;
     }
 
-    public decimal CalcularPorcentagemAtual()
+    private void DescontareAtualizarValorAporte(decimal valorRemovido)
+    {
+        ValorAtual -= valorRemovido;
+        ValorRestante = ValorAlvo - (ValorAtual - valorRemovido);
+        CalcularPorcentagemAtual();
+    }
+
+
+    private void AtualizarHistoricoAporteRemoved(int index)
+    {
+        if (index < 0 || index > Aportes.Count)
+            throw new InvalidOperationException(ResultMessages.InvalidCredentials);
+
+        DataUltimoDeposito = DateTime.UtcNow;
+        UltimoDepositoEmReais = Aportes[index].Valor;
+
+    }
+
+    private decimal CalcularPorcentagemAtual()
     {
         if (ValorAlvo == 0)
             return 0;
@@ -115,10 +142,8 @@ public class Meta
     public decimal ValorTotalAportes()
     {
         decimal total = 0;
-        foreach(var ap in Aportes)
-        {
-            total += ap.Valor;
-        }
+        
+        total = Aportes.Sum(a => a.Valor);
 
         return total;
     }

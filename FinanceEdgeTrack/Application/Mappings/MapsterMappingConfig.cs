@@ -27,6 +27,9 @@ public static class MapsterMappingConfig
         TypeAdapterConfig<CreateReceitaDTO, Receita>
             .NewConfig();
 
+        TypeAdapterConfig<CreateAporteMetaDTO, AporteMetas>
+            .NewConfig();
+
         TypeAdapterConfig<UpdateDespesaDTO, Despesa>
             .NewConfig();
 

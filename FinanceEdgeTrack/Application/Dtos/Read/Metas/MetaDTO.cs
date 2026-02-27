@@ -25,6 +25,5 @@ public class MetaDTO
     
     public Status Status { get; set; }
 
-    public List<AporteMetasDTO> Aportes { get; set; } = new();
-
+    public List<AporteMetasDTO> Aportes { get;}
 }

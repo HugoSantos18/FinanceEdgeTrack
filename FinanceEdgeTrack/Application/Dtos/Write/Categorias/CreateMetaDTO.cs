@@ -7,7 +7,7 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateMetaDTO
 {
-    public Guid CategoriaId { get; set; }
+    public Guid MetaId { get; set; }
     
     public string? Descricao { get; set; }
     
@@ -17,9 +17,10 @@ public class CreateMetaDTO
     [Required(ErrorMessage = "É obrigatório informar o valor da Meta para alcança-lá.")]
     [Range(1, double.MaxValue)]
     public decimal ValorAlvo { get; set; }
-    
-    public DateTime DataInicio { get; set; }
+
+    public DateTime DataInicio { get; set; } = DateTime.UtcNow;
     
     public DateTime DataAlvo { get; set; }
-    
+
+    public List<AporteMetasDTO> Aportes { get; set; }
 }

@@ -35,7 +35,7 @@ public class LancamentoService : ILancamentoService
         var lancamento = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundLancamentoMessage);
+            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
 
         lancamento.LancamentoId = lancamentoDto.LancamentoId;
             lancamento.DataLancamento = lancamentoDto.DataLancamento;
@@ -51,7 +51,7 @@ public class LancamentoService : ILancamentoService
         var lancamentoRemovido = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
 
         if (lancamentoRemovido is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundLancamentoMessage);
+            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
 
         await _uof.LancamentoRepository.Delete(lancamentoRemovido);
     }
@@ -61,7 +61,7 @@ public class LancamentoService : ILancamentoService
         var lancamento = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
-            throw new KeyNotFoundException(ErrorMessages.NotFoundLancamentoMessage);
+            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
 
         return _mapper.Map<LancamentoDTO>(lancamento);
     }

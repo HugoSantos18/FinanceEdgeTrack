@@ -6,5 +6,8 @@ public class ApplicationService : IApplicationService   //Service Core que contr
 {
     // Aguardar implementação das outras Services para ver o que será incluído nessa que será a Core e responsável por 
     // chamar as outras para realização e controle do fluxo da aplicação.
+    // regras de negócio.
+
+
 
 }

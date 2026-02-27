@@ -1,12 +1,19 @@
 using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using FinanceEdgeTrack.Extensions;
+using FinanceEdgeTrack.Error.Extensions;
+using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Infrastructure.Repositories;
+using FinanceEdgeTrack.Application.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Repositories;
+using Mapster;
+using FinanceEdgeTrack.Domain.Interfaces.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddMapster();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -28,6 +35,17 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ILancamentoRepository, LancamentoRepository>();
+builder.Services.AddScoped<IMetaRepository, MetaRepository>();
+builder.Services.AddScoped<IReceitaService, ReceitaService>();
+builder.Services.AddScoped<IDespesaService, DespesaService>();
+builder.Services.AddScoped<IMetaService, MetaService>();
+builder.Services.AddSingleton<ICarteiraService, CarteiraService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IApplicationService, ApplicationService>();
 
 
 // Swagger configuration

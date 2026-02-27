@@ -1,0 +1,24 @@
+﻿
+namespace FinanceEdgeTrack.Error;
+
+//dps usar serviços e interfaces para complementar as mensagens e ficarem mais personalizadas ainda.
+
+public static class ResultMessages
+{
+    public const string NotFoundReceive = "Receita não encontrada";
+    public const string NotFoundDespesa = "Despesa não encontrada";
+    public const string NotFoundLancamento = "Lançamento não encontrado.";
+    public const string NotFoundMeta = "Meta não encontrada.";
+    public const string NotFoundUser = "Usuário não encontrado";
+    public const string NotFoundAporte = "Aporte não encontrado.";
+    public const string InvalidPrice = "Deve ser informado um valor válido.";
+    public const string InvalidCredentials = "Credenciais inválidas.";
+    public const string EmptyMetaCollection = "Não foi encontrado nenhuma meta.";
+    public const string EmptyAporteCollection = "Não foi encontrado nenhum aporte";
+    public const string MoreThanZero = "O valor deve ser maior que zero.";
+    public const string WalletNotFound = "Ops, parece que você perdeu sua carteira. :´( ";
+    public const string ValidAporte = "Deve ser feito um aporte válido, credenciais incorretas.";
+    public const string ValidMeta = "Para finalizar a criação de uma meta, deve ser preenchido as credenciais corretamente.";
+    public const string ValidCredentialsSuccess = "Concluído com sucesso!";
+    public const string ErrorCreation = "Não foi possível realizar a operação.";
+}

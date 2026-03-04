@@ -1,27 +1,36 @@
-using FinanceEdgeTrack.Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using FinanceEdgeTrack.Error.Extensions;
-using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Infrastructure.Repositories;
 using FinanceEdgeTrack.Application.Services;
+using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using Mapster;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Error.Extensions;
+using FinanceEdgeTrack.Infrastructure.Config;
+using FinanceEdgeTrack.Infrastructure.Data;
+using FinanceEdgeTrack.Infrastructure.Repositories;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddMapster();
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new ApiExceptionFilter());
+})
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 // UserSecrets configuration
 builder.Configuration
@@ -46,20 +55,26 @@ builder.Services.AddScoped<IMetaRepository, MetaRepository>();
 builder.Services.AddScoped<IReceitaService, ReceitaService>();
 builder.Services.AddScoped<IDespesaService, DespesaService>();
 builder.Services.AddScoped<IMetaService, MetaService>();
-builder.Services.AddSingleton<ICarteiraService, CarteiraService>();
+builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IApplicationService, ApplicationService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthenticationService, AuthService>();
 
+// Bind strongly-typed JWT settings
+var jwtSection = builder.Configuration.GetSection("JWT");
+builder.Services.Configure<JwtSettings>(jwtSection);
+var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new ArgumentException("JWT configuration missing");
+builder.Services.AddSingleton(jwtSettings);
 
 // Authentication
-var secretKey = builder.Configuration["JWT:SecretKey"] ?? throw new ArgumentException("Invalid Key");
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+    var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
+
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
 
@@ -70,14 +85,44 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ClockSkew = TimeSpan.Zero,
-        ValidAudience = builder.Configuration["JWT:ValidAuedience"],
-        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+        ValidAudience = jwtSettings.ValidAudience,
+        ValidIssuer = jwtSettings.ValidIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
 });
-builder.Services.AddScoped<ITokenService, TokenService>();
+
 
 // Swagger configuration
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "FinanceEdgeTrackApi", Version = "v1" });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Bearer JWT",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{ }
+        }
+    });
+});
+
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -85,7 +130,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
-    ApiExtensionMiddleware.ConfigureExceptionHandler(app);
 }
 
 app.UseHttpsRedirection();

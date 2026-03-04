@@ -14,12 +14,14 @@ public class MetaService : IMetaService
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _uof;
     private readonly ICarteiraService _carteira;
+    private readonly ICurrentUserService _currentUser;
 
-    public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteira)
+    public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteira, ICurrentUserService currentUser)
     {
         this._mapper = mapper;
         this._uof = uof;
         _carteira = carteira;
+        _currentUser = currentUser;
     }
 
     public async Task<MetaDTO> GetMetaPorIdAsync(Guid metaId)
@@ -94,6 +96,8 @@ public class MetaService : IMetaService
 
         var novoAporte = _mapper.Map<AporteMetas>(aporteMetaDto) ?? throw new InvalidOperationException(ResultMessages.ErrorCreation);
 
+        await _carteira.DescontarSaldoAsync(_currentUser.UserId, novoAporte.Valor);
+        
         meta.RegistrarAporte(novoAporte);
         await _uof.CommitAsync();
 
@@ -106,7 +110,9 @@ public class MetaService : IMetaService
 
         var aporteRemovido = meta.Aportes.First(a => a.Id == aporteMetaId) ?? throw new KeyNotFoundException(ResultMessages.NotFoundAporte);
 
+        await _carteira.AdicionarSaldoAsync(_currentUser.UserId, aporteRemovido.Valor);
         meta.RemoverAporte(aporteRemovido);
+        
         await _uof.CommitAsync();
     }
 

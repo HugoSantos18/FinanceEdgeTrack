@@ -26,4 +26,6 @@ public static class ResultMessages
     public const string ConfirmPasswordError = "O campo de confirmação de senha deve ser o mesmo da senha.";
     public const string InvalidAccessToken = "Token de acesso inválido.";
     public const string InvalidRefreshToken = "RefreshToken inválido.";
+    public const string RevokeSuccessfull = "Token revogado com sucesso.";
+
 }

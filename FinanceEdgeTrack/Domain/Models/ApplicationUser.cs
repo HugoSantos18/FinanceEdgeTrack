@@ -24,7 +24,7 @@ public class ApplicationUser : IdentityUser
     public int CarteiraId { get; set; }
    
     [ForeignKey(nameof(CarteiraId))]
-    public Carteira Carteira { get; set; }
+    public Carteira? Carteira { get; set; }
 
 
     public string? RefreshToken { get; set; }

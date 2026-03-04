@@ -1,6 +1,7 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
+using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
@@ -22,16 +23,18 @@ public class AuthService : IAuthenticationService
     private readonly IUnitOfWork _uof;
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
+    private readonly ICarteiraService _carteiraService;
 
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                       IUnitOfWork uof, IMapper mapper, IConfiguration config)
+                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService)
     {
         _uof = uof;
         _tokenService = tokenService;
         _userManager = userManager;
         _config = config;
         _mapper = mapper;
+        _carteiraService = carteiraService;
     }
 
     public async Task<ObjectResult> Login(LoginModelUserDTO loginModelDto)
@@ -85,13 +88,16 @@ public class AuthService : IAuthenticationService
         if (registerModelDto.Password != registerModelDto.ConfirmPassword)
             throw new InvalidOperationException(ResultMessages.ConfirmPasswordError);
 
+        var carteiraDto = new CreateCarteiraDTO();
+        var carteira = await _carteiraService.CreateAsync(carteiraDto);
+
         ApplicationUser user = new()
         {
             UserName = registerModelDto.UserName,
             Email = registerModelDto.Email,
-            PasswordHash = registerModelDto.Password,
             PhoneNumber = registerModelDto.Telefone,
-            SecurityStamp = Guid.NewGuid().ToString()
+            SecurityStamp = Guid.NewGuid().ToString(),
+            CarteiraId = carteira.CarteiraId
         };
 
         var result = await _userManager.CreateAsync(user, registerModelDto.Password!);

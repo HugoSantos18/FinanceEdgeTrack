@@ -1,9 +1,11 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read;
+using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Error;
+using MapsterMapper;
 using System.Runtime.InteropServices;
 
 namespace FinanceEdgeTrack.Application.Services;
@@ -11,11 +13,23 @@ namespace FinanceEdgeTrack.Application.Services;
 public class CarteiraService : ICarteiraService
 {
     private readonly IUnitOfWork _uof;
+    private readonly IMapper _mapper;
 
-    public CarteiraService(IUnitOfWork uof)
+    public CarteiraService(IUnitOfWork uof, IMapper mapper)
     {
-        this._uof = uof;
+        _uof = uof;
+        _mapper = mapper;
     }
+
+    public async Task<Carteira> CreateAsync(CreateCarteiraDTO carteiraDto)
+    {
+        var carteira = _mapper.Map<Carteira>(carteiraDto);
+
+        await _uof.CarteiraRepository.Create(carteira);
+
+        return carteira;
+    }
+
 
     public async Task AdicionarSaldoAsync(string userId, decimal valor)
     {

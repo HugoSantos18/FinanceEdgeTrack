@@ -12,58 +12,61 @@ public class Repository<T> : IRepository<T> where T : class
 
     public Repository(AppDbContext context)
     {
-        this._context = context;
+        _context = context;
     }
 
-    public async Task<T> Create(T entity)
+    public async Task<IEnumerable<T>> GetAllAsync()
+        => await _context.Set<T>().ToListAsync();
+
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
+        => await _context.Set<T>().FirstOrDefaultAsync(predicate);
+
+    public async Task<T> CreateAsync(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
-
-
-        _context.Set<T>().Add(entity);
-        await _context.SaveChangesAsync();
-
-        return entity;
+        try
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            // devolve mensagem mais detalhada (inclui inner)
+            var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+            throw new InvalidOperationException($"Erro ao salvar entidade do tipo {typeof(T).Name}: {inner}", dbEx);
+        }
     }
 
-    public async Task<T> Delete(T entity)
+    public async Task<T> UpdateAsync(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
-
-        _context.Set<T>().Remove(entity);
-        await _context.SaveChangesAsync();
-
-        return entity;
+        try
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+            throw new InvalidOperationException($"Erro ao atualizar entidade do tipo {typeof(T).Name}: {inner}", dbEx);
+        }
     }
-    public async Task<T> Update(T entity)
+
+    public async Task<T> DeleteAsync(T entity)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
-
-        _context.Entry(entity).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-
-        return entity;
+        try
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+            throw new InvalidOperationException($"Erro ao remover entidade do tipo {typeof(T).Name}: {inner}", dbEx);
+        }
     }
-
-    public async Task<T> Get(Expression<Func<T, bool>> predicade)
-    {
-        var entity = await _context.Set<T>().FindAsync(predicade);
-
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
-
-        return entity;
-    }
-
-    public async Task<IEnumerable<T>> GetAll()
-    {
-        return await _context.Set<T>().ToListAsync();
-    }
-
-
 }
+
 
 

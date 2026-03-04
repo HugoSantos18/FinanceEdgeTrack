@@ -27,14 +27,14 @@ public class ReceitaService : IReceitaService
 
     public async Task<ReceitaDTO> ObterReceitaPorIdAsync(Guid id)
     {
-        var receita = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
+        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
 
         return _mapper.Map<ReceitaDTO>(receita);
     }
 
     public async Task<IReadOnlyList<ReceitaDTO>> ListarReceitasAsync()
     {
-        var receitas = await _uof.ReceitaRepository.GetAll();
+        var receitas = await _uof.ReceitaRepository.GetAllAsync();
 
         return _mapper.Map<IReadOnlyList<ReceitaDTO>>(receitas);
     }
@@ -44,14 +44,14 @@ public class ReceitaService : IReceitaService
         var receita = _mapper.Map<Receita>(receitaDto);
 
         await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, receita.Valor);
-        await _uof.ReceitaRepository.Create(receita);
+        await _uof.ReceitaRepository.CreateAsync(receita);
 
         return _mapper.Map<ReceitaDTO>(receita); 
     }
 
     public async Task AtualizarReceitaAsync(Guid id, UpdateReceitaDTO receitaDto)
     {
-        var receita = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
+        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
         
         if (receita is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
@@ -61,18 +61,18 @@ public class ReceitaService : IReceitaService
         receita.Data = receitaDto.Data;
         receita.Valor = receitaDto.Valor;
 
-        await _uof.ReceitaRepository.Update(receita)!;
+        await _uof.ReceitaRepository.UpdateAsync(receita)!;
     }
 
 
     public async Task RemoverReceitaAsync(Guid id)
     {
-        var receitaRemovida = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
+        var receitaRemovida = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
         
         if (receitaRemovida is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
      
         await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, receitaRemovida.Valor);
-        await _uof.ReceitaRepository.Delete(receitaRemovida)!;
+        await _uof.ReceitaRepository.DeleteAsync(receitaRemovida)!;
     }
 }

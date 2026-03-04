@@ -11,6 +11,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Carteira
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int CarteiraId { get; set; }
 
     [Required]

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace FinanceEdgeTrack.Application.Services;
 
@@ -88,22 +89,29 @@ public class AuthService : IAuthenticationService
         if (registerModelDto.Password != registerModelDto.ConfirmPassword)
             throw new InvalidOperationException(ResultMessages.ConfirmPasswordError);
 
-        var carteiraDto = new CreateCarteiraDTO();
-        var carteira = await _carteiraService.CreateAsync(carteiraDto);
-
         ApplicationUser user = new()
         {
             UserName = registerModelDto.UserName,
             Email = registerModelDto.Email,
             PhoneNumber = registerModelDto.Telefone,
             SecurityStamp = Guid.NewGuid().ToString(),
-            CarteiraId = carteira.CarteiraId
         };
 
         var result = await _userManager.CreateAsync(user, registerModelDto.Password!);
 
         if (!result.Succeeded)
             throw new InvalidOperationException(ResultMessages.ErrorCreation);
+
+        var carteiraDto = new CreateCarteiraDTO
+        {
+            UserId = user.Id,
+            Saldo = 0m
+        };
+
+        var carteira = await _carteiraService.CreateAsync(carteiraDto);
+        user.CarteiraId = carteira.CarteiraId;
+
+        await _userManager.UpdateAsync(user);
 
         return _mapper.Map<ApplicationUserDTO>(user);
     }

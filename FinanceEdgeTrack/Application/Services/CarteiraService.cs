@@ -25,7 +25,7 @@ public class CarteiraService : ICarteiraService
     {
         var carteira = _mapper.Map<Carteira>(carteiraDto);
 
-        await _uof.CarteiraRepository.Create(carteira);
+        await _uof.CarteiraRepository.CreateAsync(carteira);
 
         return carteira;
     }
@@ -38,20 +38,20 @@ public class CarteiraService : ICarteiraService
             throw new InvalidOperationException(ResultMessages.MoreThanZero);
         }
         
-        var carteira = await _uof.CarteiraRepository.Get(u => u.UserId == userId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(u => u.UserId == userId);
 
         if (carteira is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundUser);
 
         carteira.Saldo += valor;
 
-        await _uof.CarteiraRepository.Update(carteira);
+        await _uof.CarteiraRepository.UpdateAsync(carteira);
         await _uof.CommitAsync();
     }
 
     public async Task DescontarSaldoAsync(string userId, decimal valor)
     {
-        var carteira = await _uof.CarteiraRepository.Get(c => c.UserId == userId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == userId);
 
         if (carteira is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundUser);
@@ -64,13 +64,13 @@ public class CarteiraService : ICarteiraService
 
         carteira.Saldo -= valor;
 
-        await _uof.CarteiraRepository.Update(carteira);
+        await _uof.CarteiraRepository.UpdateAsync(carteira);
         await _uof.CommitAsync();
     }
 
     public async Task<decimal> ObterSaldoAsync(string userId)
     {
-        var carteira = await _uof.CarteiraRepository.Get(c => c.UserId == userId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == userId);
 
         if (carteira is null)
             throw new KeyNotFoundException(ResultMessages.WalletNotFound);

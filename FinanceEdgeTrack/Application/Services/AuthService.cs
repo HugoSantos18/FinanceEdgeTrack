@@ -89,18 +89,24 @@ public class AuthService : IAuthenticationService
         if (registerModelDto.Password != registerModelDto.ConfirmPassword)
             throw new InvalidOperationException(ResultMessages.ConfirmPasswordError);
 
+
         ApplicationUser user = new()
         {
             UserName = registerModelDto.UserName,
             Email = registerModelDto.Email,
             PhoneNumber = registerModelDto.Telefone,
             SecurityStamp = Guid.NewGuid().ToString(),
+            CPF = registerModelDto.CPF,
+            DataNascimento = registerModelDto.DataNascimento
         };
 
         var result = await _userManager.CreateAsync(user, registerModelDto.Password!);
 
         if (!result.Succeeded)
-            throw new InvalidOperationException(ResultMessages.ErrorCreation);
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($" Error: \n{errors}");
+        }
 
         var carteiraDto = new CreateCarteiraDTO
         {

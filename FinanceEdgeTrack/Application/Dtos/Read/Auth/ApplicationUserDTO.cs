@@ -12,7 +12,6 @@ public class ApplicationUserDTO
     [EmailAddress]
     public string Email { get; set; } = default!;
 
-    [Phone]
     public string Telefone { get; set; } = default!;
 
     [Required]

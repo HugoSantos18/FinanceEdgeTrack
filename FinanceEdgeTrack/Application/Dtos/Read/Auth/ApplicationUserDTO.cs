@@ -19,4 +19,5 @@ public class ApplicationUserDTO
     public string CPF { get; set; } = default!;
 
     public DateTime DataNascimento { get; set; }
+
 }

@@ -27,5 +27,6 @@ public static class ResultMessages
     public const string InvalidAccessToken = "Token de acesso inválido.";
     public const string InvalidRefreshToken = "RefreshToken inválido.";
     public const string RevokeSuccessfull = "Token revogado com sucesso.";
-
+    public const string ConfirmPasswordInavlid = "A confirmação de senha deve ser igual a senha original.";
+    public const string MetaCompleted = $"Parabéns você acaba de finalizar sua meta, continue progredindo :D";
 }

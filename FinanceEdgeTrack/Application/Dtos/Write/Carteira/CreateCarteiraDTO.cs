@@ -6,10 +6,8 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 
 public class CreateCarteiraDTO
 {
-
     [Required]
     public string? UserId { get; set; }
 
     public decimal Saldo { get; set; } = default!;
-
 }

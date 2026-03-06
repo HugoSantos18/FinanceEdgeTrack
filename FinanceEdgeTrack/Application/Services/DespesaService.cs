@@ -1,10 +1,13 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
+﻿using FinanceEdgeTrack.Application.Common;
+using FinanceEdgeTrack.Application.Dtos.Read;
+using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Error;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace FinanceEdgeTrack.Application.Services
 {
@@ -23,31 +26,35 @@ namespace FinanceEdgeTrack.Application.Services
             _currentUser = currentUser;
         }
 
-        public async Task<DespesaDTO> ObterDespesaPorIdAsync(Guid id)
+        public async Task<ApiResponse<DespesaDTO>> ObterDespesaPorIdAsync(Guid id)
         {
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
-            return _mapper.Map<DespesaDTO>(despesa);
+            var despesaDto = _mapper.Map<DespesaDTO>(despesa);
+
+            return ApiResponse<DespesaDTO>.Ok(despesaDto);
         }
 
-        public async Task<IReadOnlyList<DespesaDTO>> ListarDespesasAsync()
+        public async Task<ApiResponse<IReadOnlyList<DespesaDTO>>> ListarDespesasAsync()
         {
             var despesas = await _uof.DespesaRepository.GetAllAsync();
 
-            return _mapper.Map<IReadOnlyList<DespesaDTO>>(despesas);
+            var despesasDto = _mapper.Map<IReadOnlyList<DespesaDTO>>(despesas);
+       
+           return ApiResponse<IReadOnlyList<DespesaDTO>>.Ok(despesasDto);
         }
 
-        public async Task<DespesaDTO> CreateDespesaAsync(CreateDespesaDTO despesaDto)
+        public async Task<ApiResponse<DespesaDTO>> CreateDespesaAsync(CreateDespesaDTO despesaDto)
         {
             var despesa = _mapper.Map<Despesa>(despesaDto);
 
             await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, despesa.Valor);
             await _uof.DespesaRepository.CreateAsync(despesa);
 
-            return _mapper.Map<DespesaDTO>(despesa);
+            return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }
 
-        public async Task AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto)
+        public async Task<ApiResponse<DespesaDTO>> AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto)
         {
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
@@ -60,18 +67,22 @@ namespace FinanceEdgeTrack.Application.Services
             despesa.Valor = despesaDto.Valor;
 
             await _uof.DespesaRepository.UpdateAsync(despesa)!;
+
+            return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }
 
 
-        public async Task RemoverDespesaAsync(Guid id)
+        public async Task<ApiResponse<DespesaDTO>> RemoverDespesaAsync(Guid id)
         {
             var despesaRemovida = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
             if (despesaRemovida is null)
-                throw new KeyNotFoundException(ResultMessages.NotFoundDespesa);
+                return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
 
             await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, despesaRemovida.Valor);
             await _uof.DespesaRepository.DeleteAsync(despesaRemovida)!;
+
+            return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesaRemovida), "Despesa removida com sucesso");
         }
     }
 }

@@ -5,7 +5,6 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Auth;
 
 public class LoginModelUserDTO
 {
-    [Required]
     [MaxLength(20)]
     public string UserName { get; set; } = default!;
 

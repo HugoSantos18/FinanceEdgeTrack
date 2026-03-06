@@ -25,14 +25,14 @@ public class LancamentoService : ILancamentoService
     {
         var lancamento = _mapper.Map<Lancamento>(lancamentoDTO);
         
-        await _uof.LancamentoRepository.Create(lancamento);
+        await _uof.LancamentoRepository.CreateAsync(lancamento);
 
         return _mapper.Map<LancamentoDTO>(lancamento);
     }
 
     public async Task AtualizarLancamentoAsync(Guid lancamentoId, UpdateLancamentoDTO lancamentoDto)
     {
-        var lancamento = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
+        var lancamento = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
@@ -43,22 +43,22 @@ public class LancamentoService : ILancamentoService
             lancamento.ReceitaId = lancamentoDto.ReceitaId;
             lancamento.UserId = _currentUser.UserId;
 
-        await _uof.LancamentoRepository.Update(lancamento);
+        await _uof.LancamentoRepository.UpdateAsync(lancamento);
     }
 
     public async Task CancelarLancamentoAsync(Guid lancamentoId)
     {
-        var lancamentoRemovido = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
+        var lancamentoRemovido = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamentoRemovido is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
 
-        await _uof.LancamentoRepository.Delete(lancamentoRemovido);
+        await _uof.LancamentoRepository.DeleteAsync(lancamentoRemovido);
     }
     
     public async Task<LancamentoDTO> GetByIdAsync(Guid lancamentoId)
     {
-        var lancamento = await _uof.LancamentoRepository.Get(l => l.LancamentoId == lancamentoId);
+        var lancamento = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
             throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
@@ -68,7 +68,7 @@ public class LancamentoService : ILancamentoService
 
     public async Task<IReadOnlyList<LancamentoDTO>> GetAllLancamentosAsync()
     {
-        var lancamentos = await _uof.LancamentoRepository.GetAll();
+        var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
 
         return _mapper.Map<IReadOnlyList<LancamentoDTO>>(lancamentos);
     }

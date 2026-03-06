@@ -20,13 +20,17 @@ public class ApplicationUser : IdentityUser
     // atributo que será atualizado sempre que fizer um lançamento para acompanhar histórico do user
     public int TotalLancamentos { get; set; } = 0;
 
-    [Required]
-    public int CarteiraId { get; set; }
+    public int? CarteiraId { get; set; }
    
     [ForeignKey(nameof(CarteiraId))]
-    public Carteira Carteira { get; set; }
+    public Carteira? Carteira { get; set; }
 
+    [Required]
+    [MaxLength(14)]
+    public string CPF { get; set; } = default!;
+
+    public DateTime DataNascimento { get; set; }
 
     public string? RefreshToken { get; set; }
-    public DateTime? RefreshTokenExpiration { get; set; }
+    public DateTime? RefreshTokenExpire { get; set; }
 }

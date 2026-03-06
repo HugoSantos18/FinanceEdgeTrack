@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
-public class AppDbContext : IdentityDbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -84,7 +84,9 @@ public class AppDbContext : IdentityDbContext
         model.Entity<Carteira>(entity =>
         {
             entity.ToTable("Carteira");
-            entity.HasKey(c => c.CarteiraId);
+
+            entity.Property(c => c.CarteiraId)
+            .UseIdentityByDefaultColumn();
 
             entity.Property(s => s.Saldo)
            .HasPrecision(15, 2);
@@ -93,7 +95,7 @@ public class AppDbContext : IdentityDbContext
             entity.HasOne(c => c.User)
             .WithOne()
             .OnDelete(DeleteBehavior.Cascade);
-          
+
         });
 
 
@@ -139,38 +141,38 @@ public class AppDbContext : IdentityDbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-            // Receita
-            model.Entity<Receita>()
-            .Property(r => r.Valor)
+        // Receita
+        model.Entity<Receita>()
+        .Property(r => r.Valor)
+        .HasPrecision(15, 2)
+        .IsRequired();
+
+        model.Entity<Receita>()
+            .Property(r => r.Titulo)
+            .HasMaxLength(150)
+            .IsRequired();
+
+        model.Entity<Receita>()
+            .Property(r => r.Data)
+            .IsRequired();
+
+
+        // Despesa
+        model.Entity<Despesa>()
+            .Property(d => d.Valor)
             .HasPrecision(15, 2)
             .IsRequired();
 
-            model.Entity<Receita>()
-                .Property(r => r.Titulo)
-                .HasMaxLength(150)
-                .IsRequired();
+        model.Entity<Despesa>()
+            .Property(d => d.Titulo)
+            .HasMaxLength(150)
+            .IsRequired();
 
-            model.Entity<Receita>()
-                .Property(r => r.Data)
-                .IsRequired();
-
-
-            // Despesa
-            model.Entity<Despesa>()
-                .Property(d => d.Valor)
-                .HasPrecision(15, 2)
-                .IsRequired();
-
-            model.Entity<Despesa>()
-                .Property(d => d.Titulo)
-                .HasMaxLength(150)
-                .IsRequired();
-
-            model.Entity<Despesa>()
-                .Property(d => d.Data)
-                .IsRequired();
+        model.Entity<Despesa>()
+            .Property(d => d.Data)
+            .IsRequired();
 
 
-            base.OnModelCreating(model);
-        }
+        base.OnModelCreating(model);
     }
+}

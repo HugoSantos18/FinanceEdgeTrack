@@ -12,6 +12,12 @@ public class ApplicationUserDTO
     [EmailAddress]
     public string Email { get; set; } = default!;
 
-    [PasswordPropertyText]
-    public string Password { get; set; } = default!;
+    public string Telefone { get; set; } = default!;
+
+    [Required]
+    [MaxLength(14)]
+    public string CPF { get; set; } = default!;
+
+    public DateTime DataNascimento { get; set; }
+
 }

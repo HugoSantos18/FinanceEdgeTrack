@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
+﻿using FinanceEdgeTrack.Application.Common;
+using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
@@ -11,7 +12,7 @@ namespace FinanceEdgeTrack.Application.Services;
 
 public class ReceitaService : IReceitaService
 {
-    
+
     private readonly IUnitOfWork _uof;
     private readonly ICarteiraService _carteiraService;
     private readonly ICurrentUserService _currentUser;
@@ -25,54 +26,64 @@ public class ReceitaService : IReceitaService
         _currentUser = currentUser;
     }
 
-    public async Task<ReceitaDTO> ObterReceitaPorIdAsync(Guid id)
+    public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
     {
-        var receita = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
+        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
 
-        return _mapper.Map<ReceitaDTO>(receita);
+        if (receita is null)
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+
+        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
 
-    public async Task<IReadOnlyList<ReceitaDTO>> ListarReceitasAsync()
+    public async Task<ApiResponse<IReadOnlyList<ReceitaDTO>>> ListarReceitasAsync()
     {
-        var receitas = await _uof.ReceitaRepository.GetAll();
+        var receitas = await _uof.ReceitaRepository.GetAllAsync();
 
-        return _mapper.Map<IReadOnlyList<ReceitaDTO>>(receitas);
+        if (receitas is null)
+            return ApiResponse<IReadOnlyList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
+
+        return ApiResponse<IReadOnlyList<ReceitaDTO>>.Ok(_mapper.Map<IReadOnlyList<ReceitaDTO>>(receitas));
     }
 
-    public async Task<ReceitaDTO> CreateReceitaAsync(CreateReceitaDTO receitaDto)
+    public async Task<ApiResponse<ReceitaDTO>> CreateReceitaAsync(CreateReceitaDTO receitaDto)
     {
         var receita = _mapper.Map<Receita>(receitaDto);
 
         await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, receita.Valor);
-        await _uof.ReceitaRepository.Create(receita);
+        await _uof.ReceitaRepository.CreateAsync(receita);
 
-        return _mapper.Map<ReceitaDTO>(receita); 
+        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
 
-    public async Task AtualizarReceitaAsync(Guid id, UpdateReceitaDTO receitaDto)
+    public async Task<ApiResponse<ReceitaDTO>> AtualizarReceitaAsync(Guid id, UpdateReceitaDTO receitaDto)
     {
-        var receita = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
-        
+        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
+
         if (receita is null)
-            throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
-        
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+
         receita.Titulo = receitaDto.Titulo;
         receita.Descricao = receitaDto.Descricao;
         receita.Data = receitaDto.Data;
         receita.Valor = receitaDto.Valor;
 
-        await _uof.ReceitaRepository.Update(receita)!;
+        await _uof.ReceitaRepository.UpdateAsync(receita!);
+
+        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
 
 
-    public async Task RemoverReceitaAsync(Guid id)
+    public async Task<ApiResponse<ReceitaDTO>> RemoverReceitaAsync(Guid id)
     {
-        var receitaRemovida = await _uof.ReceitaRepository.Get(r => r.ReceitaId == id);
-        
+        var receitaRemovida = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
+
         if (receitaRemovida is null)
-            throw new KeyNotFoundException(ResultMessages.NotFoundReceive);
-     
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+
         await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, receitaRemovida.Valor);
-        await _uof.ReceitaRepository.Delete(receitaRemovida)!;
+        await _uof.ReceitaRepository.DeleteAsync(receitaRemovida!);
+
+        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receitaRemovida));
     }
 }

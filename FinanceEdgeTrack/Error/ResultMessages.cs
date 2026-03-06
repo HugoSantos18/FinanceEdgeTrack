@@ -21,4 +21,12 @@ public static class ResultMessages
     public const string ValidMeta = "Para finalizar a criação de uma meta, deve ser preenchido as credenciais corretamente.";
     public const string ValidCredentialsSuccess = "Concluído com sucesso!";
     public const string ErrorCreation = "Não foi possível realizar a operação.";
+    public const string InvalidLoginCredentials = "Credenciais inválidas, não foi possível fazer o Login.";
+    public const string UserAlreadyExists = "Usuário já existe.";
+    public const string ConfirmPasswordError = "O campo de confirmação de senha deve ser o mesmo da senha.";
+    public const string InvalidAccessToken = "Token de acesso inválido.";
+    public const string InvalidRefreshToken = "RefreshToken inválido.";
+    public const string RevokeSuccessfull = "Token revogado com sucesso.";
+    public const string ConfirmPasswordInavlid = "A confirmação de senha deve ser igual a senha original.";
+    public const string MetaCompleted = $"Parabéns você acaba de finalizar sua meta, continue progredindo :D";
 }

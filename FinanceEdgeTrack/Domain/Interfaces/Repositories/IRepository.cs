@@ -4,14 +4,10 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Repositories;
 
 public interface IRepository<T>
 {
-    Task<T>? Get(Expression<Func<T, bool>> predicade);
-
-    Task<IEnumerable<T>>? GetAll();
-
-    Task<T> Create(T entity);
-
-    Task<T>? Update(T entity);
-
-    Task<T>? Delete(T entity);
+    Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
+    Task<IEnumerable<T>> GetAllAsync();
+    Task<T> CreateAsync(T entity);
+    Task<T> UpdateAsync(T entity);
+    Task<T> DeleteAsync(T entity);
 
 }

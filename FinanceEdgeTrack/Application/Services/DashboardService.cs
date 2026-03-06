@@ -1,7 +1,7 @@
 ﻿namespace FinanceEdgeTrack.Application.Services;
 
-public class CalculadoraService
+public class DashboardService
 {
- 
+
 
 }

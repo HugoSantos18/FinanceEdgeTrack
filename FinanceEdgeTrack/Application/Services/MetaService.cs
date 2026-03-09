@@ -4,9 +4,9 @@ using MapsterMapper;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Error;
 using Mapster;
-using FinanceEdgeTrack.Application.Common;
+using FinanceEdgeTrack.Application.Common.Responses;
+using FinanceEdgeTrack.Domain.Enum;
 
 namespace FinanceEdgeTrack.Application.Services;
 
@@ -81,6 +81,8 @@ public class MetaService : IMetaService
         meta.ValorAlvo = metaDto.ValorAlvo;
         meta.AlterarDataAlvo(metaDto.DataAlvo);
         meta.AlterarStatus(metaDto.Status);
+        metaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
+
         await _uof.MetaRepository.UpdateAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Meta {meta.Titulo} atualizada com sucesso");
@@ -88,70 +90,62 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)
     {
-        var meta = _mapper.Map<Meta>(metaDto) ?? throw new InvalidOperationException(ResultMessages.ValidMeta);
+        var meta = _mapper.Map<Meta>(metaDto);
+        
+        if(meta is null)
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
 
         await _uof.MetaRepository.CreateAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
 
-    public async Task<ApiResponse<MetaDTO>> FinalizarMeta(Guid metaId)
+    public async Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
-
-        meta.FinalizarMeta();
-        await _uof.CommitAsync();
-
-        int daysCompleted = meta.DataInicio.Day - DateTime.UtcNow.Day;
-        int daysRest = DateTime.UtcNow.Day - meta.DataAlvo.Day;
-
-        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta),
-            $"Parábens você finalizou sua meta em {daysCompleted} dias " +
-            $"e com a data que foi alvejada teve a diferença de {daysRest} dias");
-    }
-
-
-    public async Task<ApiResponse<AporteMetasDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
-    {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
-
-        if (meta is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
         var novoAporte = _mapper.Map<AporteMetas>(aporteMetaDto);
 
         if (novoAporte is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.ErrorCreation);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.ErrorCreation);
 
         await _carteira.DescontarSaldoAsync(_currentUser.UserId, novoAporte.Valor);
 
         meta.RegistrarAporte(novoAporte);
         await _uof.CommitAsync();
 
-        return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(novoAporte), $"Aporte no valor de {novoAporte.Valor:C2} registrado com sucesso.");
+        if (meta.Status == Status.Concluido)
+        {
+            int daysCompleted = (meta.DataConclusao!.Value - meta.DataInicio).Days;
+
+            return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta),
+                $"🎉 Parabéns! Você finalizou sua meta em {daysCompleted} dias!");
+        }
+
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {novoAporte.Valor:C2} registrado com sucesso.");
     }
 
-    public async Task<ApiResponse<AporteMetasDTO>> RemoverAporteAsync(Guid aporteMetaId)
+    public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
 
         if (meta is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
         var aporteRemovido = meta.Aportes.First(a => a.Id == aporteMetaId);
 
         if (aporteRemovido is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundAporte);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundAporte);
 
         await _carteira.AdicionarSaldoAsync(_currentUser.UserId, aporteRemovido.Valor);
         meta.RemoverAporte(aporteRemovido);
 
         await _uof.CommitAsync();
 
-        return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(aporteRemovido));
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {aporteRemovido.Valor:C2} removido com sucesso.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverMetaAsync(Guid metaId)
@@ -166,7 +160,7 @@ public class MetaService : IMetaService
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
 
-    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId)
+    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId)  //Dashboard e relatórios;
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 

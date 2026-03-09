@@ -1,11 +1,10 @@
-﻿using FinanceEdgeTrack.Application.Common;
+﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Error;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
@@ -30,6 +29,9 @@ namespace FinanceEdgeTrack.Application.Services
         {
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
+            if (despesa is null)
+                return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
+
             var despesaDto = _mapper.Map<DespesaDTO>(despesa);
 
             return ApiResponse<DespesaDTO>.Ok(despesaDto);
@@ -38,6 +40,9 @@ namespace FinanceEdgeTrack.Application.Services
         public async Task<ApiResponse<IReadOnlyList<DespesaDTO>>> ListarDespesasAsync()
         {
             var despesas = await _uof.DespesaRepository.GetAllAsync();
+            
+            if (despesas is null)
+                return ApiResponse<IReadOnlyList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
 
             var despesasDto = _mapper.Map<IReadOnlyList<DespesaDTO>>(despesas);
        
@@ -59,12 +64,13 @@ namespace FinanceEdgeTrack.Application.Services
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
             if (despesa is null)
-                throw new KeyNotFoundException(ResultMessages.NotFoundDespesa);
+                return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
 
-            despesa.Titulo = despesaDto.Titulo;
+            despesa.Titulo = despesaDto.Titulo!;
             despesa.Descricao = despesaDto.Descricao;
             despesa.Data = despesaDto.Data;
             despesa.Valor = despesaDto.Valor;
+            despesaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
 
             await _uof.DespesaRepository.UpdateAsync(despesa)!;
 

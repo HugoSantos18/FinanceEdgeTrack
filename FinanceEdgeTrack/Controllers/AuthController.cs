@@ -1,7 +1,7 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Auth;
+﻿using FinanceEdgeTrack.Application.Common.Responses;
+using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
-using FinanceEdgeTrack.Error;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.InteropServices;
 
@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
     private readonly IAuthenticationService _authService;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger) : base()
+    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger)
     {
         _authService = authService;
         _logger = logger;
@@ -27,10 +27,10 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.Login(loginModelDto);
 
-        if(response is not null)
-            return Ok(response);
+        if(!response.Success)
+            return Unauthorized(response);
 
-        return Unauthorized();
+        return Ok(response);
     }
 
     [HttpPost("Register")]
@@ -38,10 +38,10 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.Register(registerModelDto);
 
-        if (response is not null)
-            return Ok(response);
+        if (!response.Success)
+            return BadRequest(ResultMessages.InvalidCredentials);
 
-        return BadRequest(ResultMessages.InvalidCredentials);
+        return Ok(response);
     }
 
     [HttpPost("refresh")]
@@ -49,10 +49,10 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.RefreshToken(tokenModelDto);
 
-        if (response is not null)
-            return Ok(response);
+        if (!response.Success)
+            return BadRequest(ResultMessages.InvalidAccessToken);
 
-        return BadRequest(ResultMessages.InvalidAccessToken);
+        return Ok(response);
     }
 
 

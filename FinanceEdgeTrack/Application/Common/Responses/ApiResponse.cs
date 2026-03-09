@@ -1,4 +1,4 @@
-﻿namespace FinanceEdgeTrack.Application.Common;
+﻿namespace FinanceEdgeTrack.Application.Common.Responses;
 
 // classe base para as responses da API
 public class ApiResponse<T>

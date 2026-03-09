@@ -1,21 +1,125 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces;
+﻿using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Services;
+using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceEdgeTrack.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class MetaController : ControllerBase
 {
-    private readonly IUnitOfWork _uof;
+    private readonly IMetaService _metaService;
+    private readonly ILogger<MetaController> _logger;
 
-    public MetaController(IUnitOfWork uof)
+    public MetaController(IMetaService metaService, ILogger<MetaController> logger)
     {
-        this._uof = uof;
+        _metaService = metaService;
+        _logger = logger;
     }
 
-    // método PATCH para alterar o valor da meta associado ou deixar no PUT (verificar depois qual é o melhor)
+    [HttpGet("{id}", Name = "GetMeta")]
+    public async Task<IActionResult> GetMetaAsync(Guid id)
+    {
+        var response = await _metaService.GetMetaPorIdAsync(id);
+
+        if (!response.Success)
+            return NotFound(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("aporte/{aporteId}", Name = "GetAporte")]
+    public async Task<IActionResult> GetAporteAsync(Guid aporteId)
+    {
+        var response = await _metaService.GetAportePorIdAsync(aporteId);
+
+        if (!response.Success)
+            return NotFound(response);
+
+        return Ok(response);
+    }
 
 
+    [HttpGet("All")]
+    public async Task<IActionResult> GetAllMetasAsync()
+    {
+        var response = await _metaService.GetAllMetasAsync();
 
+        if (!response.Success)
+            return NotFound(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("{metaId}/aportes", Name = "GetAllAportesFromMeta")]
+    public async Task<IActionResult> GetAllAportesAsync(Guid metaId)
+    {
+        var response = await _metaService.GetAllAportesDaMetaPorIdAsync(metaId);
+
+        if (!response.Success)
+            return NotFound(response);
+
+        return Ok(response);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] CreateMetaDTO metaDto)
+    {
+        var response = await _metaService.CriarMetaAsync(metaDto);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
+    [HttpPost("{metaId}/aporte")]
+    public async Task<IActionResult> PostAporte(Guid metaId, [FromBody] CreateAporteMetaDTO aporteDto)
+    {
+        var response = await _metaService.RegistrarAporteAsync(metaId, aporteDto);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(Guid id, UpdateMetaDTO metaDto)
+    {
+        var response = await _metaService.AtualizarMetaAsync(id, metaDto);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("aporte/{aporteId}")]
+    public async Task<IActionResult> DeleteAporte(Guid aporteId)
+    {
+        var response = await _metaService.RemoverAporteAsync(aporteId);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var response = await _metaService.RemoverMetaAsync(id);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
 }

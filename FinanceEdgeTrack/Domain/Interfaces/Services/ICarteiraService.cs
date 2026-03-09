@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Application.Common;
+﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Models;

@@ -4,44 +4,46 @@ using FinanceEdgeTrack.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
 using System.Threading.Tasks;
-using FinanceEdgeTrack.Error;
+using FinanceEdgeTrack.Application.Common.Responses;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
 public class Meta
 {
-    public Guid MetaId { get; set; } = Guid.NewGuid();
+    public Guid MetaId { get; private set; } = Guid.NewGuid();
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
 
-    public string? Descricao { get; set; }
+    public string? Descricao { get; private set; }
 
     [Required(ErrorMessage = "É obrigatório informar o valor alvo da Meta para alcança-lá. :)")]
     [Range(typeof(decimal), "1", "999999999999")]
     public decimal ValorAlvo { get; set; }
 
     [Range(typeof(decimal), "0", "999999999999")]
-    public decimal ValorAtual { get; set; } = 0;
+    public decimal ValorAtual { get; private set; } = 0;
 
     [Range(typeof(decimal), "1", "999999999999")]
-    public decimal UltimoDepositoEmReais { get; set; } = default!;
+    public decimal UltimoDepositoEmReais { get; private set; } = default!;
 
-    public DateTime DataUltimoDeposito { get; set; }
+    public DateTime DataUltimoDeposito { get; private set; }
 
     [Range(0, 100)]
-    public decimal PorcentagemAtual { get; set; }
+    public decimal PorcentagemAtual { get; private set; }
 
     [Range(typeof(decimal), "0", "999999999999")]
-    public decimal ValorRestante { get; set; }
+    public decimal ValorRestante { get; private set; }
 
-    public DateTime DataInicio { get; set; }
+    public DateTime DataInicio { get; private set; }
 
-    public DateTime DataAlvo { get; set; }
+    public DateTime DataAlvo { get; private set; }
 
-    public Status Status { get; set; } = default!;
+    public DateTime? DataConclusao { get; private set; }
 
-    public List<AporteMetas>? Aportes { get; set; } = new();
+    public Status Status { get; private set; } = default!;
+
+    public List<AporteMetas>? Aportes { get; private set; } = new();
 
 
     public void AlterarStatus(Status novoStatus)
@@ -76,9 +78,12 @@ public class Meta
         Aportes ??= new List<AporteMetas>();
         Aportes.Add(novoAporte);
 
+        if (ValorTotalAportes() >= ValorAlvo)
+        {
+            FinalizarMeta();
+        }
+
         AdicionareAtualizarValorAporte(novoAporte.Valor);
-        PorcentagemAtual = CalcularPorcentagemAtual();
-        DataUltimoDeposito = DateTime.UtcNow;
     }
 
     public void RemoverAporte(AporteMetas aporteRemovido)
@@ -86,7 +91,7 @@ public class Meta
         if (aporteRemovido is null)
             throw new ArgumentNullException(nameof(aporteRemovido));
 
-        int aporteAnterior = (Aportes.IndexOf(aporteRemovido) - 1); 
+        int aporteAnterior = (Aportes.IndexOf(aporteRemovido) - 1);
         Aportes.Remove(aporteRemovido);
 
         DescontareAtualizarValorAporte(aporteRemovido.Valor);
@@ -98,6 +103,8 @@ public class Meta
         ValorAtual += novoValor;
         ValorRestante = ValorAlvo - ValorAtual;
         UltimoDepositoEmReais = novoValor;
+        CalcularPorcentagemAtual();
+        DataUltimoDeposito = DateTime.UtcNow;
     }
 
     private void DescontareAtualizarValorAporte(decimal valorRemovido)
@@ -126,23 +133,19 @@ public class Meta
         return (ValorAtual / ValorAlvo) * 100;
     }
 
-    public void FinalizarMeta()
+    private void FinalizarMeta()
     {
-        if (ValorAtual >= ValorAlvo)
-        {
-            AlterarStatus(Status.Concluido);
-            PorcentagemAtual = 100;
-            ValorRestante = 0;
-        }
-        else
-            throw new InvalidOperationException("Meta ainda não finalizada, complete o valor alvo para poder finalizar.");
+        AlterarStatus(Status.Concluido);
+        PorcentagemAtual = 100;
+        ValorRestante = 0;
+        DataConclusao = DateTime.UtcNow;
     }
 
 
     public decimal ValorTotalAportes()
     {
         decimal total = 0;
-        
+
         total = Aportes.Sum(a => a.Valor);
 
         return total;

@@ -17,4 +17,5 @@ public class UpdateLancamentoDTO
     [OptionalCategoryAtributte]
     public Guid? DespesaId { get; set; }
 
+    public string? UpdatedAt { get; set; }
 }

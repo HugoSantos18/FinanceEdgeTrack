@@ -1,11 +1,10 @@
-﻿using FinanceEdgeTrack.Application.Common;
+﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Error;
 using MapsterMapper;
 
 namespace FinanceEdgeTrack.Application.Services;
@@ -67,6 +66,7 @@ public class ReceitaService : IReceitaService
         receita.Descricao = receitaDto.Descricao;
         receita.Data = receitaDto.Data;
         receita.Valor = receitaDto.Valor;
+        receitaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
 
         await _uof.ReceitaRepository.UpdateAsync(receita!);
 

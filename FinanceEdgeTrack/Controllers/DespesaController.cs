@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -31,15 +32,49 @@ public class DespesaController : ControllerBase
     }
 
     [HttpGet("All")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParams pagination)
     {
-        var response = await _despesaService.ListarDespesasAsync();
+        var response = await _despesaService.ListarDespesasAsync(pagination);
 
         if (!response.Success)
             return NotFound(response);
 
         return Ok(response);
     }
+
+    [HttpGet("fixas")]
+    public async Task<IActionResult> GetAllFixasAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _despesaService.DespesasFixasPaginadasAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("maior-gasto")]
+    public async Task<IActionResult> GetAllFilterByValueDescendingAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _despesaService.DespesasFiltradasMaiorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("menor-gasto")]
+    public async Task<IActionResult> GetAllFilterByValueAscendingAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _despesaService.DespesasFiltradasMenorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateDespesaDTO despesaDto)

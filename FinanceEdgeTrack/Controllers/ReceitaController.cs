@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -31,15 +32,38 @@ public class ReceitaController : ControllerBase
     }
 
     [HttpGet("All")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParams pagination)
     {
-        var response = await _receitaService.ListarReceitasAsync();
+        var response = await _receitaService.ListarReceitasAsync(pagination);
 
         if (!response.Success)
             return NotFound(response);
 
         return Ok(response);
     }
+
+    [HttpGet("maior-gasto")]
+    public async Task<IActionResult> GetAllFilterByValueDescendingAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _receitaService.ReceitasFiltradasMaiorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("menor-gasto")]
+    public async Task<IActionResult> GetAllFilterByValueAscendingAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _receitaService.ReceitasFiltradasMenorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateReceitaDTO receitaDto)

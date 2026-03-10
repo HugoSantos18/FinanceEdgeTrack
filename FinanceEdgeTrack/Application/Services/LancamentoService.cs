@@ -1,10 +1,12 @@
-﻿using FinanceEdgeTrack.Application.Common.Responses;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services;
 
@@ -74,14 +76,50 @@ public class LancamentoService : ILancamentoService
         return ApiResponse<LancamentoDTO>.Ok(_mapper.Map<LancamentoDTO>(lancamento));
     }
 
-    public async Task<ApiResponse<IReadOnlyList<LancamentoDTO>>> GetAllLancamentosAsync()
+    public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllLancamentosAsync(PaginationParams pagination)
     {
         var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
 
         if (lancamentos is null)
-            return ApiResponse<IReadOnlyList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
+            return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
 
-        return ApiResponse<IReadOnlyList<LancamentoDTO>>.Ok(_mapper.Map<IReadOnlyList<LancamentoDTO>>(lancamentos));
+        var query = lancamentos
+           .AsQueryable()
+           .AsNoTracking()
+           .OrderBy(l => l.DataLancamento);
+
+        var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
+            (
+             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             pagination.PageNumber,
+             pagination.PageSize
+            );
+
+
+        return ApiResponse<PagedList<LancamentoDTO>>.Ok(lancamentosPaginados);
+    }
+
+    public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllFilterByDataDescendingAsync(PaginationParams pagination)
+    {
+        var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
+
+        if (lancamentos is null)
+            return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
+
+        var query = lancamentos
+           .AsQueryable()
+           .AsNoTracking()
+           .OrderByDescending(l => l.DataLancamento);
+
+        var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
+            (
+             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             pagination.PageNumber,
+             pagination.PageSize
+            );
+
+
+        return ApiResponse<PagedList<LancamentoDTO>>.Ok(lancamentosPaginados);
     }
 
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using FinanceEdgeTrack.Error;
 
-namespace FinanceEdgeTrack.Error.Extensions;
+namespace FinanceEdgeTrack.Extensions;
 
 public static class ApiExtensionMiddleware
 {

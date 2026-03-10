@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Application.Services;
@@ -14,7 +15,7 @@ public class LancamentoController : ControllerBase
     private readonly ILancamentoService _lancamentoService;
     private readonly ILogger<LancamentoController> _logger;
 
-    public LancamentoController(ILancamentoService lancamentoService, ILogger<LancamentoController> logger) 
+    public LancamentoController(ILancamentoService lancamentoService, ILogger<LancamentoController> logger)
     {
         _lancamentoService = lancamentoService;
         _logger = logger;
@@ -32,15 +33,27 @@ public class LancamentoController : ControllerBase
     }
 
     [HttpGet("All")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParams pagination)
     {
-        var response = await _lancamentoService.GetAllLancamentosAsync();
+        var response = await _lancamentoService.GetAllLancamentosAsync(pagination);
 
         if (!response.Success)
             return NotFound(response);
 
         return Ok(response);
     }
+
+    [HttpGet("data-descending")]
+    public async Task<IActionResult> GetAllFilterByDataDescendingAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _lancamentoService.GetAllFilterByDataDescendingAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] LancamentoDTO lancamentoDto)

@@ -1,4 +1,6 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Common.Pagination.Filters;
+using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
@@ -43,23 +45,89 @@ public class MetaController : ControllerBase
 
 
     [HttpGet("All")]
-    public async Task<IActionResult> GetAllMetasAsync()
+    public async Task<IActionResult> GetAllMetasAsync([FromQuery] PaginationParams pagination)
     {
-        var response = await _metaService.GetAllMetasAsync();
+        var response = await _metaService.GetAllMetasAsync(pagination);
 
         if (!response.Success)
-            return NotFound(response);
+            return BadRequest(response);
 
         return Ok(response);
     }
 
     [HttpGet("{metaId}/aportes", Name = "GetAllAportesFromMeta")]
-    public async Task<IActionResult> GetAllAportesAsync(Guid metaId)
+    public async Task<IActionResult> GetAllAportesAsync(Guid metaId, PaginationParams pagination)
     {
-        var response = await _metaService.GetAllAportesDaMetaPorIdAsync(metaId);
+        var response = await _metaService.GetAllAportesDaMetaPorIdAsync(metaId, pagination);
 
         if (!response.Success)
-            return NotFound(response);
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("maior-valor")]
+    public async Task<IActionResult> GetAllMetasFilterByMaiorValorAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _metaService.MetasFiltradasMaiorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("menor-valor")]
+    public async Task<IActionResult> GetAllMetasFilterByMenorValorAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _metaService.MetasFiltradasMenorValorAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("quase-feita")]
+    public async Task<IActionResult> GetAllMetasFilterByQuaseConcluidaAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _metaService.MetasFiltradasQuaseConcluidasAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("antigas")]
+    public async Task<IActionResult> GetAllMetasFilterByAntigasAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _metaService.MetasFiltradasMaisAntigaAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("recentes")]
+    public async Task<IActionResult> GetAllMetasFilterByRecentesAsync([FromQuery] PaginationParams pagination)
+    {
+        var response = await _metaService.MetasFiltradasMaisRecentesAsync(pagination);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("status")]
+    public async Task<IActionResult> GetAllMetasFilterByStatusAsync([FromQuery] StatusParams statusPagination)
+    {
+        var response = await _metaService.MetasFiltradasPorStatusAsync(statusPagination);
+
+        if (!response.Success)
+            return BadRequest(response);
 
         return Ok(response);
     }

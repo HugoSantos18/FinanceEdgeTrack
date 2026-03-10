@@ -1,12 +1,15 @@
-﻿using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
-using MapsterMapper;
-using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Common.Pagination.Filters;
+using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Error;
+using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Domain.Enum;
+using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Models;
 using Mapster;
-using FinanceEdgeTrack.Application.Common;
+using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services;
 
@@ -47,26 +50,185 @@ public class MetaService : IMetaService
         return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(aporte));
     }
 
-    public async Task<ApiResponse<IReadOnlyList<AporteMetasDTO>>> GetAllAportesDaMetaPorIdAsync(Guid metaId)
+    public async Task<ApiResponse<PagedList<AporteMetasDTO>>> GetAllAportesDaMetaPorIdAsync(Guid metaId, PaginationParams pagination)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
-            return ApiResponse<IReadOnlyList<AporteMetasDTO>>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<PagedList<AporteMetasDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var aportes = meta.Aportes;
 
-        return ApiResponse<IReadOnlyList<AporteMetasDTO>>.Ok(_mapper.Map<IReadOnlyList<AporteMetasDTO>>(aportes));
+        if (aportes is null)
+            return ApiResponse<PagedList<AporteMetasDTO>>.Fail(ResultMessages.EmptyAporteCollection);
+
+        var query = aportes
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderByDescending(a => a.Valor);
+
+        var aportesPaginados = await PagedList<AporteMetasDTO>.CreateAsync
+            (
+            query.Select(a => _mapper.Map<AporteMetasDTO>(a)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<AporteMetasDTO>>.Ok(aportesPaginados);
     }
 
-    public async Task<ApiResponse<IReadOnlyList<MetaDTO>>> GetAllMetasAsync()
+    public async Task<ApiResponse<PagedList<MetaDTO>>> GetAllMetasAsync(PaginationParams pagination)
     {
         var metas = await _uof.MetaRepository.GetAllAsync();
 
         if (metas is null)
-            return ApiResponse<IReadOnlyList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
-        return ApiResponse<IReadOnlyList<MetaDTO>>.Ok(_mapper.Map<IReadOnlyList<MetaDTO>>(metas));
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderByDescending(m => m.DataInicio);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaiorValorAsync(PaginationParams pagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderByDescending(m => m.ValorAlvo);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMenorValorAsync(PaginationParams pagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderBy(m => m.ValorAlvo);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasQuaseConcluidasAsync(PaginationParams pagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderByDescending(m => m.ValorAtual);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisAntigaAsync(PaginationParams pagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderBy(m => m.DataInicio);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisRecentesAsync(PaginationParams pagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .OrderByDescending(m => m.DataInicio);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            pagination.PageNumber,
+            pagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+    }
+
+    public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasPorStatusAsync(StatusParams statusPagination)
+    {
+        var metas = await _uof.MetaRepository.GetAllAsync();
+
+        if (metas is null)
+            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+
+        var query = metas
+            .AsQueryable()
+            .AsNoTracking()
+            .Where(m => m.Status == statusPagination.Status);
+
+        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+            (
+            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            statusPagination.PageNumber,
+            statusPagination.PageSize
+            );
+
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
 
@@ -81,6 +243,8 @@ public class MetaService : IMetaService
         meta.ValorAlvo = metaDto.ValorAlvo;
         meta.AlterarDataAlvo(metaDto.DataAlvo);
         meta.AlterarStatus(metaDto.Status);
+        metaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
+
         await _uof.MetaRepository.UpdateAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Meta {meta.Titulo} atualizada com sucesso");
@@ -88,70 +252,62 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)
     {
-        var meta = _mapper.Map<Meta>(metaDto) ?? throw new InvalidOperationException(ResultMessages.ValidMeta);
+        var meta = _mapper.Map<Meta>(metaDto);
+
+        if (meta is null)
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
 
         await _uof.MetaRepository.CreateAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
 
-    public async Task<ApiResponse<MetaDTO>> FinalizarMeta(Guid metaId)
+    public async Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
-
-        meta.FinalizarMeta();
-        await _uof.CommitAsync();
-
-        int daysCompleted = meta.DataInicio.Day - DateTime.UtcNow.Day;
-        int daysRest = DateTime.UtcNow.Day - meta.DataAlvo.Day;
-
-        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta),
-            $"Parábens você finalizou sua meta em {daysCompleted} dias " +
-            $"e com a data que foi alvejada teve a diferença de {daysRest} dias");
-    }
-
-
-    public async Task<ApiResponse<AporteMetasDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
-    {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
-
-        if (meta is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
         var novoAporte = _mapper.Map<AporteMetas>(aporteMetaDto);
 
         if (novoAporte is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.ErrorCreation);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.ErrorCreation);
 
         await _carteira.DescontarSaldoAsync(_currentUser.UserId, novoAporte.Valor);
 
         meta.RegistrarAporte(novoAporte);
         await _uof.CommitAsync();
 
-        return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(novoAporte), $"Aporte no valor de {novoAporte.Valor:C2} registrado com sucesso.");
+        if (meta.Status == Status.Concluido)
+        {
+            int daysCompleted = (meta.DataConclusao!.Value - meta.DataInicio).Days;
+
+            return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta),
+                $"🎉 Parabéns! Você finalizou sua meta em {daysCompleted} dias!");
+        }
+
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {novoAporte.Valor:C2} registrado com sucesso.");
     }
 
-    public async Task<ApiResponse<AporteMetasDTO>> RemoverAporteAsync(Guid aporteMetaId)
+    public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
 
         if (meta is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
         var aporteRemovido = meta.Aportes.First(a => a.Id == aporteMetaId);
 
         if (aporteRemovido is null)
-            return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundAporte);
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundAporte);
 
         await _carteira.AdicionarSaldoAsync(_currentUser.UserId, aporteRemovido.Valor);
         meta.RemoverAporte(aporteRemovido);
 
         await _uof.CommitAsync();
 
-        return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(aporteRemovido));
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {aporteRemovido.Valor:C2} removido com sucesso.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverMetaAsync(Guid metaId)
@@ -166,7 +322,7 @@ public class MetaService : IMetaService
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
 
-    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId)
+    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId)  //Dashboard e relatórios;
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 

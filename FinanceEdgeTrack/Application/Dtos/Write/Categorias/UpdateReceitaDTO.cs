@@ -2,10 +2,11 @@
 {
     public class UpdateReceitaDTO
     {
-        public Guid CategoriaId { get; set; }
-        public string? Titulo { get; set; }
+        public Guid ReceitaId { get; set; }
+        public string Titulo { get; set; } = default!;
         public string? Descricao { get; set; }
         public decimal Valor { get; set; }
         public DateTime Data { get; set; }
+        public string? UpdatedAt { get; set; }  
     }
 }

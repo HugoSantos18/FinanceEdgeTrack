@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Common;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
@@ -14,5 +15,11 @@ public interface IDespesaService
 
     Task<ApiResponse<DespesaDTO>> ObterDespesaPorIdAsync(Guid id);
 
-    Task<ApiResponse<IReadOnlyList<DespesaDTO>>> ListarDespesasAsync();
+    Task<ApiResponse<PagedList<DespesaDTO>>> ListarDespesasAsync(PaginationParams pagination);
+
+    Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFixasPaginadasAsync(PaginationParams pagination);
+
+    Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMaiorValorAsync(PaginationParams pagination);
+
+    Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMenorValorAsync(PaginationParams pagination);
 }

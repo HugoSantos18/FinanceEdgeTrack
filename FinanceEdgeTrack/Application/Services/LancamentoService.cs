@@ -1,10 +1,12 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
+﻿using FinanceEdgeTrack.Application.Common.Pagination;
+using FinanceEdgeTrack.Application.Common.Responses;
+using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Error;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services;
 
@@ -21,56 +23,103 @@ public class LancamentoService : ILancamentoService
         _mapper = mapper;
     }
 
-    public async Task<LancamentoDTO> LancarAsync(LancamentoDTO lancamentoDTO)
+    public async Task<ApiResponse<LancamentoDTO>> LancarAsync(LancamentoDTO lancamentoDTO)
     {
         var lancamento = _mapper.Map<Lancamento>(lancamentoDTO);
-        
+
+        if (lancamento is null)
+            return ApiResponse<LancamentoDTO>.Fail(ResultMessages.ErrorCreation);
+
         await _uof.LancamentoRepository.CreateAsync(lancamento);
 
-        return _mapper.Map<LancamentoDTO>(lancamento);
+        return ApiResponse<LancamentoDTO>.Ok(_mapper.Map<LancamentoDTO>(lancamento));
     }
 
-    public async Task AtualizarLancamentoAsync(Guid lancamentoId, UpdateLancamentoDTO lancamentoDto)
+    public async Task<ApiResponse<LancamentoDTO>> AtualizarLancamentoAsync(Guid lancamentoId, UpdateLancamentoDTO lancamentoDto)
     {
         var lancamento = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
-            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
+            return ApiResponse<LancamentoDTO>.Fail(ResultMessages.ErrorUpdate);
 
         lancamento.LancamentoId = lancamentoDto.LancamentoId;
-            lancamento.DataLancamento = lancamentoDto.DataLancamento;
-            lancamento.DespesaId = lancamentoDto.DespesaId;
-            lancamento.ReceitaId = lancamentoDto.ReceitaId;
-            lancamento.UserId = _currentUser.UserId;
+        lancamento.DataLancamento = lancamentoDto.DataLancamento;
+        lancamento.DespesaId = lancamentoDto.DespesaId;
+        lancamento.ReceitaId = lancamentoDto.ReceitaId;
+        lancamento.UserId = _currentUser.UserId;
+        lancamentoDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
 
         await _uof.LancamentoRepository.UpdateAsync(lancamento);
+
+        return ApiResponse<LancamentoDTO>.Ok(_mapper.Map<LancamentoDTO>(lancamento));
     }
 
-    public async Task CancelarLancamentoAsync(Guid lancamentoId)
+    public async Task<ApiResponse<LancamentoDTO>> DeletarLancamentoAsync(Guid lancamentoId)
     {
         var lancamentoRemovido = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamentoRemovido is null)
-            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
+            return ApiResponse<LancamentoDTO>.Fail(ResultMessages.NotFoundLancamento);
 
         await _uof.LancamentoRepository.DeleteAsync(lancamentoRemovido);
+
+        return ApiResponse<LancamentoDTO>.Ok(_mapper.Map<LancamentoDTO>(lancamentoRemovido));
     }
-    
-    public async Task<LancamentoDTO> GetByIdAsync(Guid lancamentoId)
+
+    public async Task<ApiResponse<LancamentoDTO>> GetByIdAsync(Guid lancamentoId)
     {
         var lancamento = await _uof.LancamentoRepository.GetAsync(l => l.LancamentoId == lancamentoId);
 
         if (lancamento is null)
-            throw new KeyNotFoundException(ResultMessages.NotFoundLancamento);
+            return ApiResponse<LancamentoDTO>.Fail(ResultMessages.NotFoundLancamento);
 
-        return _mapper.Map<LancamentoDTO>(lancamento);
+        return ApiResponse<LancamentoDTO>.Ok(_mapper.Map<LancamentoDTO>(lancamento));
     }
 
-    public async Task<IReadOnlyList<LancamentoDTO>> GetAllLancamentosAsync()
+    public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllLancamentosAsync(PaginationParams pagination)
     {
         var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
 
-        return _mapper.Map<IReadOnlyList<LancamentoDTO>>(lancamentos);
+        if (lancamentos is null)
+            return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
+
+        var query = lancamentos
+           .AsQueryable()
+           .AsNoTracking()
+           .OrderBy(l => l.DataLancamento);
+
+        var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
+            (
+             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             pagination.PageNumber,
+             pagination.PageSize
+            );
+
+
+        return ApiResponse<PagedList<LancamentoDTO>>.Ok(lancamentosPaginados);
+    }
+
+    public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllFilterByDataDescendingAsync(PaginationParams pagination)
+    {
+        var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
+
+        if (lancamentos is null)
+            return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
+
+        var query = lancamentos
+           .AsQueryable()
+           .AsNoTracking()
+           .OrderByDescending(l => l.DataLancamento);
+
+        var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
+            (
+             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             pagination.PageNumber,
+             pagination.PageSize
+            );
+
+
+        return ApiResponse<PagedList<LancamentoDTO>>.Ok(lancamentosPaginados);
     }
 
 }

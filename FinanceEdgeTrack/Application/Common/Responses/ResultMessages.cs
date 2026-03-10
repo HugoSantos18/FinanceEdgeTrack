@@ -1,5 +1,4 @@
-﻿
-namespace FinanceEdgeTrack.Error;
+﻿namespace FinanceEdgeTrack.Application.Common.Responses;
 
 //dps usar serviços e interfaces para complementar as mensagens e ficarem mais personalizadas ainda.
 
@@ -29,4 +28,5 @@ public static class ResultMessages
     public const string RevokeSuccessfull = "Token revogado com sucesso.";
     public const string ConfirmPasswordInavlid = "A confirmação de senha deve ser igual a senha original.";
     public const string MetaCompleted = $"Parabéns você acaba de finalizar sua meta, continue progredindo :D";
+    public const string ErrorUpdate = "Não foi possível realizar a atualização";
 }

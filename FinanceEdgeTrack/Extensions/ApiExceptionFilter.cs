@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FinanceEdgeTrack.Error;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace FinanceEdgeTrack.Error.Extensions
+namespace FinanceEdgeTrack.Extensions
 {
     public class ApiExceptionFilter : ExceptionFilterAttribute
     {

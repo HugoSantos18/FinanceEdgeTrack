@@ -1,9 +1,10 @@
+using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Error.Extensions;
+using FinanceEdgeTrack.Extensions;
 using FinanceEdgeTrack.Infrastructure.Config;
 using FinanceEdgeTrack.Infrastructure.Data;
 using FinanceEdgeTrack.Infrastructure.Repositories;
@@ -26,6 +27,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new ApiExceptionFilter());
+    options.Filters.Add<PaginationHeaderFilter>();
 })
     .AddJsonOptions(options =>
     {

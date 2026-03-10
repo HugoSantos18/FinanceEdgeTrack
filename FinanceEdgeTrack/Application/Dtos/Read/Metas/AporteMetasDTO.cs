@@ -6,7 +6,7 @@ namespace FinanceEdgeTrack.Application.Dtos.Read.Metas;
 public class AporteMetasDTO
 {
     [Required(ErrorMessage = "É necessário informar um valor para o aporte.")]
-    [Range(1, 99999999)]
+    [Range(typeof(decimal), "1", "99999999")]
     public decimal Valor { get; set; }
 
     [Required]

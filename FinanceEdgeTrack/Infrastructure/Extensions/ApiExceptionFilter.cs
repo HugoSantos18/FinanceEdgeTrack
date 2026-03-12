@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace FinanceEdgeTrack.Extensions
+namespace FinanceEdgeTrack.Infrastructure.Extensions
 {
     public class ApiExceptionFilter : ExceptionFilterAttribute
     {

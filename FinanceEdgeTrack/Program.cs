@@ -49,10 +49,11 @@ builder.Services.Configure<JwtSettings>(jwtSection);
 var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new ArgumentException("JWT configuration missing");
 builder.Services.AddSingleton(jwtSettings);
 
+// Cors config
+builder.Services.AddCorsConfiguration(builder.Configuration);
 
 // Rate Limiting config
 builder.Services.AddApiRateLimiting(builder.Configuration);
-
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -147,7 +148,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors();
+app.UseCors("DefaultAllowedCors");
 
 app.UseRateLimiter();
 

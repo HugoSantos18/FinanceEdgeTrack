@@ -52,20 +52,12 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<AporteMetasDTO>>> GetAllAportesDaMetaPorIdAsync(Guid metaId, PaginationParams pagination)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
-
-        if (meta is null)
-            return ApiResponse<PagedList<AporteMetasDTO>>.Fail(ResultMessages.NotFoundMeta);
-
-        var aportes = meta.Aportes;
-
-        if (aportes is null)
-            return ApiResponse<PagedList<AporteMetasDTO>>.Fail(ResultMessages.EmptyAporteCollection);
-
-        var query = aportes
-            .AsQueryable()
-            .AsNoTracking()
-            .OrderByDescending(a => a.Valor);
+        var query = _uof.MetaRepository
+        .Query()
+        .Where(m => m.MetaId == metaId)
+        .SelectMany(m => m.Aportes)
+        .OrderByDescending(a => a.Valor)
+        .ProjectToType<AporteMetasDTO>();
 
         var aportesPaginados = await PagedList<AporteMetasDTO>.CreateAsync
             (
@@ -79,19 +71,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> GetAllMetasAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(m => m.DataInicio);
+            .OrderByDescending(m => m.DataInicio)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -101,19 +93,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(m => m.ValorAlvo);
+            .OrderByDescending(m => m.ValorAlvo)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -123,19 +115,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderBy(m => m.ValorAlvo);
+            .OrderBy(m => m.ValorAlvo)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -145,19 +137,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasQuaseConcluidasAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(m => m.ValorAtual);
+            .OrderByDescending(m => m.ValorAtual)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -167,19 +159,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisAntigaAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderBy(m => m.DataInicio);
+            .OrderBy(m => m.DataInicio)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -189,19 +181,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisRecentesAsync(PaginationParams pagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(m => m.DataInicio);
+            .OrderByDescending(m => m.DataInicio)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -211,19 +203,19 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasPorStatusAsync(StatusParams statusPagination)
     {
-        var metas = await _uof.MetaRepository.GetAllAsync();
+        var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
 
         var query = metas
-            .AsQueryable()
             .AsNoTracking()
-            .Where(m => m.Status == statusPagination.Status);
+            .Where(m => m.Status == statusPagination.Status)
+            .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
-            query.Select(m => _mapper.Map<MetaDTO>(m)),
+            query,
             statusPagination.PageNumber,
             statusPagination.PageSize
             );

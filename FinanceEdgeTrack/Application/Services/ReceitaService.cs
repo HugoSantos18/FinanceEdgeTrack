@@ -6,6 +6,7 @@ using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,19 +40,19 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ListarReceitasAsync(PaginationParams pagination)
     {
-        var receitas = await _uof.ReceitaRepository.GetAllAsync();
+        var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
 
         var query = receitas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(r => r.Data);
+            .OrderByDescending(r => r.Data)
+            .ProjectToType<ReceitaDTO>();
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
-            query.Select(r => _mapper.Map<ReceitaDTO>(r)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -61,19 +62,19 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var receitas = await _uof.ReceitaRepository.GetAllAsync();
+        var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
 
         var query = receitas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderByDescending(r => r.Valor);
+            .OrderByDescending(r => r.Valor)
+            .ProjectToType<ReceitaDTO>();
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
-            query.Select(r => _mapper.Map<ReceitaDTO>(r)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );
@@ -83,19 +84,19 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var receitas = await _uof.ReceitaRepository.GetAllAsync();
+        var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
 
         var query = receitas
-            .AsQueryable()
             .AsNoTracking()
-            .OrderBy(r => r.Valor);
+            .OrderBy(r => r.Valor)
+            .ProjectToType<ReceitaDTO>();
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
-            query.Select(r => _mapper.Map<ReceitaDTO>(r)),
+            query,
             pagination.PageNumber,
             pagination.PageSize
             );

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
+using System.Reflection.Metadata.Ecma335;
 
 namespace FinanceEdgeTrack.Infrastructure.Repositories;
 
@@ -15,8 +16,11 @@ public class Repository<T> : IRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
-        => await _context.Set<T>().ToListAsync();
+    public IQueryable<T> GetAll()
+        => _context.Set<T>();
+
+    public IQueryable<T> Query()
+        => _context.Set<T>();
 
     public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         => await _context.Set<T>().FirstOrDefaultAsync(predicate);

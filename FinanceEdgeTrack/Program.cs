@@ -50,16 +50,17 @@ var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new ArgumentException("
 builder.Services.AddSingleton(jwtSettings);
 
 
+// Rate Limiting config
+builder.Services.AddApiRateLimiting(builder.Configuration);
 
-// Dependency Injections (Services, Mapper, etc...)
 
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Rate Limiting config
-builder.Services.AddApiRateLimiting(builder.Configuration);
 
+// Dependency Injections (Services, Mapper, etc...)
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

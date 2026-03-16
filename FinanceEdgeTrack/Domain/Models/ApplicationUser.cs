@@ -17,12 +17,8 @@ public class ApplicationUser : IdentityUser
     [Range(0, 999999999)]
     public decimal ValorTotalGasto { get; set; } = default!;
 
-    // atributo que será atualizado sempre que fizer um lançamento para acompanhar histórico do user
     public int TotalLancamentos { get; set; } = 0;
 
-    public int? CarteiraId { get; set; }
-   
-    [ForeignKey(nameof(CarteiraId))]
     public Carteira? Carteira { get; set; }
 
     [Required]

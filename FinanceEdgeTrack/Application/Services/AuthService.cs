@@ -125,7 +125,7 @@ public class AuthService : IAuthenticationService
         };
 
         var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        user.CarteiraId = carteira.CarteiraId; 
+        carteira.UserId = user.Id; 
 
         await _userManager.UpdateAsync(user);
 

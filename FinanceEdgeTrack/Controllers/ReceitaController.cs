@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Common.Pagination;
+﻿using Asp.Versioning;
+using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
@@ -7,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace FinanceEdgeTrack.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class ReceitaController : ControllerBase
 {
     private readonly IReceitaService _receitaService;

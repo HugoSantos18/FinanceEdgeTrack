@@ -6,6 +6,7 @@ using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -41,19 +42,19 @@ namespace FinanceEdgeTrack.Application.Services
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> ListarDespesasAsync(PaginationParams pagination)
         {
-            var despesas = await _uof.DespesaRepository.GetAllAsync();
+            var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
 
             var query = despesas
-                .AsQueryable()
                 .AsNoTracking()
-                .OrderByDescending(d => d.Data);
+                .OrderByDescending(d => d.Data)
+                .ProjectToType<DespesaDTO>();
 
             var despesasPaginadas = await PagedList<DespesaDTO>.CreateAsync
                 (
-                query.Select(d => _mapper.Map<DespesaDTO>(d)),
+                query,
                 pagination.PageNumber,
                 pagination.PageSize
                 );
@@ -63,19 +64,19 @@ namespace FinanceEdgeTrack.Application.Services
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFixasPaginadasAsync(PaginationParams pagination)
         {
-            var despesas = await _uof.DespesaRepository.GetAllAsync();
+            var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
 
             var query = despesas
-                .AsQueryable()
                 .AsNoTracking()
-                .Where(d => d.Fixa == true);
+                .Where(d => d.Fixa == true)
+                .ProjectToType<DespesaDTO>();
 
             var despesasPaginadas = await PagedList<DespesaDTO>.CreateAsync
                 (
-                query.Select(d => _mapper.Map<DespesaDTO>(d)),
+                query,
                 pagination.PageNumber,
                 pagination.PageSize
                 );
@@ -85,19 +86,19 @@ namespace FinanceEdgeTrack.Application.Services
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMaiorValorAsync(PaginationParams pagination)
         {
-            var despesas = await _uof.DespesaRepository.GetAllAsync();
+            var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
 
             var query = despesas
-                .AsQueryable()
                 .AsNoTracking()
-                .OrderByDescending(d => d.Valor);
+                .OrderByDescending(d => d.Valor)
+                .ProjectToType<DespesaDTO>();
 
             var despesasFiltradas = await PagedList<DespesaDTO>.CreateAsync
                 (
-                query.Select(d => _mapper.Map<DespesaDTO>(d)),
+                query,
                 pagination.PageNumber,
                 pagination.PageSize
                 );
@@ -107,19 +108,19 @@ namespace FinanceEdgeTrack.Application.Services
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMenorValorAsync(PaginationParams pagination)
         {
-            var despesas = await _uof.DespesaRepository.GetAllAsync();
+            var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
 
             var query = despesas
-                .AsQueryable()
                 .AsNoTracking()
-                .OrderBy(d => d.Valor);
+                .OrderBy(d => d.Valor)
+                .ProjectToType<DespesaDTO>();
 
             var despesasFiltradas = await PagedList<DespesaDTO>.CreateAsync
                 (
-                query.Select(d => _mapper.Map<DespesaDTO>(d)),
+                query,
                 pagination.PageNumber,
                 pagination.PageSize
                 );

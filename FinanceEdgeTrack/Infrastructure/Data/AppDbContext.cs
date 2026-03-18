@@ -90,23 +90,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(s => s.Saldo)
            .HasPrecision(15, 2);
-
-
-            entity.HasOne(c => c.User)
-            .WithOne()
-            .OnDelete(DeleteBehavior.Cascade);
-
         });
 
 
         // User
-        model.Entity<ApplicationUser>(entity =>
-        {
-            entity.HasOne(u => u.Carteira)
-            .WithOne()
-            .OnDelete(DeleteBehavior.Restrict);
+        model.Entity<ApplicationUser>()
+             .HasOne(u => u.Carteira)
+             .WithOne(c => c.User)
+             .HasForeignKey<Carteira>(c => c.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
 
-        });
 
         model.Entity<Lancamento>(entity =>
         {

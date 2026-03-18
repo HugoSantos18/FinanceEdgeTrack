@@ -5,6 +5,7 @@ using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,19 +79,19 @@ public class LancamentoService : ILancamentoService
 
     public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllLancamentosAsync(PaginationParams pagination)
     {
-        var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
+        var lancamentos = _uof.LancamentoRepository.GetAll();
 
         if (lancamentos is null)
             return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
 
         var query = lancamentos
-           .AsQueryable()
            .AsNoTracking()
-           .OrderBy(l => l.DataLancamento);
+           .OrderBy(l => l.DataLancamento)
+           .ProjectToType<LancamentoDTO>();
 
         var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
             (
-             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             query,
              pagination.PageNumber,
              pagination.PageSize
             );
@@ -101,19 +102,19 @@ public class LancamentoService : ILancamentoService
 
     public async Task<ApiResponse<PagedList<LancamentoDTO>>> GetAllFilterByDataDescendingAsync(PaginationParams pagination)
     {
-        var lancamentos = await _uof.LancamentoRepository.GetAllAsync();
+        var lancamentos = _uof.LancamentoRepository.GetAll();
 
         if (lancamentos is null)
             return ApiResponse<PagedList<LancamentoDTO>>.Fail(ResultMessages.NotFoundLancamento);
 
         var query = lancamentos
-           .AsQueryable()
            .AsNoTracking()
-           .OrderByDescending(l => l.DataLancamento);
+           .OrderByDescending(l => l.DataLancamento)
+           .ProjectToType<LancamentoDTO>();
 
         var lancamentosPaginados = await PagedList<LancamentoDTO>.CreateAsync
             (
-             query.Select(l => _mapper.Map<LancamentoDTO>(l)),
+             query,
              pagination.PageNumber,
              pagination.PageSize
             );

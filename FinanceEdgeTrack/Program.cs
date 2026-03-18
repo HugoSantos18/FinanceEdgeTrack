@@ -4,7 +4,7 @@ using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Extensions;
+using FinanceEdgeTrack.Infrastructure.Extensions;
 using FinanceEdgeTrack.Infrastructure.Config;
 using FinanceEdgeTrack.Infrastructure.Data;
 using FinanceEdgeTrack.Infrastructure.Repositories;
@@ -43,12 +43,28 @@ builder.Configuration
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Bind strongly-typed JWT settings
+var jwtSection = builder.Configuration.GetSection("JWT");
+builder.Services.Configure<JwtSettings>(jwtSection);
+var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new ArgumentException("JWT configuration missing");
+builder.Services.AddSingleton(jwtSettings);
 
-// Dependency Injections (Services, Mapper, etc...)
+// Cors config
+builder.Services.AddCorsConfiguration(builder.Configuration);
 
+// Rate Limiting config
+builder.Services.AddApiRateLimiting(builder.Configuration);
+
+// Versioning config
+builder.Services.AddApiVersionConfig();
+
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+
+// Dependency Injections (Services, Mapper, etc...)
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -62,11 +78,6 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 
-// Bind strongly-typed JWT settings
-var jwtSection = builder.Configuration.GetSection("JWT");
-builder.Services.Configure<JwtSettings>(jwtSection);
-var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new ArgumentException("JWT configuration missing");
-builder.Services.AddSingleton(jwtSettings);
 
 // Authentication
 builder.Services.AddAuthentication(options =>
@@ -135,6 +146,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseCors("DefaultAllowedCors");
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

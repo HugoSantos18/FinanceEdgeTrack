@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Common.Pagination;
+﻿using Asp.Versioning;
+using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Services;
@@ -9,7 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace FinanceEdgeTrack.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
 public class MetaController : ControllerBase
 {
     private readonly IMetaService _metaService;

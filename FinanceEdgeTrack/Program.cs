@@ -55,6 +55,9 @@ builder.Services.AddCorsConfiguration(builder.Configuration);
 // Rate Limiting config
 builder.Services.AddApiRateLimiting(builder.Configuration);
 
+// Versioning config
+builder.Services.AddApiVersionConfig();
+
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()

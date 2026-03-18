@@ -1,4 +1,5 @@
-﻿using FinanceEdgeTrack.Application.Common.Responses;
+﻿using Asp.Versioning;
+using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services;

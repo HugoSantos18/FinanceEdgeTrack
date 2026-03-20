@@ -5,6 +5,7 @@ using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Infrastructure.Repositories;
 using MapsterMapper;
@@ -17,7 +18,7 @@ using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class AuthService : IAuthenticationService
 {

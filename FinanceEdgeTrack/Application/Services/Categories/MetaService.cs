@@ -6,12 +6,13 @@ using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Enum;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Categories;
 
 public class MetaService : IMetaService
 {
@@ -22,8 +23,8 @@ public class MetaService : IMetaService
 
     public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteira, ICurrentUserService currentUser)
     {
-        this._mapper = mapper;
-        this._uof = uof;
+        _mapper = mapper;
+        _uof = uof;
         _carteira = carteira;
         _currentUser = currentUser;
     }

@@ -3,7 +3,7 @@ using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
-namespace FinanceEdgeTrack.Domain.Interfaces.Services;
+namespace FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 
 public interface IDespesaService
 {

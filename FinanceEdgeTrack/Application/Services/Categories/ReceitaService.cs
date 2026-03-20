@@ -5,12 +5,13 @@ using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Categories;
 
 public class ReceitaService : IReceitaService
 {
@@ -22,9 +23,9 @@ public class ReceitaService : IReceitaService
 
     public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, ICurrentUserService currentUser)
     {
-        this._mapper = mapper;
-        this._uof = uof;
-        this._carteiraService = carteira;
+        _mapper = mapper;
+        _uof = uof;
+        _carteiraService = carteira;
         _currentUser = currentUser;
     }
 

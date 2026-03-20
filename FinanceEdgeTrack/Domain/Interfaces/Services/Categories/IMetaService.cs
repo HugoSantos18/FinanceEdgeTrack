@@ -7,7 +7,7 @@ using FinanceEdgeTrack.Application.Dtos.Read.Metas;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Enum;
 
-namespace FinanceEdgeTrack.Domain.Interfaces.Services;
+namespace FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 
 public interface IMetaService
 {

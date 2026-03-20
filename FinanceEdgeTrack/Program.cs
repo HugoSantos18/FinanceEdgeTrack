@@ -17,6 +17,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
+using FinanceEdgeTrack.Application.Services.Auth;
+using FinanceEdgeTrack.Application.Services.Categories;
 
 var builder = WebApplication.CreateBuilder(args);
 

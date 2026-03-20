@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces.Services;
+﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class TokenService : ITokenService
 {

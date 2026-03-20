@@ -2,7 +2,7 @@
 using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Application.Services;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceEdgeTrack.Controllers;

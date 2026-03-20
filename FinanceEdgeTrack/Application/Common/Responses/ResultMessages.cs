@@ -29,4 +29,6 @@ public static class ResultMessages
     public const string ConfirmPasswordInavlid = "A confirmação de senha deve ser igual a senha original.";
     public const string MetaCompleted = $"Parabéns você acaba de finalizar sua meta, continue progredindo :D";
     public const string ErrorUpdate = "Não foi possível realizar a atualização";
+    public const string InvalidIndentityRoleCreation = $"Não foi possível criar a role";
+    public const string ErrorToAddUserToRole = $"Não foi possível adicionar o user a role";
 }

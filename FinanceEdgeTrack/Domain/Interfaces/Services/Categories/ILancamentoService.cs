@@ -4,7 +4,7 @@ using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Domain.Models;
 
-namespace FinanceEdgeTrack.Domain.Interfaces.Services;
+namespace FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 
 public interface ILancamentoService
 {

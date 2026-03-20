@@ -4,12 +4,13 @@ using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Categories;
 
 public class LancamentoService : ILancamentoService
 {

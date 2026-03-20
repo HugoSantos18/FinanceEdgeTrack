@@ -21,6 +21,7 @@ using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Application.Services.Categories;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,7 +94,7 @@ builder.Services.AddAuthentication(options =>
     var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
 
     options.SaveToken = true;
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = true;
 
     options.TokenValidationParameters = new TokenValidationParameters()
     {
@@ -107,6 +108,16 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
 });
+
+
+// JWT Global e Roles policy
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .Build();
+
+}).AddRolesPolicy();
 
 
 // Swagger configuration
@@ -158,6 +169,8 @@ app.UseRouting();
 app.UseCors("DefaultAllowedCors");
 
 app.UseRateLimiter();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

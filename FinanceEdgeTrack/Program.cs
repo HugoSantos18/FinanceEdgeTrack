@@ -82,6 +82,7 @@ builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
+builder.Services.AddScoped<IRoleService, RoleSevice>();
 
 
 // Authentication

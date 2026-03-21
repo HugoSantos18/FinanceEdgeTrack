@@ -1,12 +1,10 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Application.Dtos.Read.Lancamentos;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Dtos.Write.Lancamentos;
 
 
 namespace FinanceEdgeTrack.Application.Mappings;
@@ -39,13 +37,8 @@ public static class MapsterMappingConfig
         TypeAdapterConfig<UpdateReceitaDTO, Receita>
             .NewConfig();
 
-        TypeAdapterConfig<UpdateLancamentoDTO, Lancamento>
-            .NewConfig();
 
         TypeAdapterConfig<ApplicationUser, ApplicationUserDTO>
-            .NewConfig();
-
-        TypeAdapterConfig<Lancamento, LancamentoDTO>
             .NewConfig();
 
         TypeAdapterConfig<AporteMetas, AporteMetasDTO>

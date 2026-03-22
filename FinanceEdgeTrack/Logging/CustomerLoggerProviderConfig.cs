@@ -1,8 +1,8 @@
-﻿namespace FinanceEdgeTrack.Logging;
+﻿using Microsoft.Extensions.Logging;
+namespace FinanceEdgeTrack.Logging;
 
-// Configuração de provedor de Logs
-public static class CustomerLoggerProviderConfig
+public class CustomerLoggerProviderConfig
 {
-
-
+    public LogLevel LogLevel { get; set; } = LogLevel.Warning;
+    public int EventId { get; private set; } = 0;
 }

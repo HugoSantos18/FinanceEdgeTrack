@@ -14,11 +14,13 @@ public class CarteiraService : ICarteiraService
 {
     private readonly IUnitOfWork _uof;
     private readonly IMapper _mapper;
+    private readonly ILogger<CarteiraService> _logger;
 
-    public CarteiraService(IUnitOfWork uof, IMapper mapper)
+    public CarteiraService(IUnitOfWork uof, IMapper mapper, ILogger<CarteiraService> logger)
     {
         _uof = uof;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Carteira> CreateAsync(CreateCarteiraDTO carteiraDto)
@@ -39,7 +41,10 @@ public class CarteiraService : ICarteiraService
         var carteira = await _uof.CarteiraRepository.GetAsync(u => u.UserId == userId);
 
         if (carteira is null)
+        {
+            _logger.LogInformation($"Não foi possível adicionar o saldo, verifique os dados informados.");
             return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
+        }
 
         var novoSaldo = (carteira.Saldo += valor);
 
@@ -54,13 +59,22 @@ public class CarteiraService : ICarteiraService
         var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == userId);
 
         if (carteira is null)
+        {
+            _logger.LogInformation($"Não foi possível descontar o saldo, verifique os dados informados.");
             return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
+        }
 
         if (valor <= 0)
+        {
+            _logger.LogInformation($"Não foi possível descontar o saldo, valor menor que zero.");
             return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
+        }
 
         if (valor >= carteira.Saldo)
+        {
+            _logger.LogInformation($"Não foi possível descontar o saldo, valor maior que o saldo atual.");
             return ApiResponse<decimal>.Fail(ResultMessages.InvalidPrice);
+        }
 
         var novoSaldo = (carteira.Saldo -= valor);
 
@@ -75,7 +89,10 @@ public class CarteiraService : ICarteiraService
         var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == userId);
 
         if (carteira is null)
+        {
+            _logger.LogInformation($"Não foi possível obter o saldo, verifique o ID {userId} do usuário informado.");
             return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
+        }
 
         var saldoAtual = carteira.Saldo;
 

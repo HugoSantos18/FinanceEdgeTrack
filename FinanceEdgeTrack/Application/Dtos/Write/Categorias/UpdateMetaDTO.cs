@@ -15,5 +15,5 @@ public class UpdateMetaDTO
     
     public Status Status { get; set; }
 
-    public string? UpdatedAt { get; set; }
+    public string? UpdatedAt { get; set; } = DateTime.UtcNow.ToShortDateString();
 }

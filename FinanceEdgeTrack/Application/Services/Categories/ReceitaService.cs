@@ -20,13 +20,16 @@ public class ReceitaService : IReceitaService
     private readonly ICarteiraService _carteiraService;
     private readonly ICurrentUserService _currentUser;
     private readonly IMapper _mapper;
+    private readonly ILogger<ReceitaService> _logger;
 
-    public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, ICurrentUserService currentUser)
+    public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, 
+        ICurrentUserService currentUser, ILogger<ReceitaService> logger)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteira;
         _currentUser = currentUser;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
@@ -34,7 +37,10 @@ public class ReceitaService : IReceitaService
         var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
 
         if (receita is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar receita pelo ID {id}.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
@@ -44,7 +50,10 @@ public class ReceitaService : IReceitaService
         var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         var query = receitas
             .AsNoTracking()
@@ -66,7 +75,10 @@ public class ReceitaService : IReceitaService
         var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         var query = receitas
             .AsNoTracking()
@@ -88,7 +100,10 @@ public class ReceitaService : IReceitaService
         var receitas = _uof.ReceitaRepository.GetAll();
 
         if (receitas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
             return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         var query = receitas
             .AsNoTracking()
@@ -120,7 +135,10 @@ public class ReceitaService : IReceitaService
         var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
 
         if (receita is null)
+        {
+            _logger.LogInformation($"Não foi possível atualizar receita de ID {id}, verifique os dados informados.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         receita.Titulo = receitaDto.Titulo;
         receita.Descricao = receitaDto.Descricao;
@@ -139,7 +157,10 @@ public class ReceitaService : IReceitaService
         var receitaRemovida = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
 
         if (receitaRemovida is null)
+        {
+            _logger.LogInformation($"Não foi possível remover receita de ID {id}, não encontrado.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
+        }
 
         await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, receitaRemovida.Valor);
         await _uof.ReceitaRepository.DeleteAsync(receitaRemovida!);

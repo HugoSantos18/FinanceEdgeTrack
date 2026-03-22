@@ -22,6 +22,7 @@ using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Application.Services.Categories;
 using Microsoft.AspNetCore.Authorization;
+using FinanceEdgeTrack.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +83,11 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
+
+builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig
+{
+    LogLevel = LogLevel.Information
+}));
 
 
 // Authentication

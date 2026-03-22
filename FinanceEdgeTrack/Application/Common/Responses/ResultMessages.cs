@@ -1,7 +1,5 @@
 ﻿namespace FinanceEdgeTrack.Application.Common.Responses;
 
-//dps usar serviços e interfaces para complementar as mensagens e ficarem mais personalizadas ainda.
-
 public static class ResultMessages
 {
     public const string NotFoundReceive = "Receita não encontrada";

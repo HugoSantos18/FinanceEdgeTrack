@@ -28,10 +28,11 @@ public class AuthService : IAuthenticationService
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
     private readonly ICarteiraService _carteiraService;
-
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService)
+                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService,
+                       ILogger<AuthService> logger)
     {
         _uof = uof;
         _tokenService = tokenService;
@@ -39,6 +40,7 @@ public class AuthService : IAuthenticationService
         _config = config;
         _mapper = mapper;
         _carteiraService = carteiraService;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<LoginResponseDTO>> Login(LoginModelUserDTO loginModelDto)
@@ -47,12 +49,7 @@ public class AuthService : IAuthenticationService
 
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginModelDto.Password!))
         {
-            var failResponse = new LoginResponseDTO()
-            {
-                Success = false,
-                Message = ResultMessages.InvalidCredentials
-            };
-
+            _logger.LogInformation($"Usuário ou senha informados inválidos.");
             return ApiResponse<LoginResponseDTO>.Fail("Usuário ou senha inválidos.");
         }
 
@@ -96,10 +93,16 @@ public class AuthService : IAuthenticationService
         var userExists = await _userManager.FindByNameAsync(registerModelDto.UserName!);
 
         if (userExists is not null)
+        {
+            _logger.LogInformation($"Usuário já existe no sistema, não é possível cadastrar um novo com essas credenciais");
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.UserAlreadyExists);
+        }
 
         if (registerModelDto.Password != registerModelDto.ConfirmPassword)
+        {
+            _logger.LogInformation($"É necessário confirmar a senha de acordo com a senha informada.");
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.ConfirmPasswordError);
+        }
 
         ApplicationUser user = new()
         {
@@ -116,6 +119,8 @@ public class AuthService : IAuthenticationService
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            
+            _logger.LogInformation($"Erro ao criar um novo usuário: {errors}");
             return ApiResponse<ResponseDTO>.Fail($" Error: \n{errors}");
         }
 
@@ -126,7 +131,7 @@ public class AuthService : IAuthenticationService
         };
 
         var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        carteira.UserId = user.Id; 
+        carteira.UserId = user.Id;
 
         await _userManager.UpdateAsync(user);
 
@@ -154,6 +159,7 @@ public class AuthService : IAuthenticationService
 
         if (user is null || user.RefreshTokenExpire <= DateTime.Now || user.RefreshToken != refreshToken)
         {
+            _logger.LogInformation($"Erro ao adicionar um novo refreshToken ao usuário, verifique as credenciais.");
             return ApiResponse<TokenModelDTO>.Fail(ResultMessages.InvalidRefreshToken);
         }
 
@@ -179,5 +185,7 @@ public class AuthService : IAuthenticationService
         user.RefreshToken = null;
 
         await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation($"Revoke {username}");
     }
 }

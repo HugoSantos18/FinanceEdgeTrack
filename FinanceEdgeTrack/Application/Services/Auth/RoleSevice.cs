@@ -10,11 +10,14 @@ public class RoleSevice : IRoleService
 {
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ILogger<RoleSevice> _logger;
 
-    public RoleSevice(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+    public RoleSevice(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, 
+                      ILogger<RoleSevice> logger)
     {
         _roleManager = roleManager;
         _userManager = userManager;
+        _logger = logger;
     }
 
     public async Task<ResponseDTO> CreateRole(string roleName)

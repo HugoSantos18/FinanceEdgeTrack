@@ -30,20 +30,24 @@ public class CustomerLogger : ILogger
 
     private void WriteLoggertxt(string logInfo)
     {
-        string path = @"C:\Users\PICHAU\Desktop\FACULDADE HUGO IMPORTANTE\FinanceTrack\Logs";
+        string directory = @"C:\Users\PICHAU\Desktop\FACULDADE HUGO IMPORTANTE\FinanceTrack\Logs";
 
+        if (!Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
 
-        using (StreamWriter arquivoLog = new StreamWriter(path, true))
+        string fileName = $"log_{DateTime.Now:yyyy-MM-dd}.txt";
+        string filePath = Path.Combine(directory, fileName);
+
+        try
         {
-            try
+            using (StreamWriter sw = new StreamWriter(filePath, true))
             {
-                arquivoLog.WriteLine(logInfo);
-                arquivoLog.Close();
+                sw.WriteLine($"{DateTime.Now:HH:mm:ss} - {logInfo}");
             }
-            catch(Exception ex)
-            {
-                throw;
-            }
+        }
+        catch (Exception)
+        {
+            throw;
         }
     }
 }

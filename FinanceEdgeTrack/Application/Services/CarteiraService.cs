@@ -1,12 +1,9 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using MapsterMapper;
-using System.Runtime.InteropServices;
 
 namespace FinanceEdgeTrack.Application.Services;
 

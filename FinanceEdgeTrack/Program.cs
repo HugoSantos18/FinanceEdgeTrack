@@ -40,14 +40,17 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
+
 // UserSecrets configuration
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables()
     .AddUserSecrets<Program>();
 
 // DataBase configuration
-builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDatabaseConfiguration(builder.Configuration);
+
 
 // Bind strongly-typed JWT settings
 var jwtSection = builder.Configuration.GetSection("JWT");
@@ -84,6 +87,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
 
+// Add Loging provider
 builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig
 {
     LogLevel = LogLevel.Information
@@ -98,6 +102,12 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(options =>
 {
     var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
+
+    if (secretKey.IsNullOrEmpty())
+        throw new Exception("JWT secretKey não configurado!");
+
+    if (jwtSettings.SecretKey.Length < 32)
+        throw new Exception("JWT secretKey deve ter no mínimo 32 caracteres!");
 
     options.SaveToken = true;
     options.RequireHttpsMetadata = true;

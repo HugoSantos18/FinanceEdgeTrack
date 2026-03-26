@@ -1,4 +1,4 @@
-﻿namespace FinanceEdgeTrack.Domain.Interfaces.Services
+﻿namespace FinanceEdgeTrack.Domain.Interfaces.Services.Auth
 {
     public interface ICurrentUserService
     {

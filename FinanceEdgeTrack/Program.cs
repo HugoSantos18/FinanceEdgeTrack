@@ -1,8 +1,6 @@
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
-using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Infrastructure.Extensions;
 using FinanceEdgeTrack.Infrastructure.Config;
@@ -11,8 +9,6 @@ using FinanceEdgeTrack.Infrastructure.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -23,6 +19,8 @@ using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Application.Services.Categories;
 using Microsoft.AspNetCore.Authorization;
 using FinanceEdgeTrack.Logging;
+using FinanceEdgeTrack.Application.Services.Carteira;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
 
 var builder = WebApplication.CreateBuilder(args);
 

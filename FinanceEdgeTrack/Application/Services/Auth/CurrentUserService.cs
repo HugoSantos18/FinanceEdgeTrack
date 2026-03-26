@@ -1,7 +1,7 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces.Services;
+﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using System.Security.Claims;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class CurrentUserService : ICurrentUserService
 {

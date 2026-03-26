@@ -3,7 +3,7 @@ using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Models;
 
-namespace FinanceEdgeTrack.Domain.Interfaces.Services;
+namespace FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
 
 public interface ICarteiraService
 {

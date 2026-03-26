@@ -1,9 +1,6 @@
 ﻿using FinanceEdgeTrack.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
-using FinanceEdgeTrack.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Mapster;
-using System.Threading.Tasks;
 using FinanceEdgeTrack.Application.Common.Responses;
 
 namespace FinanceEdgeTrack.Domain.Models;

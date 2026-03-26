@@ -1,11 +1,11 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
 using FinanceEdgeTrack.Domain.Models;
 using MapsterMapper;
 
-namespace FinanceEdgeTrack.Application.Services;
+namespace FinanceEdgeTrack.Application.Services.Carteira;
 
 public class CarteiraService : ICarteiraService
 {
@@ -43,7 +43,7 @@ public class CarteiraService : ICarteiraService
             return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
         }
 
-        var novoSaldo = (carteira.Saldo += valor);
+        var novoSaldo = carteira.Saldo += valor;
 
         await _uof.CarteiraRepository.UpdateAsync(carteira);
         await _uof.CommitAsync();
@@ -73,7 +73,7 @@ public class CarteiraService : ICarteiraService
             return ApiResponse<decimal>.Fail(ResultMessages.InvalidPrice);
         }
 
-        var novoSaldo = (carteira.Saldo -= valor);
+        var novoSaldo = carteira.Saldo -= valor;
 
         await _uof.CarteiraRepository.UpdateAsync(carteira);
         await _uof.CommitAsync();

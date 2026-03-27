@@ -19,8 +19,8 @@ using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Application.Services.Categories;
 using Microsoft.AspNetCore.Authorization;
 using FinanceEdgeTrack.Logging;
-using FinanceEdgeTrack.Application.Services.Carteira;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
+using FinanceEdgeTrack.Application.Services.CarteiraService;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,7 +80,7 @@ builder.Services.AddScoped<IReceitaService, ReceitaService>();
 builder.Services.AddScoped<IDespesaService, DespesaService>();
 builder.Services.AddScoped<IMetaService, MetaService>();
 builder.Services.AddScoped<ICarteiraService, CarteiraService>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();

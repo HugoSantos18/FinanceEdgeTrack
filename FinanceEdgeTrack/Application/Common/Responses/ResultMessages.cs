@@ -29,4 +29,5 @@ public static class ResultMessages
     public const string ErrorUpdate = "Não foi possível realizar a atualização";
     public const string InvalidIndentityRoleCreation = $"Não foi possível criar a role";
     public const string ErrorToAddUserToRole = $"Não foi possível adicionar o user a role";
+    public const string ErrorToGetWalletAmmountUser = $"Não foi possível resgatar o saldo da carteira.";
 }

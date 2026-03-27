@@ -1,17 +1,15 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace FinanceEdgeTrack.Application.Services.Categories
 {
@@ -19,12 +17,12 @@ namespace FinanceEdgeTrack.Application.Services.Categories
     {
         private readonly IUnitOfWork _uof;
         private readonly ICarteiraService _carteiraService;
-        private readonly ICurrentUserService _currentUser;
+        private readonly CurrentUser _currentUser;
         private readonly IMapper _mapper;
         private readonly ILogger<DespesaService> _logger;
 
         public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
-            ICurrentUserService currentUser, ILogger<DespesaService> logger)
+            CurrentUser currentUser, ILogger<DespesaService> logger)
         {
             _mapper = mapper;
             _uof = uof;
@@ -152,7 +150,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var despesa = _mapper.Map<Despesa>(despesaDto);
 
-            await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, despesa.Valor);
+            await _carteiraService.DescontarSaldoAsync(despesa.Valor);
             await _uof.DespesaRepository.CreateAsync(despesa);
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
@@ -190,7 +188,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
             }
 
-            await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, despesaRemovida.Valor);
+            await _carteiraService.AdicionarSaldoAsync(despesaRemovida.Valor);
             await _uof.DespesaRepository.DeleteAsync(despesaRemovida)!;
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesaRemovida), "Despesa removida com sucesso");

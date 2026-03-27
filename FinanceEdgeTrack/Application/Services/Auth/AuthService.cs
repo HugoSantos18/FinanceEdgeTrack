@@ -5,18 +5,12 @@ using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Carteira;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Infrastructure.Repositories;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
-using System.Security.Cryptography;
 
 namespace FinanceEdgeTrack.Application.Services.Auth;
 
@@ -28,11 +22,12 @@ public class AuthService : IAuthenticationService
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
     private readonly ICarteiraService _carteiraService;
+    private readonly CurrentUser _currentUser;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
                        IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService,
-                       ILogger<AuthService> logger)
+                       ILogger<AuthService> logger, CurrentUser currentUser)
     {
         _uof = uof;
         _tokenService = tokenService;
@@ -41,7 +36,9 @@ public class AuthService : IAuthenticationService
         _mapper = mapper;
         _carteiraService = carteiraService;
         _logger = logger;
+        _currentUser = currentUser;
     }
+
 
     public async Task<ApiResponse<LoginResponseDTO>> Login(LoginModelUserDTO loginModelDto)
     {
@@ -59,6 +56,7 @@ public class AuthService : IAuthenticationService
             {
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -131,7 +129,7 @@ public class AuthService : IAuthenticationService
         };
 
         var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        carteira.UserId = user.Id;
+        carteira.UserId = _currentUser.UserId;
 
         await _userManager.UpdateAsync(user);
 

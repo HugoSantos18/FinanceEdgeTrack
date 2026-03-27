@@ -1,7 +1,4 @@
-﻿using Mapster;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FinanceEdgeTrack.Domain.Models;
@@ -16,7 +13,7 @@ public class Carteira
     public int CarteiraId { get; set; }
 
     [Required]
-    public string? UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public ApplicationUser? User { get; set; }

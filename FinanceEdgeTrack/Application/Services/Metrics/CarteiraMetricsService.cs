@@ -25,7 +25,8 @@ public class CarteiraMetricsService : ICarteiraMetrics
 
     public async Task<ApiResponse<CarteiraResumoDTO>> GetSaldoAtualUser()
     {
-        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == _currentUser.UserId);
+        var carteira = await _uof.CarteiraRepository
+                             .GetAsync(c => c.UserId == _currentUser.UserId);
 
         if (carteira == null)
         {

@@ -12,6 +12,7 @@ public static class ResultMessages
     public const string InvalidCredentials = "Credenciais inválidas.";
     public const string EmptyMetaCollection = "Não foi encontrado nenhuma meta.";
     public const string EmptyAporteCollection = "Não foi encontrado nenhum aporte";
+    public const string EmptyCollection = "Não foi possível encontrar nenhum resultado, coleção possivelmente vazia.";
     public const string MoreThanZero = "O valor deve ser maior que zero.";
     public const string WalletNotFound = "Ops, parece que você perdeu sua carteira. :´( ";
     public const string ValidAporte = "Deve ser feito um aporte válido, credenciais incorretas.";

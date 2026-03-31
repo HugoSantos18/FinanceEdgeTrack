@@ -1,4 +1,5 @@
 ﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Infrastructure.Config;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,6 +12,7 @@ namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class TokenService : ITokenService
 {
+    private readonly JwtSettings _jwtSettings;
 
     public JwtSecurityToken GenerateAccessToken(IEnumerable<Claim> claims, IConfiguration config)
     {

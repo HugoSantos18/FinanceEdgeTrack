@@ -9,7 +9,6 @@ public interface IUnitOfWork
     ICarteiraRepository CarteiraRepository { get; }
     IReceitaRepository ReceitaRepository { get; }
     IDespesaRepository DespesaRepository { get; }
-    ILancamentoRepository LancamentoRepository { get; }
     IMetaRepository MetaRepository { get; }
 
     Task CommitAsync();

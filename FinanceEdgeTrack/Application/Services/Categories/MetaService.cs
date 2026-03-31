@@ -3,9 +3,10 @@ using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Enum;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
@@ -19,14 +20,17 @@ public class MetaService : IMetaService
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _uof;
     private readonly ICarteiraService _carteira;
-    private readonly ICurrentUserService _currentUser;
+    private readonly CurrentUser _currentUser;
+    private readonly ILogger<MetaService> _logger;
 
-    public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteira, ICurrentUserService currentUser)
+    public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteira,
+                       CurrentUser currentUser, ILogger<MetaService> logger)
     {
         _mapper = mapper;
         _uof = uof;
         _carteira = carteira;
         _currentUser = currentUser;
+        _logger = logger;
     }
 
     public async Task<ApiResponse<MetaDTO>> GetMetaPorIdAsync(Guid metaId)
@@ -34,7 +38,10 @@ public class MetaService : IMetaService
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar meta de ID: {metaId}, verifique o ID informado.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
@@ -44,7 +51,10 @@ public class MetaService : IMetaService
         var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar aporte de ID: {aporteMetaId}, verifique o ID informado.");
             return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var aporte = meta.Aportes.First(a => a.Id == aporteMetaId);
 
@@ -75,7 +85,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -97,7 +110,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -119,7 +135,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -141,7 +160,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -163,7 +185,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -185,7 +210,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -207,7 +235,10 @@ public class MetaService : IMetaService
         var metas = _uof.MetaRepository.GetAll();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
             return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var query = metas
             .AsNoTracking()
@@ -230,7 +261,10 @@ public class MetaService : IMetaService
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível atualizar a meta {metaId}, verifique os dados informados.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         meta.Titulo = metaDto.Titulo;
         meta.ValorAlvo = metaDto.ValorAlvo;
@@ -248,7 +282,10 @@ public class MetaService : IMetaService
         var meta = _mapper.Map<Meta>(metaDto);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível criar a meta, verifique os dados informados.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
+        }
 
         await _uof.MetaRepository.CreateAsync(meta);
 
@@ -260,14 +297,20 @@ public class MetaService : IMetaService
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar meta, verifique o ID {metaId} informado.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var novoAporte = _mapper.Map<AporteMetas>(aporteMetaDto);
 
         if (novoAporte is null)
+        {
+            _logger.LogInformation($"Não foi possível registrar o aporte, verifique os dados informados.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.ErrorCreation);
+        }
 
-        await _carteira.DescontarSaldoAsync(_currentUser.UserId, novoAporte.Valor);
+        await _carteira.DescontarSaldoAsync(novoAporte.Valor);
 
         meta.RegistrarAporte(novoAporte);
         await _uof.CommitAsync();
@@ -285,17 +328,24 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
+        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes
+                                            .Any(a => a.Id == aporteMetaId));
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar meta, verifique o ID informado do aporte.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var aporteRemovido = meta.Aportes.First(a => a.Id == aporteMetaId);
 
         if (aporteRemovido is null)
+        {
+            _logger.LogInformation($"Não foi possível encontrar o aporte de ID {aporteMetaId}.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundAporte);
+        }
 
-        await _carteira.AdicionarSaldoAsync(_currentUser.UserId, aporteRemovido.Valor);
+        await _carteira.AdicionarSaldoAsync(aporteRemovido.Valor);
         meta.RemoverAporte(aporteRemovido);
 
         await _uof.CommitAsync();
@@ -308,19 +358,25 @@ public class MetaService : IMetaService
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível remover meta, verifique o ID da meta {metaId} informado.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         await _uof.MetaRepository.DeleteAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }
 
-    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId)  //Dashboard e relatórios;
+    public async Task<ApiResponse<decimal>> ValorTotalEmAportes(Guid metaId) 
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
 
         if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível obter o total em aportes, verificar o ID da meta {metaId}.");
             return ApiResponse<decimal>.Fail(ResultMessages.NotFoundMeta);
+        }
 
         var totalAportes = meta.ValorTotalAportes();
 

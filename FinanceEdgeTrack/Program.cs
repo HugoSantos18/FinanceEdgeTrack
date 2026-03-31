@@ -1,8 +1,6 @@
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
-using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Models;
 using FinanceEdgeTrack.Infrastructure.Extensions;
 using FinanceEdgeTrack.Infrastructure.Config;
@@ -11,8 +9,6 @@ using FinanceEdgeTrack.Infrastructure.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -22,6 +18,9 @@ using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Application.Services.Categories;
 using Microsoft.AspNetCore.Authorization;
+using FinanceEdgeTrack.Logging;
+using FinanceEdgeTrack.Application.Services.CarteiraService;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,14 +38,17 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
+
 // UserSecrets configuration
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables()
     .AddUserSecrets<Program>();
 
 // DataBase configuration
-builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDatabaseConfiguration(builder.Configuration);
+
 
 // Bind strongly-typed JWT settings
 var jwtSection = builder.Configuration.GetSection("JWT");
@@ -73,16 +75,21 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<ILancamentoRepository, LancamentoRepository>();
 builder.Services.AddScoped<IMetaRepository, MetaRepository>();
 builder.Services.AddScoped<IReceitaService, ReceitaService>();
 builder.Services.AddScoped<IDespesaService, DespesaService>();
 builder.Services.AddScoped<IMetaService, MetaService>();
 builder.Services.AddScoped<ICarteiraService, CarteiraService>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
+
+// Add Loging provider
+builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig
+{
+    LogLevel = LogLevel.Information
+}));
 
 
 // Authentication
@@ -93,6 +100,12 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(options =>
 {
     var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
+
+    if (secretKey.IsNullOrEmpty())
+        throw new Exception("JWT secretKey não configurado!");
+
+    if (jwtSettings.SecretKey.Length < 32)
+        throw new Exception("JWT secretKey deve ter no mínimo 32 caracteres!");
 
     options.SaveToken = true;
     options.RequireHttpsMetadata = true;

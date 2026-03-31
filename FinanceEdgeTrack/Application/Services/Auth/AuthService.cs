@@ -4,19 +4,13 @@ using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Infrastructure.Repositories;
 using MapsterMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
-using System.Security.Cryptography;
 
 namespace FinanceEdgeTrack.Application.Services.Auth;
 
@@ -28,10 +22,12 @@ public class AuthService : IAuthenticationService
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
     private readonly ICarteiraService _carteiraService;
-
+    private readonly CurrentUser _currentUser;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService)
+                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService,
+                       ILogger<AuthService> logger, CurrentUser currentUser)
     {
         _uof = uof;
         _tokenService = tokenService;
@@ -39,7 +35,10 @@ public class AuthService : IAuthenticationService
         _config = config;
         _mapper = mapper;
         _carteiraService = carteiraService;
+        _logger = logger;
+        _currentUser = currentUser;
     }
+
 
     public async Task<ApiResponse<LoginResponseDTO>> Login(LoginModelUserDTO loginModelDto)
     {
@@ -47,12 +46,7 @@ public class AuthService : IAuthenticationService
 
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginModelDto.Password!))
         {
-            var failResponse = new LoginResponseDTO()
-            {
-                Success = false,
-                Message = ResultMessages.InvalidCredentials
-            };
-
+            _logger.LogInformation($"Usuário ou senha informados inválidos.");
             return ApiResponse<LoginResponseDTO>.Fail("Usuário ou senha inválidos.");
         }
 
@@ -62,6 +56,7 @@ public class AuthService : IAuthenticationService
             {
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -96,10 +91,16 @@ public class AuthService : IAuthenticationService
         var userExists = await _userManager.FindByNameAsync(registerModelDto.UserName!);
 
         if (userExists is not null)
+        {
+            _logger.LogInformation($"Usuário já existe no sistema, não é possível cadastrar um novo com essas credenciais");
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.UserAlreadyExists);
+        }
 
         if (registerModelDto.Password != registerModelDto.ConfirmPassword)
+        {
+            _logger.LogInformation($"É necessário confirmar a senha de acordo com a senha informada.");
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.ConfirmPasswordError);
+        }
 
         ApplicationUser user = new()
         {
@@ -116,6 +117,8 @@ public class AuthService : IAuthenticationService
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            
+            _logger.LogInformation($"Erro ao criar um novo usuário: {errors}");
             return ApiResponse<ResponseDTO>.Fail($" Error: \n{errors}");
         }
 
@@ -126,7 +129,7 @@ public class AuthService : IAuthenticationService
         };
 
         var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        carteira.UserId = user.Id; 
+        carteira.UserId = _currentUser.UserId;
 
         await _userManager.UpdateAsync(user);
 
@@ -154,6 +157,7 @@ public class AuthService : IAuthenticationService
 
         if (user is null || user.RefreshTokenExpire <= DateTime.Now || user.RefreshToken != refreshToken)
         {
+            _logger.LogInformation($"Erro ao adicionar um novo refreshToken ao usuário, verifique as credenciais.");
             return ApiResponse<TokenModelDTO>.Fail(ResultMessages.InvalidRefreshToken);
         }
 
@@ -179,5 +183,7 @@ public class AuthService : IAuthenticationService
         user.RefreshToken = null;
 
         await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation($"Revoke {username}");
     }
 }

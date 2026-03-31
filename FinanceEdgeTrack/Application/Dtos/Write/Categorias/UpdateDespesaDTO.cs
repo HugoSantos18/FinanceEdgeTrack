@@ -9,6 +9,6 @@
         public DateTime Data { get; set; }
         public bool Fixa { get; set; }
 
-        public string? UpdatedAt { get; set; }
+        public string? UpdatedAt { get; set; } = DateTime.UtcNow.ToShortDateString();
     }
 }

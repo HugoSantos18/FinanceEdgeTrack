@@ -1,7 +1,5 @@
 ﻿namespace FinanceEdgeTrack.Application.Common.Responses;
 
-//dps usar serviços e interfaces para complementar as mensagens e ficarem mais personalizadas ainda.
-
 public static class ResultMessages
 {
     public const string NotFoundReceive = "Receita não encontrada";
@@ -14,6 +12,7 @@ public static class ResultMessages
     public const string InvalidCredentials = "Credenciais inválidas.";
     public const string EmptyMetaCollection = "Não foi encontrado nenhuma meta.";
     public const string EmptyAporteCollection = "Não foi encontrado nenhum aporte";
+    public const string EmptyCollection = "Não foi possível encontrar nenhum resultado, coleção possivelmente vazia.";
     public const string MoreThanZero = "O valor deve ser maior que zero.";
     public const string WalletNotFound = "Ops, parece que você perdeu sua carteira. :´( ";
     public const string ValidAporte = "Deve ser feito um aporte válido, credenciais incorretas.";
@@ -31,4 +30,6 @@ public static class ResultMessages
     public const string ErrorUpdate = "Não foi possível realizar a atualização";
     public const string InvalidIndentityRoleCreation = $"Não foi possível criar a role";
     public const string ErrorToAddUserToRole = $"Não foi possível adicionar o user a role";
+    public const string ErrorToGetWalletAmmountUser = $"Não foi possível resgatar o saldo da carteira.";
+    public const string InsuficientData = $"Não foi possível coletar informações de metas do usuário.";
 }

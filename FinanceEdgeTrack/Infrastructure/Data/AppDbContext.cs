@@ -16,7 +16,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     DbSet<Meta> Metas { get; set; }
     DbSet<Carteira> Carteiras { get; set; }
     DbSet<AporteMetas> AporteMetas { get; set; }
-    DbSet<Lancamento> Lancamentos { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder model)
@@ -100,39 +99,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
              .HasForeignKey<Carteira>(c => c.UserId)
              .OnDelete(DeleteBehavior.Cascade);
 
-
-        model.Entity<Lancamento>(entity =>
-        {
-            entity.ToTable("Lancamentos");
-            entity.HasKey(l => l.LancamentoId);
-
-            entity.Property(l => l.DataLancamento)
-                  .IsRequired();
-
-            // -----------------------------
-            // Lancamento -> Receita (opcional)
-            // -----------------------------
-            entity.HasOne(l => l.Receita)
-                  .WithMany() // Receita NÃO precisa conhecer os lançamentos
-                  .HasForeignKey(l => l.ReceitaId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // -----------------------------
-            // Lancamento -> Despesa (opcional)
-            // -----------------------------
-            entity.HasOne(l => l.Despesa)
-                  .WithMany() // Despesa NÃO precisa conhecer os lançamentos
-                  .HasForeignKey(l => l.DespesaId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // -----------------------------
-            // Lancamento -> Usuário
-            // -----------------------------
-            entity.HasOne(l => l.User)
-                  .WithMany()
-                  .HasForeignKey(l => l.UserId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
 
         // Receita
         model.Entity<Receita>()

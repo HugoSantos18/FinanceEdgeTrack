@@ -13,7 +13,6 @@ public class UnitOfWork : IUnitOfWork
     private IDespesaRepository? _despesaRepository;
     private IReceitaRepository? _receitaRepository;
     private IMetaRepository? _metaRepository;
-    private ILancamentoRepository? _lancamentoRepository;
 
 
     // instancia da interface de cada repositorio para utilizar.
@@ -41,13 +40,6 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public ILancamentoRepository LancamentoRepository
-    {
-        get
-        {
-            return _lancamentoRepository = _lancamentoRepository ?? new LancamentoRepository(_context);
-        }
-    }
 
     public ICarteiraRepository CarteiraRepository
     {

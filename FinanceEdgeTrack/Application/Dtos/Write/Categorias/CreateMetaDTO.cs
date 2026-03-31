@@ -2,6 +2,7 @@
 using FinanceEdgeTrack.Domain.Enum;
 using FinanceEdgeTrack.Domain.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
@@ -22,5 +23,6 @@ public class CreateMetaDTO
     
     public DateTime DataAlvo { get; set; }
 
-    public List<AporteMetasDTO> Aportes { get; set; }
+    [JsonIgnore]
+    public List<AporteMetasDTO>? Aportes { get; set; } 
 }

@@ -1,16 +1,15 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace FinanceEdgeTrack.Application.Services.Categories
 {
@@ -18,15 +17,18 @@ namespace FinanceEdgeTrack.Application.Services.Categories
     {
         private readonly IUnitOfWork _uof;
         private readonly ICarteiraService _carteiraService;
-        private readonly ICurrentUserService _currentUser;
+        private readonly CurrentUser _currentUser;
         private readonly IMapper _mapper;
+        private readonly ILogger<DespesaService> _logger;
 
-        public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, ICurrentUserService currentUser)
+        public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
+            CurrentUser currentUser, ILogger<DespesaService> logger)
         {
             _mapper = mapper;
             _uof = uof;
             _carteiraService = carteira;
             _currentUser = currentUser;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<DespesaDTO>> ObterDespesaPorIdAsync(Guid id)
@@ -34,7 +36,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
             if (despesa is null)
+            {
+                _logger.LogInformation($"Não foi possível encontrar a despesa pelo ID {id}");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             var despesaDto = _mapper.Map<DespesaDTO>(despesa);
 
@@ -46,7 +51,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
+            {
+                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             var query = despesas
                 .AsNoTracking()
@@ -68,7 +76,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
+            {
+                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa fixa, possivelmente vazia.");
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             var query = despesas
                 .AsNoTracking()
@@ -90,7 +101,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
+            {
+                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             var query = despesas
                 .AsNoTracking()
@@ -112,7 +126,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesas = _uof.DespesaRepository.GetAll();
 
             if (despesas is null)
+            {
+                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
                 return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             var query = despesas
                 .AsNoTracking()
@@ -133,7 +150,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var despesa = _mapper.Map<Despesa>(despesaDto);
 
-            await _carteiraService.DescontarSaldoAsync(_currentUser.UserId, despesa.Valor);
+            await _carteiraService.DescontarSaldoAsync(despesa.Valor);
             await _uof.DespesaRepository.CreateAsync(despesa);
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
@@ -144,7 +161,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
             if (despesa is null)
+            {
+                _logger.LogInformation($"Não foi possível atualizar despesa de ID: {id}, verifique as credenciais ou o ID informado.");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
             despesa.Titulo = despesaDto.Titulo!;
             despesa.Descricao = despesaDto.Descricao;
@@ -163,9 +183,12 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             var despesaRemovida = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
 
             if (despesaRemovida is null)
+            {
+                _logger.LogInformation($"Não foi possível remover despesa de ID: {id}, verifique o ID informado.");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
+            }
 
-            await _carteiraService.AdicionarSaldoAsync(_currentUser.UserId, despesaRemovida.Valor);
+            await _carteiraService.AdicionarSaldoAsync(despesaRemovida.Valor);
             await _uof.DespesaRepository.DeleteAsync(despesaRemovida)!;
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesaRemovida), "Despesa removida com sucesso");

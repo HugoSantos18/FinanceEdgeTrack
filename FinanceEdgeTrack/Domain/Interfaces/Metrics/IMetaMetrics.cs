@@ -6,8 +6,7 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Metrics;
 
 public interface IMetaMetrics
 {
-    Task<ApiResponse<PagedList<MetaDetalhadaResumoDTO>>> Metas(PaginationParams pagination); // verificar como usar
-    Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes();
+    Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes(int month);
     Task<ApiResponse<MetasResumoGeralDTO>> GetMetricsMetas();
-    Task<ApiResponse<MetasKPIsDTO>> GetKPIsMetas();
+    Task<ApiResponse<MetasKPIsDTO>> GetKPIsMetas(int month);
 }

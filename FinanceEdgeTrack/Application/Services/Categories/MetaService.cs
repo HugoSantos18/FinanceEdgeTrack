@@ -328,7 +328,8 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
+        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes
+                                            .Any(a => a.Id == aporteMetaId));
 
         if (meta is null)
         {

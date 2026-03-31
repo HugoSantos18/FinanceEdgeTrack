@@ -43,6 +43,12 @@ public class Meta
     public List<AporteMetas>? Aportes { get; private set; } = new();
 
 
+    public decimal ValorRestanteParaCompletar()
+    {
+        ValorRestante = ValorAlvo - ValorAtual;
+        return ValorRestante;
+    }
+
     public void AlterarStatus(Status novoStatus)
     {
         if (Status == Status.Concluido)

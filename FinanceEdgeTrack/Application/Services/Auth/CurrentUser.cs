@@ -1,18 +1,20 @@
 ﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class CurrentUser : ICurrentUser
 {
-    public Guid UserId { get;}
-    public string Email { get; }
+    private readonly IHttpContextAccessor _accessor;
+    public Guid UserId => GetClaimGuid(ClaimTypes.NameIdentifier);
+    public string Email => _accessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
 
-    public CurrentUser(IHttpContextAccessor accessor)
+    public CurrentUser(IHttpContextAccessor accessor) => _accessor = accessor;
+    
+    private Guid GetClaimGuid(string type)
     {
-        var user = accessor.HttpContext!.User;
-
-        UserId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        Email = user.FindFirstValue(ClaimTypes.Email)!;
+        var val = _accessor.HttpContext?.User?.FindFirstValue(type);
+        return string.IsNullOrEmpty(val) ? Guid.Empty : Guid.Parse(val);
     }
 }

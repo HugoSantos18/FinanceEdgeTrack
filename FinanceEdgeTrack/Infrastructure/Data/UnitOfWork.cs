@@ -8,14 +8,12 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
 
-    // variáveis para armazenar os repositórios instanciados.
     private ICarteiraRepository? _carteiraRepository;
     private IDespesaRepository? _despesaRepository;
     private IReceitaRepository? _receitaRepository;
     private IMetaRepository? _metaRepository;
 
 
-    // instancia da interface de cada repositorio para utilizar.
     public IDespesaRepository DespesaRepository
     {
         get

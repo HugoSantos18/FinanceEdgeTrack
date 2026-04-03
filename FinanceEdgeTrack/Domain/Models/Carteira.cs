@@ -10,13 +10,13 @@ public class Carteira
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Required]
-    public int CarteiraId { get; set; }
+    public int CarteiraId { get; private set; }
 
     [Required]
     public Guid UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public ApplicationUser? User { get; set; }
+    public ApplicationUser? User { get; private set; }
 
     [Required]
     public decimal Saldo { get; set; } = default!;

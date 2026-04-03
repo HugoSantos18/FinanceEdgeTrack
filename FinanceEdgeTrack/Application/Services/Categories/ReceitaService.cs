@@ -2,8 +2,8 @@
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
@@ -18,12 +18,12 @@ public class ReceitaService : IReceitaService
 
     private readonly IUnitOfWork _uof;
     private readonly ICarteiraService _carteiraService;
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceitaService> _logger;
 
     public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, 
-        CurrentUser currentUser, ILogger<ReceitaService> logger)
+        ICurrentUser currentUser, ILogger<ReceitaService> logger)
     {
         _mapper = mapper;
         _uof = uof;

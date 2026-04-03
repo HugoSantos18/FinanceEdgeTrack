@@ -21,6 +21,12 @@ using Microsoft.AspNetCore.Authorization;
 using FinanceEdgeTrack.Logging;
 using FinanceEdgeTrack.Application.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
+using FinanceEdgeTrack.Application.Services.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
+using FinanceEdgeTrack.Application.Services.Dashboard;
+using FinanceEdgeTrack.Application.Services.Cache;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +78,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 
 // Dependency Injections (Services, Mapper, etc...)
-
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IMetaRepository, MetaRepository>();
@@ -84,6 +89,14 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
+builder.Services.AddScoped<ICarteiraMetrics, CarteiraMetricsService>();
+builder.Services.AddScoped<IDespesaMetrics, DespesaMetricsService>();
+builder.Services.AddScoped<IMetaMetrics, MetaMetricsService>();
+builder.Services.AddScoped<IReceitaMetrics, ReceitaMetricsService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
+
 
 // Add Loging provider
 builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig

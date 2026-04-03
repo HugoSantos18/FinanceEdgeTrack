@@ -1,19 +1,19 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Despesas;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services.Metrics;
 
 public class DespesaMetricsService : IDespesaMetrics
 {
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _uof;
     private readonly ILogger<DespesaMetricsService> _logger;
 
-    public DespesaMetricsService(CurrentUser currentUser, IUnitOfWork uof, ILogger<DespesaMetricsService> logger)
+    public DespesaMetricsService(ICurrentUser currentUser, IUnitOfWork uof, ILogger<DespesaMetricsService> logger)
     {
         _currentUser = currentUser;
         _uof = uof;

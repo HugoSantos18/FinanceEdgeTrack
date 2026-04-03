@@ -6,6 +6,9 @@ public class DashboardConsolidadoNoMesDTO
     public decimal MediaGastosDiarioNoMes { get; set; }
     public decimal ValorTotalGastoNoMes { get; set; }
     public decimal ValorTotalRecebidoNoMes { get; set; }
+    public decimal ValorAlvoEmMetasNoMes { get; set; }
+    public decimal ValorAportadoEmMetasNoMes { get; set; }
+    public int MediaDiasParaConclusao { get; set; }
     public int TotalConcluidasNoMes { get; set; }
     public int TotalPendentesNoMes { get; set; }
     public int TotalCanceladasNoMes { get; set; }

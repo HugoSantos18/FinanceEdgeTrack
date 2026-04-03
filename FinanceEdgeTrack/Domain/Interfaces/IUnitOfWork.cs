@@ -5,7 +5,6 @@ namespace FinanceEdgeTrack.Domain.Interfaces;
 
 public interface IUnitOfWork
 {
-    // Propriedades dos repositories com get somente.
     ICarteiraRepository CarteiraRepository { get; }
     IReceitaRepository ReceitaRepository { get; }
     IDespesaRepository DespesaRepository { get; }

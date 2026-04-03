@@ -1,7 +1,7 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
 using MapsterMapper;
@@ -13,9 +13,9 @@ public class CarteiraService : ICarteiraService
     private readonly IUnitOfWork _uof;
     private readonly IMapper _mapper;
     private readonly ILogger<CarteiraService> _logger;
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
 
-    public CarteiraService(IUnitOfWork uof, IMapper mapper, ILogger<CarteiraService> logger, CurrentUser currentUser)
+    public CarteiraService(IUnitOfWork uof, IMapper mapper, ILogger<CarteiraService> logger, ICurrentUser currentUser)
     {
         _uof = uof;
         _mapper = mapper;

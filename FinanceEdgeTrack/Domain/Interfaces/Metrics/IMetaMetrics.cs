@@ -8,5 +8,6 @@ public interface IMetaMetrics
 {
     Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes(int month);
     Task<ApiResponse<MetasResumoGeralDTO>> GetMetricsMetas();
-    Task<ApiResponse<MetasKPIsDTO>> GetKPIsMetas(int month);
+    Task<ApiResponse<MetasKPIsNoMesDTO>> GetKPIsMetasNoMes(int month);
+    Task<ApiResponse<MetasKPIsGeralDTO>> GetKPIsMetas();
 }

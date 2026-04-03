@@ -22,12 +22,12 @@ public class AuthService : IAuthenticationService
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
     private readonly ICarteiraService _carteiraService;
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
                        IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService,
-                       ILogger<AuthService> logger, CurrentUser currentUser)
+                       ILogger<AuthService> logger, ICurrentUser currentUser)
     {
         _uof = uof;
         _tokenService = tokenService;

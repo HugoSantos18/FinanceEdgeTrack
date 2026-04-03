@@ -32,4 +32,5 @@ public static class ResultMessages
     public const string ErrorToAddUserToRole = $"Não foi possível adicionar o user a role";
     public const string ErrorToGetWalletAmmountUser = $"Não foi possível resgatar o saldo da carteira.";
     public const string InsuficientData = $"Não foi possível coletar informações de metas do usuário.";
+    public const string ErrorToCreateDashboard = $"Não foi possível gerar o dashboard, incosistência ao receber dados.";
 }

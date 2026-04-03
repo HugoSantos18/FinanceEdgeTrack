@@ -1,19 +1,19 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Receitas;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services.Metrics;
 
 public class ReceitaMetricsService : IReceitaMetrics
 {
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _uof;
     private readonly ILogger<ReceitaMetricsService> _logger;
 
-    public ReceitaMetricsService(CurrentUser currentUser, IUnitOfWork uof, ILogger<ReceitaMetricsService> logger)
+    public ReceitaMetricsService(ICurrentUser currentUser, IUnitOfWork uof, ILogger<ReceitaMetricsService> logger)
     {
         _currentUser = currentUser;
         _uof = uof;

@@ -67,4 +67,30 @@ public class ReceitaMetricsService : IReceitaMetrics
 
         return ApiResponse<ReceitasResumoMensalDTO>.Ok(receitaResumoMensalDTO, $"Receita do mês {month}");
     }
+
+
+    public async Task<ApiResponse<ReceitasResumoPeriodoDTO>> GetReceitaMetricsNoPeriodo(DateTime start, DateTime end)
+    {
+        var query = _uof.ReceitaRepository
+                          .Query()
+                          .Where(r => r.Data >= start)
+                          .Where(r => r.Data <= end)
+                          .AsNoTracking();
+
+        var receitas = await query.ToListAsync();
+
+        if (receitas is null)
+            return ApiResponse<ReceitasResumoPeriodoDTO>.Fail(ResultMessages.EmptyCollection);
+
+        decimal valorReceitasTotalNoPeriodo = receitas
+                               .Sum(r => r.Valor);
+
+        var receitaResumoPeriodoDTO = new ReceitasResumoPeriodoDTO
+        {
+            ValorTotalReceitasNoPeriodo = valorReceitasTotalNoPeriodo
+        };
+
+
+        return ApiResponse<ReceitasResumoPeriodoDTO>.Ok(receitaResumoPeriodoDTO, $"Receita do período {start.ToShortDateString()} | {end.ToShortDateString()}");
+    }
 }

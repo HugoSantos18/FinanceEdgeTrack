@@ -76,13 +76,48 @@ public class DespesaMetricsService : IDespesaMetrics
                            .Where(d => !d.Fixa)
                            .Sum(d => d.Valor);
 
-        var despesaResumoMensalDTO = new DespesasGeralDTO
+        var despesaResumoGeralDTO = new DespesasGeralDTO
         {
             ValorTotalDespesasFixas = gastosFixos,
             ValorTotalDespesas = gastoTotal,
             ValorTotalOutrasDespesas = outrosGastos
         };
 
-        return ApiResponse<DespesasGeralDTO>.Ok(despesaResumoMensalDTO);
+        return ApiResponse<DespesasGeralDTO>.Ok(despesaResumoGeralDTO);
+    }
+
+    public async Task<ApiResponse<DespesasResumoPeriodoDTO>> GetDespesaMetricsNoPeriodo(DateTime start, DateTime end)
+    {
+        var query = _uof.DespesaRepository
+                       .Query()
+                       .Where(d => d.Data >= start)
+                       .Where(d => d.Data <= end)
+                       .AsNoTracking();
+
+
+        var despesas = await query.ToListAsync();
+
+        if (despesas is null)
+            return ApiResponse<DespesasResumoPeriodoDTO>.Fail($"{ResultMessages.NotFoundDespesa}");
+
+        decimal gastosFixos = despesas
+                              .Where(d => d.Fixa)
+                              .Sum(d => d.Valor);
+
+        decimal gastoTotal = despesas
+                             .Sum(d => d.Valor);
+
+        decimal outrosGastos = despesas
+                           .Where(d => !d.Fixa)
+                           .Sum(d => d.Valor);
+
+        var despesaResumoPeriodoDTO = new DespesasResumoPeriodoDTO
+        {
+            ValorTotalDespesasFixasNoPeriodo = gastosFixos,
+            ValorTotalDespesasNoPeriodo = gastoTotal,
+            ValorTotalOutrasDespesasNoPeriodo = outrosGastos
+        };
+
+        return ApiResponse<DespesasResumoPeriodoDTO>.Ok(despesaResumoPeriodoDTO);
     }
 }

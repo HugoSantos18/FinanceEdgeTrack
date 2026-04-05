@@ -4,11 +4,6 @@ using FinanceEdgeTrack.Domain.Interfaces.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
-using FinanceEdgeTrack.Domain.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.Extensions.Caching.Memory;
-using Npgsql;
-using System.Diagnostics.Metrics;
 
 namespace FinanceEdgeTrack.Application.Services.Dashboard;
 
@@ -131,9 +126,50 @@ public class DashboardService : IDashboardService
         return ApiResponse<DashboardConsolidadoNoMesDTO>.Ok(dashboardMensalDTO);
     }
 
-    public Task<ApiResponse<DashboardConsolidadoPeriodoDTO>> GetDashboardPeriodo(DateTime dataInicio, DateTime dataFim)
+    public async Task<ApiResponse<DashboardConsolidadoPeriodoDTO>> GetDashboardPeriodo(DateTime dataInicio, DateTime dataFim)
     {
-        throw new NotImplementedException();
+        var diferenceInDays = dataInicio.Subtract(dataFim);
+        int totalDays = (int)diferenceInDays.TotalDays;
+        
+        var saldoTask = _carteiraMetrics.GetSaldoAtualUser();
+        var despesaMetricsTask = _despesaMetrics.GetDespesaMetricsNoPeriodo(dataInicio, dataFim);
+        var receitaMetricsTask = _receitaMetrics.GetReceitaMetricsNoPeriodo(dataInicio, dataFim);
+        var metaMetricsTask = _metaMetrics.GetMetricsMetasNoPeriodo(dataInicio, dataFim);
+        var metaKpisTask = _metaMetrics.GetKPIsMetasNoPeriodo(dataInicio, dataFim);
+
+        await Task.WhenAll(saldoTask, despesaMetricsTask, receitaMetricsTask, metaMetricsTask, metaKpisTask);
+
+        var saldoAtual = saldoTask.Result;
+        var despesaMetrics = despesaMetricsTask.Result;
+        var receitaMetrics = receitaMetricsTask.Result;
+        var metaMetrics = metaMetricsTask.Result;
+        var metaKpis = metaKpisTask.Result;
+
+        if (saldoAtual?.Data is null ||
+        despesaMetrics?.Data is null ||
+        receitaMetrics?.Data is null ||
+        metaMetrics?.Data is null ||
+        metaKpis?.Data is null)
+        {
+            return ApiResponse<DashboardConsolidadoPeriodoDTO>.Fail(ResultMessages.ErrorToCreateDashboard);
+        }
+
+        var dashboardPeriodoDTO = new DashboardConsolidadoPeriodoDTO
+        {
+            Saldo = saldoAtual.Data.SaldoAtual,
+            MediaGastosDiarioNoPeriodo = (despesaMetrics.Data.ValorTotalDespesasNoPeriodo / totalDays),
+            ValorTotalGastoNoPeriodo = despesaMetrics.Data.ValorTotalDespesasNoPeriodo,
+            ValorTotalRecebidoNoPeriodo = receitaMetrics.Data.ValorTotalReceitasNoPeriodo,
+            ValorAlvoEmMetasNoPeriodo = metaMetrics.Data.TotalValorAlvoNoPeriodo,
+            ValorAportadoEmMetasNoPeriodo = metaMetrics.Data.TotalAportadoNoPeriodo,
+            TotalConcluidasNoPeriodo = metaKpis.Data.TotalConcluidasNoPeriodo,
+            TotalPendentesNoPeriodo = metaKpis.Data.TotalPendentesNoPeriodo,
+            TotalCanceladasNoPeriodo = metaKpis.Data.TotalCanceladasNoPeriodo
+        };
+
+        await _cacheService.SetAsync(CacheKey(), dashboardPeriodoDTO, TimeSpan.FromMinutes(10));
+
+        return ApiResponse<DashboardConsolidadoPeriodoDTO>.Ok(dashboardPeriodoDTO);
     }
 
 }

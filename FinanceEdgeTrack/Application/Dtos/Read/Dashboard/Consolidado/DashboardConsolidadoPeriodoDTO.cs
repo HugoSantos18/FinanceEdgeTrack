@@ -3,10 +3,12 @@
 public class DashboardConsolidadoPeriodoDTO
 {
     public decimal Saldo { get; set; }
-    public decimal MediaGastosDiario { get; set; }
-    public decimal ValorTotalGasto { get; set; }
-    public decimal ValorTotalRecebido { get; set; }
-    public int TotalConcluidas { get; set; }
-    public int TotalPendentes { get; set; }
-    public int TotalCanceladas { get; set; }
+    public decimal MediaGastosDiarioNoPeriodo { get; set; }
+    public decimal ValorTotalGastoNoPeriodo { get; set; }
+    public decimal ValorTotalRecebidoNoPeriodo { get; set; }
+    public decimal ValorAlvoEmMetasNoPeriodo { get; set; }
+    public decimal ValorAportadoEmMetasNoPeriodo { get; set; }
+    public int TotalConcluidasNoPeriodo { get; set; }
+    public int TotalPendentesNoPeriodo { get; set; }
+    public int TotalCanceladasNoPeriodo { get; set; }
 }

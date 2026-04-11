@@ -366,6 +366,7 @@ FodyWeavers.xsd
 appsettings.json
 appsettings.Development.json
 appsettings.Production.json
+UserSeed.cs
 
 # Secrets locais
 secrets.json

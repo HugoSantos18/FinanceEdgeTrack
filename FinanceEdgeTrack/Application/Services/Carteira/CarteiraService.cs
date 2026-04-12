@@ -38,7 +38,7 @@ public class CarteiraService : ICarteiraService
         if (valor <= 0)
             return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
 
-        var carteira = await _uof.CarteiraRepository.GetAsync(u => u.UserId == _currentUser.UserId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(u => u.UserId!.Equals(_currentUser.UserId));
 
         if (carteira is null)
         {
@@ -56,7 +56,7 @@ public class CarteiraService : ICarteiraService
 
     public async Task<ApiResponse<decimal>> DescontarSaldoAsync(decimal valor)
     {
-        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == _currentUser.UserId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId!.Equals(_currentUser.UserId));
 
         if (carteira is null)
         {
@@ -86,7 +86,7 @@ public class CarteiraService : ICarteiraService
 
     public async Task<ApiResponse<decimal>> ObterSaldoAsync()
     {
-        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId == _currentUser.UserId);
+        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId!.Equals(_currentUser.UserId));
 
         if (carteira is null)
         {

@@ -13,10 +13,10 @@ public class Carteira
     public int CarteiraId { get; private set; }
 
     [Required]
-    public Guid UserId { get; set; }
+    public string? UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public ApplicationUser? User { get; private set; }
+    public ApplicationUser? User { get; set; }
 
     [Required]
     public decimal Saldo { get; set; } = default!;

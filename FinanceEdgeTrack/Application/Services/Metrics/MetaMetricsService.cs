@@ -21,26 +21,32 @@ public class MetaMetricsService : IMetaMetrics
         _uof = uof;
     }
 
-    public async Task<ApiResponse<MetasKPIsNoMesDTO>> GetKPIsMetasNoMes(int month)
+    public async Task<ApiResponse<MetasKPIsNoMesDTO>> GetKPIsMetasNoMes(int year, int month)
     {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(1);
+
+
         var query = _uof.MetaRepository
                     .Query()
+                    .Where(m => m.DataInicio >= startDate && m.DataConclusao <= endDate)
                     .AsNoTracking();
 
         var metas = await query.ToListAsync();
 
         if (metas is null)
+        {
+            _logger.LogError($"Não foi encontrado nenhuma informação na data: {month}/{year}.", metas);
             return ApiResponse<MetasKPIsNoMesDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+        }
 
-        int metasIniciadasNoMes = metas
-                                 .Where(m => m.DataInicio.Month == month)
-                                 .Count();
+        int metasIniciadasNoMes = metas.Count;
 
 
         int metasConcluidasNoMes = metas
-                                  .Where(m => m.DataConclusao!.Value.Month == month)
-                                  .Where(m => m.Status == Status.Concluido)
                                   .Where(m => m.DataConclusao != null)
+                                  .Where(m => m.DataConclusao!.Value >= startDate && m.DataConclusao.Value <= endDate)
+                                  .Where(m => m.Status == Status.Concluido)
                                   .Count();
 
 
@@ -85,7 +91,10 @@ public class MetaMetricsService : IMetaMetrics
         var metas = await query.ToListAsync();
 
         if (metas is null)
+        {
+            _logger.LogInformation($"Não foi encontrado informações de KPIs em metas.");
             return ApiResponse<MetasKPIsGeralDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+        }
 
         int metasIniciadasNoMes = metas
                                  .Count();
@@ -165,18 +174,24 @@ public class MetaMetricsService : IMetaMetrics
         return ApiResponse<MetasResumoGeralDTO>.Ok(metasResumoDTO, $"Metas gerais");
     }
 
-    public async Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes(int month)
+    public async Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes(int year, int month)
     {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(1);
+
+
         var query = _uof.MetaRepository
                       .Query()
-                      .Where(m => m.DataInicio.Month == month)
+                      .Where(m => m.DataInicio <= startDate && m.DataConclusao <= endDate)
                       .AsNoTracking();
 
         var metas = await query.ToListAsync();
 
         if (metas is null)
+        {
+            _logger.LogError($"Não foi encontrado nenhuma informação na data: {month}/{year}.", metas);
             return ApiResponse<MetasResumoMensalDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
-
+        }
         decimal totalValorAlvoNoMes = metas
                                       .Sum(m => m.ValorAlvo);
 
@@ -205,7 +220,10 @@ public class MetaMetricsService : IMetaMetrics
         var metas = await query.ToListAsync();
 
         if (metas is null)
+        {
+            _logger.LogError($"Não foi encontrado metas no período: {start} - {end}", metas);
             return ApiResponse<MetasResumoPeriodoDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+        }
 
         decimal totalValorAlvoNoPeriodo = metas
                                       .Sum(m => m.ValorAlvo);
@@ -234,7 +252,10 @@ public class MetaMetricsService : IMetaMetrics
         var metas = await query.ToListAsync();
 
         if (metas is null)
+        {
+            _logger.LogError($"Não foi encontrado metas no período: {start} - {end}", metas);
             return ApiResponse<MetasKPIsPeriodoDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+        }
 
         int metasIniciadasNoPeriodo = metas
                                  .Count();

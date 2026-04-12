@@ -15,6 +15,6 @@ public class CurrentUser : ICurrentUser
     private Guid GetClaimGuid(string type)
     {
         var val = _accessor.HttpContext?.User?.FindFirstValue(type);
-        return string.IsNullOrEmpty(val) ? Guid.Empty : Guid.Parse(val);
+        return string.IsNullOrEmpty(val) ? Guid.Empty : Guid.Parse(val);        
     }
 }

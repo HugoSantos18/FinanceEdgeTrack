@@ -1,6 +1,5 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Carteira;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
@@ -27,11 +26,11 @@ public class CarteiraMetricsService : ICarteiraMetrics
     public async Task<ApiResponse<CarteiraResumoDTO>> GetSaldoAtualUser()
     {
         var carteira = await _uof.CarteiraRepository
-                             .GetAsync(c => c.UserId == _currentUser.UserId);
+                             .GetAsync(c => c.UserId.Equals(_currentUser.UserId));
 
         if (carteira == null)
         {
-            _logger.LogInformation($"Não foi possível recuperar dados da carteira do usuário");
+            _logger.LogError($"Não foi possível recuperar dados da carteira do usuário {_currentUser.UserId}", carteira);
             return ApiResponse<CarteiraResumoDTO>.Fail(ResultMessages.ErrorToGetWalletAmmountUser);
         }
 

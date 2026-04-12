@@ -18,17 +18,15 @@ public class ReceitaService : IReceitaService
 
     private readonly IUnitOfWork _uof;
     private readonly ICarteiraService _carteiraService;
-    private readonly ICurrentUser _currentUser;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceitaService> _logger;
 
     public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, 
-        ICurrentUser currentUser, ILogger<ReceitaService> logger)
+                          ILogger<ReceitaService> logger)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteira;
-        _currentUser = currentUser;
         _logger = logger;
     }
 

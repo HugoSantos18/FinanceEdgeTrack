@@ -15,9 +15,11 @@ public class DashboardService : IDashboardService
     private readonly IReceitaMetrics _receitaMetrics;
     private readonly ICurrentUser _currentUser;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<DashboardService> _logger;
 
     public DashboardService(ICarteiraMetrics carteiraMetrics, IDespesaMetrics despesaMetrics, IMetaMetrics metaMetrics,
-                            IReceitaMetrics receitaMetrics, ICurrentUser currentUser, ICacheService cacheService)
+                            IReceitaMetrics receitaMetrics, ICurrentUser currentUser, ICacheService cacheService,
+                            ILogger<DashboardService> logger)
     {
         _carteiraMetrics = carteiraMetrics;
         _despesaMetrics = despesaMetrics;
@@ -25,6 +27,7 @@ public class DashboardService : IDashboardService
         _receitaMetrics = receitaMetrics;
         _currentUser = currentUser;
         _cacheService = cacheService;
+        _logger = logger;
     }
 
     private string CacheKey()
@@ -32,11 +35,22 @@ public class DashboardService : IDashboardService
         return _cacheService.SetCacheKey(_currentUser.UserId);
     }
 
-    // TODO - Implementação service do dashboard
-    // Utilizar Cache para recuperar informações do dashboard in memory caso necessário.
+    private bool DateIsValid(int year, int month)
+    {
+        if (year >= 2026 || year <= 2040 && month >= 1 && month <= 12)
+        {
+            return true;
+        }
+        return false;
+    }
 
     public async Task<ApiResponse<DashboardConsolidadoDTO>> GetDashboardGeral()
     {
+        var cached = await _cacheService.TryGetAsync<DashboardConsolidadoDTO>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<DashboardConsolidadoDTO>.Ok(cached);
+
         var saldoTask = _carteiraMetrics.GetSaldoAtualUser();
         var despesaMetricsTask = _despesaMetrics.GetDespesaMetricsTotal();
         var receitaMetricsTask = _receitaMetrics.GetReceitaMetrics();
@@ -82,13 +96,22 @@ public class DashboardService : IDashboardService
 
     public async Task<ApiResponse<DashboardConsolidadoNoMesDTO>> GetDashboardMensal(int year, int month)
     {
-        var date = DateTime.DaysInMonth(year, month);
+        if (!DateIsValid(year, month))
+            return ApiResponse<DashboardConsolidadoNoMesDTO>.Fail(ResultMessages.InvalidDateDashboard);
+
+        var cached = await _cacheService.TryGetAsync<DashboardConsolidadoNoMesDTO>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<DashboardConsolidadoNoMesDTO>.Ok(cached);
+
+        var daysInMonth = DateTime.DaysInMonth(year, month); // apenas para dividir os gasto pelos dias do mês.
+
 
         var saldoTask = _carteiraMetrics.GetSaldoAtualUser();
-        var despesaMetricsTask = _despesaMetrics.GetDespesaMetricsNoMes(date);
-        var receitaMetricsTask = _receitaMetrics.GetReceitaMetricsNoMes(date);
-        var metaMetricsTask = _metaMetrics.GetMetricsMetasNoMes(date);
-        var metaKpisTask = _metaMetrics.GetKPIsMetasNoMes(date);
+        var despesaMetricsTask = _despesaMetrics.GetDespesaMetricsNoMes(year, month);
+        var receitaMetricsTask = _receitaMetrics.GetReceitaMetricsNoMes(year, month);
+        var metaMetricsTask = _metaMetrics.GetMetricsMetasNoMes(year, month);
+        var metaKpisTask = _metaMetrics.GetKPIsMetasNoMes(year, month);
 
         await Task.WhenAll(saldoTask, despesaMetricsTask, receitaMetricsTask, metaMetricsTask, metaKpisTask);
 
@@ -110,7 +133,7 @@ public class DashboardService : IDashboardService
         var dashboardMensalDTO = new DashboardConsolidadoNoMesDTO
         {
             Saldo = saldoAtual.Data.SaldoAtual,
-            MediaGastosDiarioNoMes = (despesaMetrics.Data.ValorTotalDespesasNoMes / date),
+            MediaGastosDiarioNoMes = daysInMonth > 0 ? (despesaMetrics.Data.ValorTotalDespesasNoMes / daysInMonth) : 0,
             ValorTotalGastoNoMes = despesaMetrics.Data.ValorTotalDespesasNoMes,
             ValorTotalRecebidoNoMes = receitaMetrics.Data.ValorTotalReceitasNoMes,
             ValorAlvoEmMetasNoMes = metaMetrics.Data.TotalValorAlvoNoMes,
@@ -128,9 +151,14 @@ public class DashboardService : IDashboardService
 
     public async Task<ApiResponse<DashboardConsolidadoPeriodoDTO>> GetDashboardPeriodo(DateTime dataInicio, DateTime dataFim)
     {
+        var cached = await _cacheService.TryGetAsync<DashboardConsolidadoPeriodoDTO>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<DashboardConsolidadoPeriodoDTO>.Ok(cached);
+
         var diferenceInDays = dataInicio.Subtract(dataFim);
         int totalDays = (int)diferenceInDays.TotalDays;
-        
+
         var saldoTask = _carteiraMetrics.GetSaldoAtualUser();
         var despesaMetricsTask = _despesaMetrics.GetDespesaMetricsNoPeriodo(dataInicio, dataFim);
         var receitaMetricsTask = _receitaMetrics.GetReceitaMetricsNoPeriodo(dataInicio, dataFim);
@@ -171,5 +199,6 @@ public class DashboardService : IDashboardService
 
         return ApiResponse<DashboardConsolidadoPeriodoDTO>.Ok(dashboardPeriodoDTO);
     }
+
 
 }

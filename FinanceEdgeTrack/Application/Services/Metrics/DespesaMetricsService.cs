@@ -9,28 +9,32 @@ namespace FinanceEdgeTrack.Application.Services.Metrics;
 
 public class DespesaMetricsService : IDespesaMetrics
 {
-    private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _uof;
     private readonly ILogger<DespesaMetricsService> _logger;
 
-    public DespesaMetricsService(ICurrentUser currentUser, IUnitOfWork uof, ILogger<DespesaMetricsService> logger)
+    public DespesaMetricsService(IUnitOfWork uof, ILogger<DespesaMetricsService> logger)
     {
-        _currentUser = currentUser;
         _uof = uof;
         _logger = logger;
     }
 
-    public async Task<ApiResponse<DespesasResumoMensalDTO>> GetDespesaMetricsNoMes(int month)
+    public async Task<ApiResponse<DespesasResumoMensalDTO>> GetDespesaMetricsNoMes(int year, int month)
     {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(1);
+
         var query = _uof.DespesaRepository
             .Query()
             .AsNoTracking()
-            .Where(d => d.Data.Month == month);
+            .Where(d => d.Data >= startDate && d.Data <= endDate);
 
         var despesasDoMes = await query.ToListAsync();
 
         if (despesasDoMes.Count == 0)
+        {
+            _logger.LogInformation($"Despesas no mês {startDate.Month.ToString()} ainda não registradas");
             return ApiResponse<DespesasResumoMensalDTO>.Fail($"{ResultMessages.EmptyCollection}");
+        }
 
         decimal gastosFixos = despesasDoMes
                           .Where(d => d.Fixa)
@@ -98,7 +102,11 @@ public class DespesaMetricsService : IDespesaMetrics
         var despesas = await query.ToListAsync();
 
         if (despesas is null)
+        {
+            _logger.LogError($"Erro ao buscar despesas no perído: {start.ToShortDateString()} - {end.ToShortDateString()}.", despesas);
             return ApiResponse<DespesasResumoPeriodoDTO>.Fail($"{ResultMessages.NotFoundDespesa}");
+
+        }
 
         decimal gastosFixos = despesas
                               .Where(d => d.Fixa)

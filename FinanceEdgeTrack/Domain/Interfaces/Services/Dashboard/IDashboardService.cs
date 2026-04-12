@@ -9,5 +9,5 @@ public interface IDashboardService
     Task<ApiResponse<DashboardConsolidadoNoMesDTO>> GetDashboardMensal(int year, int month);
     Task<ApiResponse<DashboardConsolidadoPeriodoDTO>> GetDashboardPeriodo(DateTime start, DateTime end);
 
-    // Escrever em algum arquivo talvez 
+    // Posteriormente exportar para PDF
 }

@@ -3,11 +3,9 @@ using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
-using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
-using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,22 +16,18 @@ public class AuthService : IAuthenticationService
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IUnitOfWork _uof;
     private readonly IConfiguration _config;
-    private readonly IMapper _mapper;
     private readonly ICarteiraService _carteiraService;
     private readonly ICurrentUser _currentUser;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                       IUnitOfWork uof, IMapper mapper, IConfiguration config, ICarteiraService carteiraService,
-                       ILogger<AuthService> logger, ICurrentUser currentUser)
+                       IConfiguration config, ICarteiraService carteiraService,ILogger<AuthService> logger, 
+                       ICurrentUser currentUser)
     {
-        _uof = uof;
         _tokenService = tokenService;
         _userManager = userManager;
         _config = config;
-        _mapper = mapper;
         _carteiraService = carteiraService;
         _logger = logger;
         _currentUser = currentUser;
@@ -96,7 +90,7 @@ public class AuthService : IAuthenticationService
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.UserAlreadyExists);
         }
 
-        if (registerModelDto.Password != registerModelDto.ConfirmPassword)
+        if (registerModelDto.ConfirmPassword != registerModelDto.Password)
         {
             _logger.LogInformation($"É necessário confirmar a senha de acordo com a senha informada.");
             return ApiResponse<ResponseDTO>.Fail(ResultMessages.ConfirmPasswordError);
@@ -129,7 +123,7 @@ public class AuthService : IAuthenticationService
         };
 
         var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        carteira.UserId = _currentUser.UserId;
+        carteira.UserId = user.Id;
 
         await _userManager.UpdateAsync(user);
 
@@ -144,7 +138,8 @@ public class AuthService : IAuthenticationService
     public async Task<ApiResponse<TokenModelDTO>> RefreshToken(TokenModelDTO tokenDto)
     {
         if (tokenDto is null)
-            throw new ArgumentNullException(nameof(tokenDto));
+            return ApiResponse<TokenModelDTO>.Fail($"Erro nas credenciais do token recebido.");
+
 
         string? accessToken = tokenDto.AccessToken;
         string? refreshToken = tokenDto.RefreshToken;
@@ -178,7 +173,7 @@ public class AuthService : IAuthenticationService
 
     public async Task Revoke(string username)
     {
-        var user = await _userManager.FindByNameAsync(username) ?? throw new ArgumentException(ResultMessages.NotFoundUser);
+        var user = await _userManager.FindByNameAsync(username) ?? throw new OperationCanceledException($"User não encontrado");
 
         user.RefreshToken = null;
 

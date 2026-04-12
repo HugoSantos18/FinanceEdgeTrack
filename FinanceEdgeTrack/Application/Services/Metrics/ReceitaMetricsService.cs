@@ -29,7 +29,10 @@ public class ReceitaMetricsService : IReceitaMetrics
         var receitas = await query.ToListAsync();
 
         if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
             return ApiResponse<ReceitasGeralDTO>.Fail(ResultMessages.EmptyCollection);
+        }
 
 
         decimal valorTotalReceitas = receitas
@@ -44,20 +47,26 @@ public class ReceitaMetricsService : IReceitaMetrics
 
     }
 
-    public async Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int month)
+    public async Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int year, int month)
     {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(month).AddDays(1);
+
         var query = _uof.ReceitaRepository
                           .Query()
-                          .Where(r => r.Data.Month == month)
+                          .Where(r => r.Data >= startDate && r.Data <= endDate)
                           .AsNoTracking();
 
         var receitas = await query.ToListAsync();
 
         if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
             return ApiResponse<ReceitasResumoMensalDTO>.Fail(ResultMessages.EmptyCollection);
+        }
 
         decimal valorReceitasTotalNoMes = receitas
-                               .Sum (r => r.Valor);
+                               .Sum(r => r.Valor);
 
         var receitaResumoMensalDTO = new ReceitasResumoMensalDTO
         {
@@ -80,7 +89,10 @@ public class ReceitaMetricsService : IReceitaMetrics
         var receitas = await query.ToListAsync();
 
         if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
             return ApiResponse<ReceitasResumoPeriodoDTO>.Fail(ResultMessages.EmptyCollection);
+        }
 
         decimal valorReceitasTotalNoPeriodo = receitas
                                .Sum(r => r.Valor);

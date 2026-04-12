@@ -1,20 +1,20 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Carteira;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using MapsterMapper;
 
 namespace FinanceEdgeTrack.Application.Services.Metrics;
 
 public class CarteiraMetricsService : ICarteiraMetrics
 {
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _uof;
     private readonly ILogger<CarteiraMetricsService> _logger;
     private readonly IMapper _mapper;
 
-    public CarteiraMetricsService(CurrentUser currentUser, ILogger<CarteiraMetricsService> logger,
+    public CarteiraMetricsService(ICurrentUser currentUser, ILogger<CarteiraMetricsService> logger,
                                   IUnitOfWork uof, IMapper mapper)
     {
         _currentUser = currentUser;
@@ -26,11 +26,11 @@ public class CarteiraMetricsService : ICarteiraMetrics
     public async Task<ApiResponse<CarteiraResumoDTO>> GetSaldoAtualUser()
     {
         var carteira = await _uof.CarteiraRepository
-                             .GetAsync(c => c.UserId == _currentUser.UserId);
+                             .GetAsync(c => c.UserId.Equals(_currentUser.UserId));
 
         if (carteira == null)
         {
-            _logger.LogInformation($"Não foi possível recuperar dados da carteira do usuário");
+            _logger.LogError($"Não foi possível recuperar dados da carteira do usuário {_currentUser.UserId}", carteira);
             return ApiResponse<CarteiraResumoDTO>.Fail(ResultMessages.ErrorToGetWalletAmmountUser);
         }
 

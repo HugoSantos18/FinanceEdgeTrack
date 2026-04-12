@@ -1,26 +1,33 @@
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
+using FinanceEdgeTrack.Application.Services.Auth;
+using FinanceEdgeTrack.Application.Services.Cache;
+using FinanceEdgeTrack.Application.Services.CarteiraService;
+using FinanceEdgeTrack.Application.Services.Categories;
+using FinanceEdgeTrack.Application.Services.Dashboard;
+using FinanceEdgeTrack.Application.Services.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
+using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
 using FinanceEdgeTrack.Domain.Models;
-using FinanceEdgeTrack.Infrastructure.Extensions;
 using FinanceEdgeTrack.Infrastructure.Config;
 using FinanceEdgeTrack.Infrastructure.Data;
+using FinanceEdgeTrack.Infrastructure.Extensions;
 using FinanceEdgeTrack.Infrastructure.Repositories;
+using FinanceEdgeTrack.Infrastructure.Seed;
+using FinanceEdgeTrack.Logging;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
-using FinanceEdgeTrack.Application.Services.Auth;
-using FinanceEdgeTrack.Application.Services.Categories;
-using Microsoft.AspNetCore.Authorization;
-using FinanceEdgeTrack.Logging;
-using FinanceEdgeTrack.Application.Services.CarteiraService;
-using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +79,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 
 // Dependency Injections (Services, Mapper, etc...)
-
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IMetaRepository, MetaRepository>();
@@ -84,6 +90,15 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
+builder.Services.AddScoped<ICarteiraMetrics, CarteiraMetricsService>();
+builder.Services.AddScoped<IDespesaMetrics, DespesaMetricsService>();
+builder.Services.AddScoped<IMetaMetrics, MetaMetricsService>();
+builder.Services.AddScoped<IReceitaMetrics, ReceitaMetricsService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
+
 
 // Add Loging provider
 builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig
@@ -103,9 +118,6 @@ builder.Services.AddAuthentication(options =>
 
     if (secretKey.IsNullOrEmpty())
         throw new Exception("JWT secretKey não configurado!");
-
-    if (jwtSettings.SecretKey.Length < 32)
-        throw new Exception("JWT secretKey deve ter no mínimo 32 caracteres!");
 
     options.SaveToken = true;
     options.RequireHttpsMetadata = true;
@@ -132,6 +144,7 @@ builder.Services.AddAuthorization(options =>
     .Build();
 
 }).AddRolesPolicy();
+
 
 
 // Swagger configuration
@@ -172,6 +185,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
+}
+
+if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("SEED_ADMIN") == "true")
+{
+    using var scope = app.Services.CreateScope();
+    await UserSeed.SeedAdminAsync(scope.ServiceProvider);
 }
 
 app.UseHttpsRedirection();

@@ -1,22 +1,17 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
+﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
 using Microsoft.Extensions.Caching.Memory;
-using System.Reflection.Metadata.Ecma335;
 
 namespace FinanceEdgeTrack.Application.Services.Cache;
 
 public class CacheService : ICacheService
 {
     private readonly IMemoryCache _cache;
-    private readonly ILogger<CacheService> _logger;
-    private readonly IUnitOfWork _uof;
 
-    public CacheService(IMemoryCache cache, ILogger<CacheService> logger, IUnitOfWork uof)
+    public CacheService(IMemoryCache cache)
     {
         _cache = cache;
-        _logger = logger;
-        _uof = uof;
     }
+
     public string SetCacheKey(Guid id)
             => $"CacheKey_user{id}";
 
@@ -24,7 +19,7 @@ public class CacheService : ICacheService
     {
         var cacheOptions = new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(4),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
             SlidingExpiration = expiration,
             Priority = CacheItemPriority.Normal,
         };

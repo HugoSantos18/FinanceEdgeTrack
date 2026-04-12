@@ -1,7 +1,7 @@
 ﻿namespace FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 
-public class ICurrentUser
+public interface ICurrentUser
 {
-    Guid UserId { get; set; }
-    string? Email { get; set; }
+    Guid UserId { get; }
+    string? Email { get;}
 }

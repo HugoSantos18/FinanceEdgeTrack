@@ -14,12 +14,10 @@ namespace FinanceEdgeTrack.Controllers;
 public class DespesaController : ControllerBase
 {
     private readonly IDespesaService _despesaService;
-    private readonly ILogger<DespesaController> _logger;
 
-    public DespesaController(IDespesaService despesaService, ILogger<DespesaController> logger)
+    public DespesaController(IDespesaService despesaService)
     {
         _despesaService = despesaService;
-        _logger = logger;
     }
 
     [HttpGet("{id}", Name = "GetDespesa")]

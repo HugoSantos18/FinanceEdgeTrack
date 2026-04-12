@@ -5,6 +5,7 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Metrics;
 
 public interface IReceitaMetrics
 {
-    Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int month);
+    Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int year, int month);
     Task<ApiResponse<ReceitasGeralDTO>> GetReceitaMetrics();
+    Task<ApiResponse<ReceitasResumoPeriodoDTO>> GetReceitaMetricsNoPeriodo(DateTime start, DateTime end);
 }

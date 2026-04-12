@@ -2,8 +2,8 @@
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
@@ -17,12 +17,12 @@ namespace FinanceEdgeTrack.Application.Services.Categories
     {
         private readonly IUnitOfWork _uof;
         private readonly ICarteiraService _carteiraService;
-        private readonly CurrentUser _currentUser;
+        private readonly ICurrentUser _currentUser;
         private readonly IMapper _mapper;
         private readonly ILogger<DespesaService> _logger;
 
         public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
-            CurrentUser currentUser, ILogger<DespesaService> logger)
+            ICurrentUser currentUser, ILogger<DespesaService> logger)
         {
             _mapper = mapper;
             _uof = uof;

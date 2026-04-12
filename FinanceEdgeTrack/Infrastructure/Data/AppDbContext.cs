@@ -82,7 +82,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         // Carteira
         model.Entity<Carteira>(entity =>
         {
-            entity.ToTable("Carteira");
+            entity.HasOne(c => c.User)
+            .WithOne(u => u.Carteira)
+            .HasForeignKey<Carteira>(c => c.UserId)
+            .HasPrincipalKey<ApplicationUser>(u => u.Id);
 
             entity.Property(c => c.CarteiraId)
             .UseIdentityByDefaultColumn();

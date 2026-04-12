@@ -10,10 +10,10 @@ public class Carteira
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Required]
-    public int CarteiraId { get; set; }
+    public int CarteiraId { get; private set; }
 
     [Required]
-    public Guid UserId { get; set; }
+    public string? UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public ApplicationUser? User { get; set; }

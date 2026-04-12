@@ -20,7 +20,7 @@ public static class ResultMessages
     public const string ValidCredentialsSuccess = "Concluído com sucesso!";
     public const string ErrorCreation = "Não foi possível realizar a operação.";
     public const string InvalidLoginCredentials = "Credenciais inválidas, não foi possível fazer o Login.";
-    public const string UserAlreadyExists = "Usuário já existe.";
+    public const string UserAlreadyExists = "Username existente, tente outro que ainda não foi registrado.";
     public const string ConfirmPasswordError = "O campo de confirmação de senha deve ser o mesmo da senha.";
     public const string InvalidAccessToken = "Token de acesso inválido.";
     public const string InvalidRefreshToken = "RefreshToken inválido.";
@@ -32,4 +32,6 @@ public static class ResultMessages
     public const string ErrorToAddUserToRole = $"Não foi possível adicionar o user a role";
     public const string ErrorToGetWalletAmmountUser = $"Não foi possível resgatar o saldo da carteira.";
     public const string InsuficientData = $"Não foi possível coletar informações de metas do usuário.";
+    public const string ErrorToCreateDashboard = $"Não foi possível gerar o dashboard, incosistência ao receber dados.";
+    public const string InvalidDateDashboard = $"Precisa ser um ano e um mês válido para geração das informações.";
 }

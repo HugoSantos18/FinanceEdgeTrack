@@ -12,12 +12,13 @@ namespace FinanceEdgeTrack.Application.Services.Auth;
 
 public class TokenService : ITokenService
 {
-    private readonly JwtSettings _jwtSettings;
-
     public JwtSecurityToken GenerateAccessToken(IEnumerable<Claim> claims, IConfiguration config)
     {
         var secretKey = config.GetSection("JWT").GetValue<string>("SecretKey");
         var privateKey = Encoding.UTF8.GetBytes(secretKey);
+        
+        if (secretKey.Length < 32)
+            throw new Exception("JWT SecretKey deve ter no mínimo 32 caracteres");
 
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
 

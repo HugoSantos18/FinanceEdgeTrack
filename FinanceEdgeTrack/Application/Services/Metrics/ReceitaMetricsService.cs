@@ -1,19 +1,19 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Receitas;
-using FinanceEdgeTrack.Application.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Metrics;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services.Metrics;
 
 public class ReceitaMetricsService : IReceitaMetrics
 {
-    private readonly CurrentUser _currentUser;
+    private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _uof;
     private readonly ILogger<ReceitaMetricsService> _logger;
 
-    public ReceitaMetricsService(CurrentUser currentUser, IUnitOfWork uof, ILogger<ReceitaMetricsService> logger)
+    public ReceitaMetricsService(ICurrentUser currentUser, IUnitOfWork uof, ILogger<ReceitaMetricsService> logger)
     {
         _currentUser = currentUser;
         _uof = uof;
@@ -29,7 +29,10 @@ public class ReceitaMetricsService : IReceitaMetrics
         var receitas = await query.ToListAsync();
 
         if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
             return ApiResponse<ReceitasGeralDTO>.Fail(ResultMessages.EmptyCollection);
+        }
 
 
         decimal valorTotalReceitas = receitas
@@ -44,20 +47,26 @@ public class ReceitaMetricsService : IReceitaMetrics
 
     }
 
-    public async Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int month)
+    public async Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int year, int month)
     {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(month).AddDays(1);
+
         var query = _uof.ReceitaRepository
                           .Query()
-                          .Where(r => r.Data.Month == month)
+                          .Where(r => r.Data >= startDate && r.Data <= endDate)
                           .AsNoTracking();
 
         var receitas = await query.ToListAsync();
 
         if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
             return ApiResponse<ReceitasResumoMensalDTO>.Fail(ResultMessages.EmptyCollection);
+        }
 
         decimal valorReceitasTotalNoMes = receitas
-                               .Sum (r => r.Valor);
+                               .Sum(r => r.Valor);
 
         var receitaResumoMensalDTO = new ReceitasResumoMensalDTO
         {
@@ -66,5 +75,34 @@ public class ReceitaMetricsService : IReceitaMetrics
 
 
         return ApiResponse<ReceitasResumoMensalDTO>.Ok(receitaResumoMensalDTO, $"Receita do mês {month}");
+    }
+
+
+    public async Task<ApiResponse<ReceitasResumoPeriodoDTO>> GetReceitaMetricsNoPeriodo(DateTime start, DateTime end)
+    {
+        var query = _uof.ReceitaRepository
+                          .Query()
+                          .Where(r => r.Data >= start)
+                          .Where(r => r.Data <= end)
+                          .AsNoTracking();
+
+        var receitas = await query.ToListAsync();
+
+        if (receitas is null)
+        {
+            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
+            return ApiResponse<ReceitasResumoPeriodoDTO>.Fail(ResultMessages.EmptyCollection);
+        }
+
+        decimal valorReceitasTotalNoPeriodo = receitas
+                               .Sum(r => r.Valor);
+
+        var receitaResumoPeriodoDTO = new ReceitasResumoPeriodoDTO
+        {
+            ValorTotalReceitasNoPeriodo = valorReceitasTotalNoPeriodo
+        };
+
+
+        return ApiResponse<ReceitasResumoPeriodoDTO>.Ok(receitaResumoPeriodoDTO, $"Receita do período {start.ToShortDateString()} | {end.ToShortDateString()}");
     }
 }

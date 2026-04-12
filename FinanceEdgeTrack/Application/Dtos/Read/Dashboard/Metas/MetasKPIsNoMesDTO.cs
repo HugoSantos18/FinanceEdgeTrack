@@ -1,6 +1,6 @@
 ﻿namespace FinanceEdgeTrack.Application.Dtos.Read.Dashboard.Metas;
 
-public class MetasKPIsDTO
+public class MetasKPIsNoMesDTO
 {
     public int MetasIniciadasNoMes { get; set; }
     public int TotalConcluidasNoMes { get; set; }

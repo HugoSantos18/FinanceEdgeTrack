@@ -6,6 +6,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Receita
 {
     public Guid ReceitaId { get; private set; } = Guid.NewGuid();
+    public Guid CarteiraId { get; set; }
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
@@ -17,4 +18,9 @@ public class Receita
     public decimal Valor { get; set; }
 
     public DateTime Data { get; set; }
+    
+    public Receita(decimal valor)
+    {
+        Valor = valor;
+    }
 }

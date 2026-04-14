@@ -13,6 +13,7 @@ public interface IMetaService
 {
     Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto);
     Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto);
+    Task<int> AtualizarValorAtualAsync(Guid metaId, decimal novoValor, decimal valorAntigoEsperado);
     Task<ApiResponse<MetaDTO>> AtualizarMetaAsync(Guid metaId, UpdateMetaDTO metaDto);
     Task<ApiResponse<MetaDTO>> RemoverMetaAsync(Guid metaId);
     Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId);

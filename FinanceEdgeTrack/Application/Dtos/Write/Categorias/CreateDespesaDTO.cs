@@ -4,7 +4,6 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateDespesaDTO
 {
-    public Guid CategoriaId { get; set; }
 
     [Required(ErrorMessage = "É necessário um título para a despesa que está sendo colocada.")]
     public string Titulo { get; set; } = default!;

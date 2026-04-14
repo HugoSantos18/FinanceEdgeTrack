@@ -8,8 +8,6 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateMetaDTO
 {
-    public Guid MetaId { get; set; }
-    
     public string? Descricao { get; set; }
     
     [Required(ErrorMessage = "É necessário ter um título para a Meta.")]

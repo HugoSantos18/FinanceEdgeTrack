@@ -11,6 +11,4 @@ public class MetaRepository : Repository<Meta>, IMetaRepository
     {
 
     }
-
-
 }

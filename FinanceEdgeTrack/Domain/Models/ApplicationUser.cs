@@ -17,7 +17,7 @@ public class ApplicationUser : IdentityUser
     [Range(0, 999999999)]
     public decimal ValorTotalGasto { get; set; } = default!;
 
-    public Carteira? Carteira { get; set; }
+    public Carteira Carteira { get; private set; } = null!;
 
     [Required]
     [MaxLength(14)]

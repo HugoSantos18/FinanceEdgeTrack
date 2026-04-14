@@ -20,14 +20,16 @@ public class ReceitaService : IReceitaService
     private readonly ICarteiraService _carteiraService;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceitaService> _logger;
+    private readonly ICurrentUser _currentUser;
 
-    public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira, 
-                          ILogger<ReceitaService> logger)
+    public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
+                          ILogger<ReceitaService> logger, ICurrentUser currentUser)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteira;
         _logger = logger;
+        _currentUser = currentUser;
     }
 
     public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
@@ -36,7 +38,7 @@ public class ReceitaService : IReceitaService
 
         if (receita is null)
         {
-            _logger.LogInformation($"Não foi possível encontrar receita pelo ID {id}.");
+            _logger.LogWarning($"Não foi possível encontrar receita pelo ID {id}.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
         }
 
@@ -120,10 +122,16 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<ReceitaDTO>> CreateReceitaAsync(CreateReceitaDTO receitaDto)
     {
-        var receita = _mapper.Map<Receita>(receitaDto);
+        var carteira = await _carteiraService.GetCarteiraAsync();
 
-        await _carteiraService.AdicionarSaldoAsync(receita.Valor);
+        var receita = _mapper.Map<Receita>(receitaDto);
+        receita.CarteiraId = carteira.CarteiraId;
+
+        carteira.Receitas.Add(receita);
+        carteira.AdicionarSaldo(receitaDto.Valor);
+
         await _uof.ReceitaRepository.CreateAsync(receita);
+        await _uof.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
@@ -142,9 +150,10 @@ public class ReceitaService : IReceitaService
         receita.Descricao = receitaDto.Descricao;
         receita.Data = receitaDto.Data;
         receita.Valor = receitaDto.Valor;
-        receitaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
+        receitaDto.UpdatedAt = DateTime.UtcNow;
 
         await _uof.ReceitaRepository.UpdateAsync(receita!);
+        await _uof.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
@@ -153,15 +162,25 @@ public class ReceitaService : IReceitaService
     public async Task<ApiResponse<ReceitaDTO>> RemoverReceitaAsync(Guid id)
     {
         var receitaRemovida = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
+        var carteira = await _carteiraService.GetCarteiraAsync();
 
         if (receitaRemovida is null)
         {
-            _logger.LogInformation($"Não foi possível remover receita de ID {id}, não encontrado.");
+            _logger.LogWarning($"Não foi possível remover receita de ID {id}, não foi encontrada.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
         }
 
-        await _carteiraService.DescontarSaldoAsync(receitaRemovida.Valor);
+        if(carteira is null)
+        {
+            _logger.LogWarning($"Não foi encontrado carteira de ID {carteira?.CarteiraId}");
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
+        }
+
+        carteira.DescontarSaldo(receitaRemovida.Valor);
+        carteira.Receitas.Remove(receitaRemovida);
+
         await _uof.ReceitaRepository.DeleteAsync(receitaRemovida!);
+        await _uof.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receitaRemovida));
     }

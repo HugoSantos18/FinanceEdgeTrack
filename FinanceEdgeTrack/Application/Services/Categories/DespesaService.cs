@@ -148,10 +148,22 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<DespesaDTO>> CreateDespesaAsync(CreateDespesaDTO despesaDto)
         {
-            var despesa = _mapper.Map<Despesa>(despesaDto);
+            var carteira = await _carteiraService.GetCarteiraAsync();
 
-            await _carteiraService.DescontarSaldoAsync(despesa.Valor);
+            if(carteira is null)
+            {
+                _logger.LogWarning($"Não foi encontrado a carteira de ID {carteira?.CarteiraId}");
+                return ApiResponse<DespesaDTO>.Fail(ResultMessages.WalletNotFound);
+            }
+
+            var despesa = _mapper.Map<Despesa>(despesaDto);
+            despesa.CarteiraId = carteira.CarteiraId;
+
+            carteira.DescontarSaldo(despesa.Valor);
+            carteira.Despesas.Add(despesa);
+
             await _uof.DespesaRepository.CreateAsync(despesa);
+            await _uof.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }
@@ -170,9 +182,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             despesa.Descricao = despesaDto.Descricao;
             despesa.Data = despesaDto.Data;
             despesa.Valor = despesaDto.Valor;
-            despesaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
+            despesaDto.UpdatedAt = DateTime.UtcNow;
 
-            await _uof.DespesaRepository.UpdateAsync(despesa)!;
+            await _uof.DespesaRepository.UpdateAsync(despesa);
+            await _uof.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }
@@ -189,7 +202,9 @@ namespace FinanceEdgeTrack.Application.Services.Categories
             }
 
             await _carteiraService.AdicionarSaldoAsync(despesaRemovida.Valor);
-            await _uof.DespesaRepository.DeleteAsync(despesaRemovida)!;
+            await _uof.DespesaRepository.DeleteAsync(despesaRemovida);
+            
+            await _uof.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesaRemovida), "Despesa removida com sucesso");
         }

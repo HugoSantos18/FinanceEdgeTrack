@@ -76,16 +76,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasPrecision(15, 2);
 
         model.Entity<AporteMetas>()
-            .HasKey(a => a.Id);
+            .HasKey(a => a.AporteMetasId);
 
 
         // Carteira
         model.Entity<Carteira>(entity =>
         {
             entity.HasOne(c => c.User)
-            .WithOne(u => u.Carteira)
-            .HasForeignKey<Carteira>(c => c.UserId)
-            .HasPrincipalKey<ApplicationUser>(u => u.Id);
+                 .WithOne()
+                 .HasForeignKey<Carteira>(c => c.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(c => c.UserId)
+                 .IsUnique();
+
 
             entity.Property(c => c.CarteiraId)
             .UseIdentityByDefaultColumn();
@@ -94,13 +98,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
            .HasPrecision(15, 2);
         });
 
-
-        // User
-        model.Entity<ApplicationUser>()
-             .HasOne(u => u.Carteira)
-             .WithOne(c => c.User)
-             .HasForeignKey<Carteira>(c => c.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
 
 
         // Receita

@@ -1,6 +1,7 @@
 ﻿using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
 using FinanceEdgeTrack.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
@@ -50,6 +51,11 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(AppDbContext context)
     {
         this._context = context;
+    }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await _context.Database.BeginTransactionAsync();
     }
 
     public async Task CommitAsync()

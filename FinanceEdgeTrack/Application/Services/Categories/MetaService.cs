@@ -48,7 +48,7 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<AporteMetasDTO>> GetAportePorIdAsync(Guid aporteMetaId)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.Id == aporteMetaId));
+        var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes.Any(a => a.AporteMetasId == aporteMetaId));
 
         if (meta is null)
         {
@@ -56,7 +56,7 @@ public class MetaService : IMetaService
             return ApiResponse<AporteMetasDTO>.Fail(ResultMessages.NotFoundMeta);
         }
 
-        var aporte = meta.Aportes.First(a => a.Id == aporteMetaId);
+        var aporte = meta.Aportes.First(a => a.AporteMetasId == aporteMetaId);
 
         return ApiResponse<AporteMetasDTO>.Ok(_mapper.Map<AporteMetasDTO>(aporte));
     }
@@ -255,6 +255,22 @@ public class MetaService : IMetaService
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
+    public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)
+    {
+        // TODO FIX BUGS E ERROS DE CARTEIRA E RELACIONAMENTO DE APORTES.
+
+        var meta = _mapper.Map<Meta>(metaDto);
+
+        if (meta is null)
+        {
+            _logger.LogInformation($"Não foi possível criar a meta, verifique os dados informados.");
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
+        }
+
+        await _uof.MetaRepository.CreateAsync(meta);
+
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
+    }
 
     public async Task<ApiResponse<MetaDTO>> AtualizarMetaAsync(Guid metaId, UpdateMetaDTO metaDto)
     {
@@ -270,66 +286,104 @@ public class MetaService : IMetaService
         meta.ValorAlvo = metaDto.ValorAlvo;
         meta.AlterarDataAlvo(metaDto.DataAlvo);
         meta.AlterarStatus(metaDto.Status);
-        metaDto.UpdatedAt = DateTime.UtcNow.ToShortDateString();
+        metaDto.UpdatedAt = DateTime.UtcNow;
 
         await _uof.MetaRepository.UpdateAsync(meta);
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Meta {meta.Titulo} atualizada com sucesso");
     }
 
-    public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)
+    public async Task<int> AtualizarValorAtualAsync(Guid metaId, decimal novoValor, decimal valorAntigoEsperado)
     {
-        var meta = _mapper.Map<Meta>(metaDto);
-
-        if (meta is null)
-        {
-            _logger.LogInformation($"Não foi possível criar a meta, verifique os dados informados.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
-        }
-
-        await _uof.MetaRepository.CreateAsync(meta);
-
-        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
+        return await _uof.MetaRepository
+            .Query()
+            .Where(m => m.MetaId == metaId && m.ValorAtual == valorAntigoEsperado)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(m => m.ValorAtual, novoValor)
+                .SetProperty(m => m.DataUltimoDeposito, DateTime.UtcNow));
     }
 
     public async Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
+        const int MAX_RETRY = 3;
 
-        if (meta is null)
+        for ( int attempt = 1; attempt <= MAX_RETRY; attempt++)
         {
-            _logger.LogInformation($"Não foi possível encontrar meta, verifique o ID {metaId} informado.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+            using var transaction = await _uof.BeginTransactionAsync();
+
+            try
+            {
+                var meta = await _uof.MetaRepository
+                    .Query()
+                    .FirstOrDefaultAsync(m => m.MetaId == metaId);
+
+                if (meta is null)
+                    return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+
+                var response = await _carteira.ObterSaldoAsync(_currentUser.UserId);
+                _logger.LogInformation($"Saldo atual: R${response.Data:C2}");
+
+                if (response.Data < aporteMetaDto.Valor)
+                    return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
+
+                decimal novoValorAtual = meta.ValorAtual + aporteMetaDto.Valor;
+
+                if (novoValorAtual > meta.ValorAlvo)
+                    novoValorAtual = meta.ValorAlvo;
+
+                var rowsAffected = await AtualizarValorAtualAsync(
+                    metaId,
+                    novoValorAtual,
+                    meta.ValorAtual);
+
+                if (rowsAffected == 0)
+                {
+                    _logger.LogWarning($"Conflito na meta {metaId}, tentativa {attempt}/{MAX_RETRY}");
+                    await transaction.RollbackAsync();
+                    continue;
+                }
+
+                var novoAporte = new AporteMetas
+                {
+                    AporteMetasId = Guid.NewGuid(),
+                    MetaId = metaId,
+                    Valor = aporteMetaDto.Valor
+                };
+
+                meta.RegistrarAporte(novoAporte);
+
+                await _carteira.DescontarSaldoAsync(aporteMetaDto.Valor, _currentUser.UserId);
+
+                await _uof.CommitAsync();
+                await transaction.CommitAsync();
+
+                var metaDTO = _mapper.Map<MetaDTO>(meta);
+
+                if (meta.Status == Status.Concluido)
+                {
+                    var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
+
+                    return ApiResponse<MetaDTO>.Ok(metaDTO,
+                        $"🎉 Meta concluída em {dias} dias!");
+                }
+
+                return ApiResponse<MetaDTO>.Ok(metaDTO,
+                    $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
+                await transaction.RollbackAsync();
+            }
         }
 
-        var novoAporte = _mapper.Map<AporteMetas>(aporteMetaDto);
-
-        if (novoAporte is null)
-        {
-            _logger.LogInformation($"Não foi possível registrar o aporte, verifique os dados informados.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ErrorCreation);
-        }
-
-        await _carteira.DescontarSaldoAsync(novoAporte.Valor);
-
-        meta.RegistrarAporte(novoAporte);
-        await _uof.CommitAsync();
-
-        if (meta.Status == Status.Concluido)
-        {
-            int daysCompleted = (meta.DataConclusao!.Value - meta.DataInicio).Days;
-
-            return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta),
-                $"🎉 Parabéns! Você finalizou sua meta em {daysCompleted} dias!");
-        }
-
-        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {novoAporte.Valor:C2} registrado com sucesso.");
+        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência. Tente novamente.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
     {
         var meta = await _uof.MetaRepository.GetAsync(m => m.Aportes
-                                            .Any(a => a.Id == aporteMetaId));
+                                            .Any(a => a.AporteMetasId == aporteMetaId));
 
         if (meta is null)
         {
@@ -337,7 +391,7 @@ public class MetaService : IMetaService
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
         }
 
-        var aporteRemovido = meta.Aportes.First(a => a.Id == aporteMetaId);
+        var aporteRemovido = meta.Aportes.First(a => a.AporteMetasId == aporteMetaId);
 
         if (aporteRemovido is null)
         {
@@ -345,7 +399,7 @@ public class MetaService : IMetaService
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundAporte);
         }
 
-        await _carteira.AdicionarSaldoAsync(aporteRemovido.Valor);
+        await _carteira.AdicionarSaldoAsync(aporteRemovido.Valor, _currentUser.UserId);
         meta.RemoverAporte(aporteRemovido);
 
         await _uof.CommitAsync();

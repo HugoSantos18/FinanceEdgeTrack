@@ -8,6 +8,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Meta
 {
     public Guid MetaId { get; private set; } = Guid.NewGuid();
+    public Guid CarteiraId { get; private set; }
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
@@ -71,8 +72,7 @@ public class Meta
 
     public void RegistrarAporte(AporteMetas novoAporte)
     {
-        if (novoAporte is null)
-            throw new ArgumentNullException(nameof(novoAporte));
+        if (novoAporte is null) throw new InvalidOperationException("Aporte inválido.");
 
 
         if (novoAporte.Valor <= 0)
@@ -104,6 +104,13 @@ public class Meta
     private void AdicionareAtualizarValorAporte(decimal novoValor)
     {
         ValorAtual += novoValor;
+
+        if (novoValor >= ValorAlvo)
+        {
+            ValorAtual = novoValor;
+            FinalizarMeta();
+        }
+
         ValorRestante = ValorAlvo - ValorAtual;
         UltimoDepositoEmReais = novoValor;
         CalcularPorcentagemAtual();
@@ -147,10 +154,9 @@ public class Meta
 
     public decimal ValorTotalAportes()
     {
-        decimal total = 0;
+        if (Aportes is null)
+            return 0;
 
-        total = Aportes.Sum(a => a.Valor);
-
-        return total;
+        return Aportes.Sum(a => a.Valor);
     }
 }

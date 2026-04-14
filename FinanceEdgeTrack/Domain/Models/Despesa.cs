@@ -7,6 +7,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Despesa
 {
     public Guid DespesaId { get; private set; } = Guid.NewGuid();
+    public Guid CarteiraId { get; set; }
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
@@ -20,4 +21,10 @@ public class Despesa
     
     public DateTime Data { get; set; }
 
+
+    public Despesa(decimal valor, bool fixa)
+    {
+        Valor = valor;
+        Fixa = fixa;    
+    }
 }

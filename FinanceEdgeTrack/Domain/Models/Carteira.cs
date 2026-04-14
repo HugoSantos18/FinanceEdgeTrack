@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
@@ -8,27 +9,36 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Carteira
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Required]
-    public int CarteiraId { get; private set; }
-
-    [Required]
-    public string? UserId { get; set; }
-
-    [ForeignKey(nameof(UserId))]
-    public ApplicationUser? User { get; set; }
+    public Guid CarteiraId { get; private set; }
 
     [Required]
-    public decimal Saldo { get; set; } = default!;
+    public string? UserId { get; set; } = null!;
 
+    [Required]
+    public decimal Saldo { get; set; }
 
-    public decimal AdicionarSaldo(decimal valor)
+    public ICollection<Meta> Metas { get; private set; } = [];
+    public ICollection<Receita> Receitas { get; private set; } = [];
+    public ICollection<Despesa> Despesas { get; private set; } = [];
+
+    public static Carteira CriarCarteira(string userId)
     {
-        return Saldo += valor;
+        // aplicar migration
+        return new Carteira
+        {
+            CarteiraId = Guid.NewGuid(),
+            UserId = userId,
+            Saldo = 0
+        };
     }
+
+    public decimal AdicionarSaldo(decimal valor) => Saldo += valor;
 
     public decimal DescontarSaldo(decimal valor)
     {
+        if (Saldo < valor) throw new InvalidOperationException("Saldo insuficiente");
+        
         return Saldo -= valor;
     }
 }

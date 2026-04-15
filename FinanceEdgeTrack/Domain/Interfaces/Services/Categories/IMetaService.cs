@@ -1,11 +1,8 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
-using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Domain.Enum;
 
 namespace FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 
@@ -13,7 +10,6 @@ public interface IMetaService
 {
     Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto);
     Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto);
-    Task<int> AtualizarValorAtualAsync(Guid metaId, decimal novoValor, decimal valorAntigoEsperado);
     Task<ApiResponse<MetaDTO>> AtualizarMetaAsync(Guid metaId, UpdateMetaDTO metaDto);
     Task<ApiResponse<MetaDTO>> RemoverMetaAsync(Guid metaId);
     Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId);

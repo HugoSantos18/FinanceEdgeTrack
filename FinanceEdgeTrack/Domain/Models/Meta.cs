@@ -8,7 +8,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 public class Meta
 {
     public Guid MetaId { get; private set; } = Guid.NewGuid();
-    public Guid CarteiraId { get; private set; }
+    public Guid CarteiraId { get; set; }
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;

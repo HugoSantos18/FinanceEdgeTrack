@@ -1,6 +1,4 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Domain.Enum;
-using FinanceEdgeTrack.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 

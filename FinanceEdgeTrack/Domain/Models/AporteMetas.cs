@@ -7,7 +7,7 @@ namespace FinanceEdgeTrack.Domain.Models;
 [Table("AporteMetas")]
 public class AporteMetas
 {
-    public Guid AporteMetasId { get; private set; } = Guid.NewGuid();
+    public Guid AporteMetasId { get;  set; }
 
     [Required(ErrorMessage = "É necessário informar um valor para o aporte.")]
     [Range(typeof(decimal), "1", "999999999999")]

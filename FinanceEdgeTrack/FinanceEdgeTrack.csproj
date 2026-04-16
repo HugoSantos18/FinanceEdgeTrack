@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="Application\Dtos\Write\Carteira\" />
-    <Folder Include="Infrastructure\Data\Migrations\" />
   </ItemGroup>
 
 </Project>

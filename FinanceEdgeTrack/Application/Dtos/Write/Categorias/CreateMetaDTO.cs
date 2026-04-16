@@ -1,6 +1,4 @@
 ﻿using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Domain.Enum;
-using FinanceEdgeTrack.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -8,8 +6,6 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateMetaDTO
 {
-    public Guid MetaId { get; set; }
-    
     public string? Descricao { get; set; }
     
     [Required(ErrorMessage = "É necessário ter um título para a Meta.")]

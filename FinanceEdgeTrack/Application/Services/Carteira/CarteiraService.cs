@@ -1,33 +1,51 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
-using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services.CarteiraService;
 
 public class CarteiraService : ICarteiraService
 {
     private readonly IUnitOfWork _uof;
-    private readonly IMapper _mapper;
     private readonly ILogger<CarteiraService> _logger;
     private readonly ICurrentUser _currentUser;
 
-    public CarteiraService(IUnitOfWork uof, IMapper mapper, ILogger<CarteiraService> logger, ICurrentUser currentUser)
+    public CarteiraService(IUnitOfWork uof, ILogger<CarteiraService> logger, ICurrentUser currentUser)
     {
         _uof = uof;
-        _mapper = mapper;
         _logger = logger;
         _currentUser = currentUser;
     }
 
-    public async Task<Carteira> CreateAsync(CreateCarteiraDTO carteiraDto)
+    public async Task<Carteira> GetCarteiraAsync()
     {
-        var carteira = _mapper.Map<Carteira>(carteiraDto);
+        var carteira = await _uof.CarteiraRepository
+                         .Query()
+                         .FirstOrDefaultAsync(c => c.UserId.Equals(_currentUser.UserId));
+
+        return carteira ?? throw new InvalidOperationException(ResultMessages.WalletNotFound);
+    }
+
+    public async Task<Carteira> CreateAsync()
+    {
+        var userId = _currentUser.UserId;
+
+        var exists = await GetCarteiraAsync();
+
+        if (exists is not null)
+        {
+            _logger.LogWarning($"Usuário já possui uma carteira de ID: {exists.CarteiraId}.");
+            throw new InvalidOperationException("Usuário já possui uma carteira.");
+        }
+
+        var carteira = Carteira.CriarCarteira(userId.ToString());
+        _logger.LogInformation($"User encontrado com sucesso: {userId}");
 
         await _uof.CarteiraRepository.CreateAsync(carteira);
+        await _uof.CommitAsync();
 
         return carteira;
     }
@@ -38,64 +56,40 @@ public class CarteiraService : ICarteiraService
         if (valor <= 0)
             return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
 
-        var carteira = await _uof.CarteiraRepository.GetAsync(u => u.UserId!.Equals(_currentUser.UserId));
+        var carteira = await GetCarteiraAsync();
 
-        if (carteira is null)
-        {
-            _logger.LogInformation($"Não foi possível adicionar o saldo, verifique os dados informados.");
-            return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
-        }
+        carteira.AdicionarSaldo(valor);
 
-        var novoSaldo = carteira.Saldo += valor;
-
-        await _uof.CarteiraRepository.UpdateAsync(carteira);
         await _uof.CommitAsync();
 
-        return ApiResponse<decimal>.Ok(novoSaldo, $"Saldo adicionado com sucesso, novo saldo {novoSaldo:C2}");
+        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Saldo adicionado com sucesso, novo saldo R${carteira.Saldo:C2}");
     }
 
     public async Task<ApiResponse<decimal>> DescontarSaldoAsync(decimal valor)
     {
-        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId!.Equals(_currentUser.UserId));
-
-        if (carteira is null)
-        {
-            _logger.LogInformation($"Não foi possível descontar o saldo, verifique os dados informados.");
-            return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
-        }
-
         if (valor <= 0)
-        {
-            _logger.LogInformation($"Não foi possível descontar o saldo, valor menor que zero.");
             return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
-        }
 
-        if (valor >= carteira.Saldo)
+        var carteira = await GetCarteiraAsync();
+
+        if (valor > carteira.Saldo)
         {
-            _logger.LogInformation($"Não foi possível descontar o saldo, valor maior que o saldo atual.");
-            return ApiResponse<decimal>.Fail(ResultMessages.InvalidPrice);
+            _logger.LogInformation($"Valor de retirada R${valor:C2} maior que saldo atual: R${carteira.Saldo:C2}");
+            return ApiResponse<decimal>.Fail(ResultMessages.InvalidPrice + $"\nSeu saldo atual: R${carteira.Saldo:C2}");
         }
 
-        var novoSaldo = carteira.Saldo -= valor;
-
-        await _uof.CarteiraRepository.UpdateAsync(carteira);
+        carteira.DescontarSaldo(valor);
+        
         await _uof.CommitAsync();
 
-        return ApiResponse<decimal>.Ok(novoSaldo, $"Valor descontado do saldo com sucesso, novo saldo: {novoSaldo:C2}");
+        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Valor descontado do saldo com sucesso, novo saldo: {carteira.Saldo:C2}");
     }
 
     public async Task<ApiResponse<decimal>> ObterSaldoAsync()
     {
-        var carteira = await _uof.CarteiraRepository.GetAsync(c => c.UserId!.Equals(_currentUser.UserId));
+        var carteira = await GetCarteiraAsync();
 
-        if (carteira is null)
-        {
-            _logger.LogInformation($"Não foi possível obter o saldo, verifique o ID {_currentUser.UserId} do usuário informado.");
-            return ApiResponse<decimal>.Fail(ResultMessages.WalletNotFound);
-        }
-
-        var saldoAtual = carteira.Saldo;
-
-        return ApiResponse<decimal>.Ok(saldoAtual, $"Saldo atual: {saldoAtual}");
+        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Saldo atual: {carteira.Saldo}");
     }
+
 }

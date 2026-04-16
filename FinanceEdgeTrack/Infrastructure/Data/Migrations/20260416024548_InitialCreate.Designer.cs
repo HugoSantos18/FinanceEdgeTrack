@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceEdgeTrack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260316154439_FinalMigration")]
-    partial class FinalMigration
+    [Migration("20260416024548_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,9 +27,12 @@ namespace FinanceEdgeTrack.Migrations
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.AporteMetas", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("AporteMetasId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("MetaId")
                         .HasColumnType("uuid");
@@ -38,7 +41,7 @@ namespace FinanceEdgeTrack.Migrations
                         .HasPrecision(15, 2)
                         .HasColumnType("numeric(15,2)");
 
-                    b.HasKey("Id");
+                    b.HasKey("AporteMetasId");
 
                     b.HasIndex("MetaId");
 
@@ -57,9 +60,6 @@ namespace FinanceEdgeTrack.Migrations
                         .IsRequired()
                         .HasMaxLength(14)
                         .HasColumnType("character varying(14)");
-
-                    b.Property<int?>("CarteiraId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -107,9 +107,6 @@ namespace FinanceEdgeTrack.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<int>("TotalLancamentos")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -128,9 +125,6 @@ namespace FinanceEdgeTrack.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CarteiraId")
-                        .IsUnique();
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -143,11 +137,8 @@ namespace FinanceEdgeTrack.Migrations
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Carteira", b =>
                 {
-                    b.Property<int>("CarteiraId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CarteiraId"));
+                    b.Property<Guid>("CarteiraId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Saldo")
                         .HasPrecision(15, 2)
@@ -162,7 +153,7 @@ namespace FinanceEdgeTrack.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Carteira", (string)null);
+                    b.ToTable("Carteira");
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Despesa", b =>
@@ -171,12 +162,14 @@ namespace FinanceEdgeTrack.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CarteiraId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Descricao")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("Fixa")
                         .HasColumnType("boolean");
@@ -192,43 +185,18 @@ namespace FinanceEdgeTrack.Migrations
 
                     b.HasKey("DespesaId");
 
+                    b.HasIndex("CarteiraId");
+
                     b.ToTable("Despesas");
-                });
-
-            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Lancamento", b =>
-                {
-                    b.Property<Guid>("LancamentoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("DataLancamento")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DespesaId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ReceitaId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("LancamentoId");
-
-                    b.HasIndex("DespesaId");
-
-                    b.HasIndex("ReceitaId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Lancamentos", (string)null);
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Meta", b =>
                 {
                     b.Property<Guid>("MetaId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CarteiraId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("DataAlvo")
@@ -247,31 +215,32 @@ namespace FinanceEdgeTrack.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("PorcentagemAtual")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(5,2)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Titulo")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<decimal>("UltimoDepositoEmReais")
-                        .HasPrecision(15, 2)
-                        .HasColumnType("numeric(15,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorAlvo")
-                        .HasPrecision(15, 2)
-                        .HasColumnType("numeric(15,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorAtual")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorRestante")
-                        .HasPrecision(15, 2)
-                        .HasColumnType("numeric(15,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("MetaId");
+
+                    b.HasIndex("CarteiraId");
 
                     b.ToTable("Metas");
                 });
@@ -282,12 +251,14 @@ namespace FinanceEdgeTrack.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CarteiraId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Descricao")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
@@ -299,6 +270,8 @@ namespace FinanceEdgeTrack.Migrations
                         .HasColumnType("numeric(15,2)");
 
                     b.HasKey("ReceitaId");
+
+                    b.HasIndex("CarteiraId");
 
                     b.ToTable("Receitas");
                 });
@@ -437,59 +410,53 @@ namespace FinanceEdgeTrack.Migrations
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.AporteMetas", b =>
                 {
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.Meta", "Meta")
+                    b.HasOne("FinanceEdgeTrack.Domain.Models.Meta", null)
                         .WithMany("Aportes")
                         .HasForeignKey("MetaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Meta");
-                });
-
-            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.ApplicationUser", b =>
-                {
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.Carteira", "Carteira")
-                        .WithOne()
-                        .HasForeignKey("FinanceEdgeTrack.Domain.Models.ApplicationUser", "CarteiraId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Carteira");
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Carteira", b =>
                 {
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.ApplicationUser", "User")
-                        .WithOne()
+                    b.HasOne("FinanceEdgeTrack.Domain.Models.ApplicationUser", null)
+                        .WithOne("Carteira")
                         .HasForeignKey("FinanceEdgeTrack.Domain.Models.Carteira", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Lancamento", b =>
+            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Despesa", b =>
                 {
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.Despesa", "Despesa")
-                        .WithMany()
-                        .HasForeignKey("DespesaId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.Receita", "Receita")
-                        .WithMany()
-                        .HasForeignKey("ReceitaId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("FinanceEdgeTrack.Domain.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("FinanceEdgeTrack.Domain.Models.Carteira", "Carteira")
+                        .WithMany("Despesas")
+                        .HasForeignKey("CarteiraId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Despesa");
+                    b.Navigation("Carteira");
+                });
 
-                    b.Navigation("Receita");
+            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Meta", b =>
+                {
+                    b.HasOne("FinanceEdgeTrack.Domain.Models.Carteira", "Carteira")
+                        .WithMany("Metas")
+                        .HasForeignKey("CarteiraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Carteira");
+                });
+
+            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Receita", b =>
+                {
+                    b.HasOne("FinanceEdgeTrack.Domain.Models.Carteira", "Carteira")
+                        .WithMany("Receitas")
+                        .HasForeignKey("CarteiraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Carteira");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -541,6 +508,21 @@ namespace FinanceEdgeTrack.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Carteira")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Carteira", b =>
+                {
+                    b.Navigation("Despesas");
+
+                    b.Navigation("Metas");
+
+                    b.Navigation("Receitas");
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Meta", b =>

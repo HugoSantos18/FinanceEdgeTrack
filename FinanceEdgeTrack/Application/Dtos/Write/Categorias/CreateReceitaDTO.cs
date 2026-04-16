@@ -4,7 +4,6 @@ namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateReceitaDTO
 {
-    public Guid ReceitaId { get; set; }
 
     public string Titulo { get; set; } = default!;
 

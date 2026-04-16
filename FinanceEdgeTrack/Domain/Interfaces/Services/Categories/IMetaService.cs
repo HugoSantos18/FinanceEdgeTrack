@@ -1,11 +1,8 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
-using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Read.Metas;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Domain.Enum;
 
 namespace FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 

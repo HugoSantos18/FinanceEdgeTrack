@@ -1,9 +1,7 @@
 ﻿using FinanceEdgeTrack.Infrastructure.Data;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using System.Reflection.Metadata.Ecma335;
 
 namespace FinanceEdgeTrack.Infrastructure.Repositories;
 
@@ -16,9 +14,6 @@ public class Repository<T> : IRepository<T> where T : class
         _context = context;
     }
 
-    public IQueryable<T> GetAll()
-        => _context.Set<T>();
-
     public IQueryable<T> Query()
         => _context.Set<T>();
 
@@ -30,7 +25,6 @@ public class Repository<T> : IRepository<T> where T : class
         try
         {
             await _context.Set<T>().AddAsync(entity);
-            await _context.SaveChangesAsync();
             return entity;
         }
         catch (DbUpdateException dbEx)
@@ -41,13 +35,12 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    public async Task<T> UpdateAsync(T entity)
+    public Task UpdateAsync(T entity)
     {
         try
         {
             _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return entity;
+            return Task.CompletedTask;
         }
         catch (DbUpdateException dbEx)
         {
@@ -56,13 +49,12 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    public async Task<T> DeleteAsync(T entity)
+    public Task DeleteAsync(T entity)
     {
         try
         {
             _context.Set<T>().Remove(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            return Task.CompletedTask;
         }
         catch (DbUpdateException dbEx)
         {

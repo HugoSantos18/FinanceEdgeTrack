@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceEdgeTrack.Migrations
 {
     /// <inheritdoc />
-    public partial class FirstMigrationWithIdentity : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,6 +31,13 @@ namespace FinanceEdgeTrack.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
+                    ValorTotal = table.Column<decimal>(type: "numeric", nullable: false),
+                    ValorTotalInvestido = table.Column<decimal>(type: "numeric", nullable: false),
+                    ValorTotalGasto = table.Column<decimal>(type: "numeric", nullable: false),
+                    CPF = table.Column<string>(type: "character varying(14)", maxLength: 14, nullable: false),
+                    DataNascimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpire = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -49,35 +56,6 @@ namespace FinanceEdgeTrack.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Categorias",
-                columns: table => new
-                {
-                    CategoriaId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Titulo = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    TipoCategoria = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
-                    Valor = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: true),
-                    Fixa = table.Column<bool>(type: "boolean", nullable: true),
-                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ValorAlvo = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: true),
-                    UltimoDepositoEmReais = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: true),
-                    DataUltimoDeposito = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PorcentagemAtual = table.Column<float>(type: "real", nullable: true),
-                    PorcentagemRestante = table.Column<float>(type: "real", nullable: true),
-                    ValorRestante = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: true),
-                    DataInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DataAlvo = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: true),
-                    Concluida = table.Column<bool>(type: "boolean", nullable: true),
-                    Receita_Valor = table.Column<double>(type: "double precision", precision: 15, scale: 2, nullable: true),
-                    Receita_Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Categorias", x => x.CategoriaId);
                 });
 
             migrationBuilder.CreateTable(
@@ -187,48 +165,117 @@ namespace FinanceEdgeTrack.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AporteMetas",
+                name: "Carteira",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Valor = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: false),
-                    MetaId = table.Column<Guid>(type: "uuid", nullable: false)
+                    CarteiraId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    Saldo = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AporteMetas", x => x.Id);
+                    table.PrimaryKey("PK_Carteira", x => x.CarteiraId);
                     table.ForeignKey(
-                        name: "FK_AporteMetas_Categorias_MetaId",
-                        column: x => x.MetaId,
-                        principalTable: "Categorias",
-                        principalColumn: "CategoriaId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Lancamento",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    DataLancamento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CategoriaId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Lancamento", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Lancamento_AspNetUsers_UserId",
+                        name: "FK_Carteira_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Despesas",
+                columns: table => new
+                {
+                    DespesaId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CarteiraId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Titulo = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Descricao = table.Column<string>(type: "text", nullable: true),
+                    Valor = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: false),
+                    Fixa = table.Column<bool>(type: "boolean", nullable: false),
+                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Despesas", x => x.DespesaId);
                     table.ForeignKey(
-                        name: "FK_Lancamento_Categorias_CategoriaId",
-                        column: x => x.CategoriaId,
-                        principalTable: "Categorias",
-                        principalColumn: "CategoriaId",
-                        onDelete: ReferentialAction.Restrict);
+                        name: "FK_Despesas_Carteira_CarteiraId",
+                        column: x => x.CarteiraId,
+                        principalTable: "Carteira",
+                        principalColumn: "CarteiraId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Metas",
+                columns: table => new
+                {
+                    MetaId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CarteiraId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Titulo = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Descricao = table.Column<string>(type: "text", nullable: true),
+                    ValorAlvo = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    ValorAtual = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    UltimoDepositoEmReais = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    DataUltimoDeposito = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PorcentagemAtual = table.Column<decimal>(type: "numeric(5,2)", nullable: false),
+                    ValorRestante = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    DataInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DataAlvo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DataConclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Metas", x => x.MetaId);
+                    table.ForeignKey(
+                        name: "FK_Metas_Carteira_CarteiraId",
+                        column: x => x.CarteiraId,
+                        principalTable: "Carteira",
+                        principalColumn: "CarteiraId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Receitas",
+                columns: table => new
+                {
+                    ReceitaId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CarteiraId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Titulo = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Descricao = table.Column<string>(type: "text", nullable: true),
+                    Valor = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: false),
+                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Receitas", x => x.ReceitaId);
+                    table.ForeignKey(
+                        name: "FK_Receitas_Carteira_CarteiraId",
+                        column: x => x.CarteiraId,
+                        principalTable: "Carteira",
+                        principalColumn: "CarteiraId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AporteMetas",
+                columns: table => new
+                {
+                    AporteMetasId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Valor = table.Column<decimal>(type: "numeric(15,2)", precision: 15, scale: 2, nullable: false),
+                    MetaId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AporteMetas", x => x.AporteMetasId);
+                    table.ForeignKey(
+                        name: "FK_AporteMetas_Metas_MetaId",
+                        column: x => x.MetaId,
+                        principalTable: "Metas",
+                        principalColumn: "MetaId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -274,14 +321,25 @@ namespace FinanceEdgeTrack.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Lancamento_CategoriaId",
-                table: "Lancamento",
-                column: "CategoriaId");
+                name: "IX_Carteira_UserId",
+                table: "Carteira",
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Lancamento_UserId",
-                table: "Lancamento",
-                column: "UserId");
+                name: "IX_Despesas_CarteiraId",
+                table: "Despesas",
+                column: "CarteiraId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Metas_CarteiraId",
+                table: "Metas",
+                column: "CarteiraId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Receitas_CarteiraId",
+                table: "Receitas",
+                column: "CarteiraId");
         }
 
         /// <inheritdoc />
@@ -306,16 +364,22 @@ namespace FinanceEdgeTrack.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Lancamento");
+                name: "Despesas");
+
+            migrationBuilder.DropTable(
+                name: "Receitas");
+
+            migrationBuilder.DropTable(
+                name: "Metas");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Carteira");
 
             migrationBuilder.DropTable(
-                name: "Categorias");
+                name: "AspNetUsers");
         }
     }
 }

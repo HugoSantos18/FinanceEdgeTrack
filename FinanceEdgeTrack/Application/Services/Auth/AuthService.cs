@@ -2,11 +2,11 @@
 using FinanceEdgeTrack.Application.Dtos.Read;
 using FinanceEdgeTrack.Application.Dtos.Read.Auth;
 using FinanceEdgeTrack.Application.Dtos.Write.Auth;
-using FinanceEdgeTrack.Application.Dtos.Write.Carteira;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -116,14 +116,7 @@ public class AuthService : IAuthenticationService
             return ApiResponse<ResponseDTO>.Fail($" Error: \n{errors}");
         }
 
-        var carteiraDto = new CreateCarteiraDTO
-        {
-            UserId = user.Id,
-            Saldo = 0m
-        };
-
-        var carteira = await _carteiraService.CreateAsync(carteiraDto);
-        carteira.UserId = user.Id;
+        var carteira = await _carteiraService.CreateAsync();
 
         await _userManager.UpdateAsync(user);
 

@@ -58,7 +58,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("{metaId}/aportes", Name = "GetAllAportesFromMeta")]
-    public async Task<IActionResult> GetAllAportesAsync(Guid metaId, PaginationParams pagination)
+    public async Task<IActionResult> GetAllAportesAsync(Guid metaId, [FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.GetAllAportesDaMetaPorIdAsync(metaId, pagination);
 

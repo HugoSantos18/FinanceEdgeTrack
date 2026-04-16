@@ -1,7 +1,6 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
@@ -20,54 +19,88 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        // Carteira
+        model.Entity<Carteira>(entity =>
+        {
+            entity.HasKey(c => c.CarteiraId);
 
-        // Categorias
-        model.Entity<Receita>()
-            .HasKey(r => r.ReceitaId);
+            entity.Property(c => c.CarteiraId)
+            .ValueGeneratedNever();
 
-        model.Entity<Receita>()
-            .Property(c => c.Titulo)
-            .HasMaxLength(150)
-            .IsRequired();
+            entity.Property(c => c.UserId)
+                  .IsRequired();
 
-        model.Entity<Receita>()
-            .Property(c => c.Descricao)
-            .HasMaxLength(200);
+            entity.HasIndex(c => c.UserId)
+                 .IsUnique();
 
-        // despesa
-        model.Entity<Despesa>()
-            .HasKey(d => d.DespesaId);
+            entity.Property(s => s.Saldo)
+           .HasPrecision(15, 2);
 
-        model.Entity<Despesa>()
-            .Property(d => d.Titulo)
-            .HasMaxLength(150)
-            .IsRequired();
+            // User (1:1)
+            entity.HasOne<ApplicationUser>()
+             .WithOne(u => u.Carteira)
+             .HasForeignKey<Carteira>(c => c.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
 
-        model.Entity<Despesa>()
-            .Property(d => d.Descricao)
-            .HasMaxLength(200);
+            // Metas (1:N)
+            entity.HasMany(c => c.Metas)
+              .WithOne(m => m.Carteira)
+              .HasForeignKey(m => m.CarteiraId)
+              .OnDelete(DeleteBehavior.Cascade);
 
+            // Receitas (1:N)
+            entity.HasMany(c => c.Receitas)
+             .WithOne(r => r.Carteira)
+             .HasForeignKey(r => r.CarteiraId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            // Despesas (1:N)
+            entity.HasMany(c => c.Despesas)
+             .WithOne(d => d.Carteira)
+             .HasForeignKey(d => d.CarteiraId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+        });
 
         // Metas
-        model.Entity<Meta>()
-       .HasMany(m => m.Aportes)
-       .WithOne(a => a.Meta)
-       .HasForeignKey(a => a.MetaId)
-       .OnDelete(DeleteBehavior.Cascade);
+        model.Entity<Meta>(entity =>
+        {
+            entity.HasKey(m => m.MetaId);
 
-        model.Entity<Meta>()
-            .Property(m => m.ValorAlvo)
-            .HasPrecision(15, 2)
-            .IsRequired();
+            entity.Property(m => m.Titulo)
+                  .IsRequired()
+                  .HasMaxLength(200);
 
-        model.Entity<Meta>()
-            .Property(m => m.ValorRestante)
-            .HasPrecision(15, 2);
+            entity.Property(m => m.ValorAlvo)
+                  .HasColumnType("decimal(18,2)")
+                  .IsRequired();
 
-        model.Entity<Meta>()
-            .Property(m => m.UltimoDepositoEmReais)
-            .HasPrecision(15, 2);
+            entity.Property(m => m.ValorAtual)
+                  .HasColumnType("decimal(18,2)");
 
+            entity.Property(m => m.UltimoDepositoEmReais)
+                  .HasColumnType("decimal(18,2)");
+
+            entity.Property(m => m.PorcentagemAtual)
+                  .HasColumnType("decimal(5,2)");
+
+            entity.Property(m => m.ValorRestante)
+                  .HasColumnType("decimal(18,2)");
+
+            entity.Property(m => m.Status)
+                  .HasConversion<string>();
+
+            // Carteira (1:N)
+            entity.HasOne(m => m.Carteira)
+                  .WithMany(c => c.Metas)
+                  .HasForeignKey(m => m.CarteiraId);
+
+            // Aportes (1:N)
+            entity.HasMany(m => m.Aportes)
+                  .WithOne()
+                  .HasForeignKey(a => a.MetaId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
 
 
         // Aporte Metas
@@ -77,27 +110,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         model.Entity<AporteMetas>()
             .HasKey(a => a.AporteMetasId);
-
-
-        // Carteira
-        model.Entity<Carteira>(entity =>
-        {
-            entity.HasOne(c => c.User)
-                 .WithOne()
-                 .HasForeignKey<Carteira>(c => c.UserId)
-                 .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasIndex(c => c.UserId)
-                 .IsUnique();
-
-
-            entity.Property(c => c.CarteiraId)
-            .UseIdentityByDefaultColumn();
-
-            entity.Property(s => s.Saldo)
-           .HasPrecision(15, 2);
-        });
-
 
 
         // Receita

@@ -35,7 +35,10 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> GetMetaPorIdAsync(Guid metaId)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
+        var meta = await _uof.MetaRepository
+                             .Query()
+                             .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+                             .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
         if (meta is null)
         {
@@ -66,15 +69,13 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<AporteMetasDTO>>> GetAllAportesDaMetaPorIdAsync(Guid metaId, PaginationParams pagination)
     {
-        var carteira = await _carteiraService.GetCarteiraAsync();
-
         var query = _uof.MetaRepository
         .Query()
-        .Where(u => carteira.UserId.Equals(_currentUser.UserId))
+        .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
         .Where(m => m.MetaId == metaId)
-        .Where(m => m.CarteiraId == carteira.CarteiraId)
         .SelectMany(m => m.Aportes)
         .OrderByDescending(a => a.Valor)
+        .AsNoTracking()
         .ProjectToType<AporteMetasDTO>();
 
         var aportesPaginados = await PagedList<AporteMetasDTO>.CreateAsync
@@ -89,19 +90,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> GetAllMetasAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository
-                        .Query(); //Corrigir e implementar
-                        //.Where(m => m.Carteira.UserId);
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
-            .AsNoTracking()
+        var query = _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira.UserId.Equals(_currentUser.UserId))
             .OrderByDescending(m => m.DataInicio)
+            .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
@@ -116,11 +109,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        var query = metas
-            .AsNoTracking()
+        var query = _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
             .OrderByDescending(m => m.ValorAlvo)
+            .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
@@ -135,15 +128,8 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
+        var query = _uof.MetaRepository
+            .Query()
             .AsNoTracking()
             .OrderBy(m => m.ValorAlvo)
             .ProjectToType<MetaDTO>();
@@ -160,17 +146,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasQuaseConcluidasAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
-            .AsNoTracking()
+        var query = _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
             .OrderByDescending(m => m.ValorAtual)
+            .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
@@ -185,17 +165,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisAntigaAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
-            .AsNoTracking()
+        var query = _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
             .OrderBy(m => m.DataInicio)
+            .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
@@ -210,18 +184,12 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisRecentesAsync(PaginationParams pagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
-            .AsNoTracking()
-            .OrderByDescending(m => m.DataInicio)
-            .ProjectToType<MetaDTO>();
+        var query = _uof.MetaRepository
+             .Query()
+             .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+             .OrderByDescending(m => m.DataInicio)
+             .AsNoTracking()
+             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
             (
@@ -235,17 +203,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasPorStatusAsync(StatusParams statusPagination)
     {
-        var metas = _uof.MetaRepository.GetAll();
-
-        if (metas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma meta, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<MetaDTO>>.Fail(ResultMessages.NotFoundMeta);
-        }
-
-        var query = metas
-            .AsNoTracking()
+        var query = _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
             .Where(m => m.Status == statusPagination.Status)
+            .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
         var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
@@ -263,7 +225,10 @@ public class MetaService : IMetaService
         var carteira = await _carteiraService.GetCarteiraAsync();
 
         if (carteira is null)
+        {
+            _logger.LogWarning($"Carteira não encontrada para o User.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
+        }
 
         var meta = _mapper.Map<Meta>(metaDto);
 
@@ -273,6 +238,7 @@ public class MetaService : IMetaService
             return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
         }
 
+        meta.CarteiraId = carteira.CarteiraId;
         carteira.Metas.Add(meta);
 
         await _uof.CommitAsync();
@@ -282,11 +248,14 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> AtualizarMetaAsync(Guid metaId, UpdateMetaDTO metaDto)
     {
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
+        var meta = await _uof.MetaRepository
+            .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
         if (meta is null)
         {
-            _logger.LogInformation($"Não foi possível atualizar a meta {metaId}, verifique os dados informados.");
+            _logger.LogWarning($"Meta de ID {metaId} não encontrada, verifique o ID informado.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
         }
 
@@ -373,26 +342,38 @@ public class MetaService : IMetaService
         var carteira = await _carteiraService.GetCarteiraAsync();
 
         var metas = _uof.MetaRepository
-                              .Query();
-                             
+                        .Query()
+                        .Where(m => m.CarteiraId == carteira.CarteiraId);
+
         var aporte = await metas
-                               .Where(m => m.CarteiraId == carteira.CarteiraId)
                                .SelectMany(m => m.Aportes)
                                .Where(a => a.AporteMetasId == aporteMetaId)
-                               .ProjectToType<AporteMetasDTO>()
                                .FirstOrDefaultAsync();
 
-
         if (carteira is null)
+        {
+            _logger.LogWarning($"Carteira não encontrada para o User, verificar informações.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
-
+        }
+        
         if (aporte is null)
         {
-            _logger.LogInformation($"Não foi possível encontrar o aporte de ID {aporteMetaId}.");
+            _logger.LogWarning($"Não foi possível encontrar o aporte de ID {aporteMetaId}.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundAporte);
         }
 
+        var meta = await metas
+                       .Where(m => m.Aportes!.Contains(aporte))
+                       .FirstOrDefaultAsync();
+        
+        if(meta is null)
+        {
+            _logger.LogWarning($"Não foi possível encontrar a meta de ID {meta?.MetaId}.");
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+        }
+
         carteira.AdicionarSaldo(aporte.Valor);
+        meta.RemoverAporte(aporte);
 
         await _uof.CommitAsync();
 
@@ -403,7 +384,10 @@ public class MetaService : IMetaService
     {
         var carteira = await _carteiraService.GetCarteiraAsync();
 
-        var meta = await _uof.MetaRepository.GetAsync(m => m.MetaId == metaId);
+        var meta = await _uof.MetaRepository
+                             .Query()
+                             .Where(m => m.CarteiraId == carteira.CarteiraId)
+                             .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
         if (meta is null)
         {

@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using FinanceEdgeTrack.Application.Common.Responses;
+using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Domain.Models;
 
@@ -14,6 +15,9 @@ public class Meta
     public string Titulo { get; set; } = default!;
 
     public string? Descricao { get; private set; }
+
+    [JsonIgnore]
+    public Carteira? Carteira { get; private set; }
 
     [Required(ErrorMessage = "É obrigatório informar o valor alvo da Meta para alcança-lá. :)")]
     [Range(typeof(decimal), "1", "999999999999")]
@@ -85,8 +89,6 @@ public class Meta
         {
             FinalizarMeta();
         }
-
-        AdicionareAtualizarValorAporte(novoAporte.Valor);
     }
 
     public void RemoverAporte(AporteMetas aporteRemovido)
@@ -97,33 +99,8 @@ public class Meta
         int aporteAnterior = (Aportes.IndexOf(aporteRemovido) - 1);
         Aportes.Remove(aporteRemovido);
 
-        DescontareAtualizarValorAporte(aporteRemovido.Valor);
         AtualizarHistoricoAporteRemoved(aporteAnterior);
     }
-
-    private void AdicionareAtualizarValorAporte(decimal novoValor)
-    {
-        ValorAtual += novoValor;
-
-        if (novoValor >= ValorAlvo)
-        {
-            ValorAtual = novoValor;
-            FinalizarMeta();
-        }
-
-        ValorRestante = ValorAlvo - ValorAtual;
-        UltimoDepositoEmReais = novoValor;
-        CalcularPorcentagemAtual();
-        DataUltimoDeposito = DateTime.UtcNow;
-    }
-
-    private void DescontareAtualizarValorAporte(decimal valorRemovido)
-    {
-        ValorAtual -= valorRemovido;
-        ValorRestante = ValorAlvo - (ValorAtual - valorRemovido);
-        CalcularPorcentagemAtual();
-    }
-
 
     private void AtualizarHistoricoAporteRemoved(int index)
     {
@@ -132,16 +109,17 @@ public class Meta
 
         DataUltimoDeposito = DateTime.UtcNow;
         UltimoDepositoEmReais = Aportes[index].Valor;
-
     }
 
-    private decimal CalcularPorcentagemAtual()
+    // verificar uso depois caso quebre algo com as novas alterações.
+    /*private decimal CalcularPorcentagemAtual()
     {
         if (ValorAlvo == 0)
             return 0;
 
         return (ValorAtual / ValorAlvo) * 100;
     }
+    */
 
     private void FinalizarMeta()
     {

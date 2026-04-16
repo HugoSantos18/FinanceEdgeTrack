@@ -10,6 +10,7 @@ using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FinanceEdgeTrack.Application.Services.Categories;
 
@@ -34,7 +35,10 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
     {
-        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
+        var receita = await _uof.ReceitaRepository
+                                .Query()
+                                .Where(r => r.Carteira != null && r.Carteira.UserId.Equals(_currentUser.UserId))
+                                .FirstOrDefaultAsync(r => r.ReceitaId == id);
 
         if (receita is null)
         {
@@ -47,18 +51,13 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ListarReceitasAsync(PaginationParams pagination)
     {
-        var receitas = _uof.ReceitaRepository.GetAll();
-
-        if (receitas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
-        }
-
-        var query = receitas
-            .AsNoTracking()
+        var query = _uof.ReceitaRepository
+            .Query()
+            .Where(r => r.Carteira != null && r.Carteira.UserId.Equals(_currentUser.UserId))
             .OrderByDescending(r => r.Data)
+            .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
+
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
@@ -72,18 +71,13 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var receitas = _uof.ReceitaRepository.GetAll();
-
-        if (receitas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
-        }
-
-        var query = receitas
-            .AsNoTracking()
+        var query = _uof.ReceitaRepository
+            .Query()
+            .Where(r => r.Carteira != null && r.Carteira!.UserId.Equals(_currentUser.UserId))
             .OrderByDescending(r => r.Valor)
+            .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
+
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
@@ -97,17 +91,11 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var receitas = _uof.ReceitaRepository.GetAll();
-
-        if (receitas is null)
-        {
-            _logger.LogInformation($"Não foi possível encontrar nenhuma receita, coleção possivelmente vazia.");
-            return ApiResponse<PagedList<ReceitaDTO>>.Fail(ResultMessages.NotFoundReceive);
-        }
-
-        var query = receitas
-            .AsNoTracking()
+        var query = _uof.ReceitaRepository
+            .Query()
+            .Where(r => r.Carteira != null && r.Carteira!.UserId.Equals(_currentUser.UserId))
             .OrderBy(r => r.Valor)
+            .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
@@ -124,6 +112,12 @@ public class ReceitaService : IReceitaService
     {
         var carteira = await _carteiraService.GetCarteiraAsync();
 
+        if (carteira is null)
+        {
+            _logger.LogWarning($"Carteira do user é nula ou não existe, verificar se carteira já foi criada.");
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
+        }
+
         var receita = _mapper.Map<Receita>(receitaDto);
         receita.CarteiraId = carteira.CarteiraId;
 
@@ -138,7 +132,10 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<ReceitaDTO>> AtualizarReceitaAsync(Guid id, UpdateReceitaDTO receitaDto)
     {
-        var receita = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
+        var receita = await _uof.ReceitaRepository
+                                .Query()
+                                .Where(r => r.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                .FirstOrDefaultAsync(r => r.ReceitaId == id);
 
         if (receita is null)
         {
@@ -161,27 +158,31 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<ReceitaDTO>> RemoverReceitaAsync(Guid id)
     {
-        var receitaRemovida = await _uof.ReceitaRepository.GetAsync(r => r.ReceitaId == id);
         var carteira = await _carteiraService.GetCarteiraAsync();
 
-        if (receitaRemovida is null)
+        var receita = await _uof.ReceitaRepository
+                                .Query()
+                                .Where(r => r.CarteiraId == carteira.CarteiraId)
+                                .FirstOrDefaultAsync(r => r.ReceitaId == id);
+
+        if (receita is null)
         {
             _logger.LogWarning($"Não foi possível remover receita de ID {id}, não foi encontrada.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
         }
 
-        if(carteira is null)
+        if (carteira is null)
         {
             _logger.LogWarning($"Não foi encontrado carteira de ID {carteira?.CarteiraId}");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
         }
 
-        carteira.DescontarSaldo(receitaRemovida.Valor);
-        carteira.Receitas.Remove(receitaRemovida);
+        carteira.DescontarSaldo(receita.Valor);
+        carteira.Receitas.Remove(receita);
 
-        await _uof.ReceitaRepository.DeleteAsync(receitaRemovida!);
+        await _uof.ReceitaRepository.DeleteAsync(receita);
         await _uof.CommitAsync();
 
-        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receitaRemovida));
+        return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
 }

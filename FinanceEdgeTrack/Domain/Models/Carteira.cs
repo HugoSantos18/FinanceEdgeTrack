@@ -13,7 +13,7 @@ public class Carteira
     public Guid CarteiraId { get; private set; }
 
     [Required]
-    public string? UserId { get; set; } = null!;
+    public string UserId { get; set; } = null!;
 
     [Required]
     public decimal Saldo { get; set; }
@@ -24,7 +24,6 @@ public class Carteira
 
     public static Carteira CriarCarteira(string userId)
     {
-        // aplicar migration
         return new Carteira
         {
             CarteiraId = Guid.NewGuid(),

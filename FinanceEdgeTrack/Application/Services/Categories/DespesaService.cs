@@ -33,7 +33,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<DespesaDTO>> ObterDespesaPorIdAsync(Guid id)
         {
-            var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
+            var despesa = await _uof.DespesaRepository
+                                    .Query()
+                                    .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                    .FirstOrDefaultAsync(d => d.DespesaId == id);
 
             if (despesa is null)
             {
@@ -48,18 +51,13 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> ListarDespesasAsync(PaginationParams pagination)
         {
-            var despesas = _uof.DespesaRepository.GetAll();
-
-            if (despesas is null)
-            {
-                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
-                return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
-            }
-
-            var query = despesas
-                .AsNoTracking()
+            var query = _uof.DespesaRepository
+                .Query()
+                .Where(d => d.Carteira!= null && d.Carteira!.UserId.Equals(_currentUser.UserId))
                 .OrderByDescending(d => d.Data)
+                .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
+
 
             var despesasPaginadas = await PagedList<DespesaDTO>.CreateAsync
                 (
@@ -73,17 +71,12 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFixasPaginadasAsync(PaginationParams pagination)
         {
-            var despesas = _uof.DespesaRepository.GetAll();
-
-            if (despesas is null)
-            {
-                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa fixa, possivelmente vazia.");
-                return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
-            }
-
-            var query = despesas
-                .AsNoTracking()
+            var query = _uof.DespesaRepository
+                .Query()
+                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
                 .Where(d => d.Fixa == true)
+                .OrderByDescending(d => d.Valor)
+                .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
 
             var despesasPaginadas = await PagedList<DespesaDTO>.CreateAsync
@@ -98,17 +91,11 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMaiorValorAsync(PaginationParams pagination)
         {
-            var despesas = _uof.DespesaRepository.GetAll();
-
-            if (despesas is null)
-            {
-                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
-                return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
-            }
-
-            var query = despesas
-                .AsNoTracking()
+            var query = _uof.DespesaRepository
+                .Query()
+                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
                 .OrderByDescending(d => d.Valor)
+                .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
 
             var despesasFiltradas = await PagedList<DespesaDTO>.CreateAsync
@@ -123,17 +110,11 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMenorValorAsync(PaginationParams pagination)
         {
-            var despesas = _uof.DespesaRepository.GetAll();
-
-            if (despesas is null)
-            {
-                _logger.LogInformation($"Não foi possível encontrar nenhuma despesa, possivelmente vazia.");
-                return ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.NotFoundDespesa);
-            }
-
-            var query = despesas
-                .AsNoTracking()
+            var query = _uof.DespesaRepository
+                .Query()
+                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
                 .OrderBy(d => d.Valor)
+                .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
 
             var despesasFiltradas = await PagedList<DespesaDTO>.CreateAsync
@@ -150,7 +131,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var carteira = await _carteiraService.GetCarteiraAsync();
 
-            if(carteira is null)
+            if (carteira is null)
             {
                 _logger.LogWarning($"Não foi encontrado a carteira de ID {carteira?.CarteiraId}");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.WalletNotFound);
@@ -170,7 +151,10 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<DespesaDTO>> AtualizarDespesaAsync(Guid id, UpdateDespesaDTO despesaDto)
         {
-            var despesa = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
+            var despesa = await _uof.DespesaRepository
+                                    .Query()
+                                    .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                    .FirstOrDefaultAsync(d => d.DespesaId == id);  
 
             if (despesa is null)
             {
@@ -193,20 +177,23 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<DespesaDTO>> RemoverDespesaAsync(Guid id)
         {
-            var despesaRemovida = await _uof.DespesaRepository.GetAsync(d => d.DespesaId == id);
+            var despesa = await _uof.DespesaRepository
+                                   .Query()
+                                   .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                   .FirstOrDefaultAsync(d => d.DespesaId == id);
 
-            if (despesaRemovida is null)
+            if (despesa is null)
             {
                 _logger.LogInformation($"Não foi possível remover despesa de ID: {id}, verifique o ID informado.");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
             }
 
-            await _carteiraService.AdicionarSaldoAsync(despesaRemovida.Valor);
-            await _uof.DespesaRepository.DeleteAsync(despesaRemovida);
-            
+            await _carteiraService.AdicionarSaldoAsync(despesa.Valor);
+            await _uof.DespesaRepository.DeleteAsync(despesa);
+
             await _uof.CommitAsync();
 
-            return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesaRemovida), "Despesa removida com sucesso");
+            return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa), "Despesa removida com sucesso");
         }
     }
 }

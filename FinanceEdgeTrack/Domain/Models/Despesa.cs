@@ -12,6 +12,7 @@ public class Despesa
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
+    
     public string? Descricao { get; set; }
     
     [JsonIgnore]

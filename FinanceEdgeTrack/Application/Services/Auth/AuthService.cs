@@ -6,7 +6,6 @@ using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -50,7 +49,7 @@ public class AuthService : IAuthenticationService
             {
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.Email, user.Email!),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -105,7 +104,7 @@ public class AuthService : IAuthenticationService
             CPF = registerModelDto.CPF,
             DataNascimento = registerModelDto.DataNascimento,
         };
-
+        
         var result = await _userManager.CreateAsync(user, registerModelDto.Password!);
 
         if (!result.Succeeded)
@@ -115,16 +114,13 @@ public class AuthService : IAuthenticationService
             _logger.LogInformation($"Erro ao criar um novo usuário: {errors}");
             return ApiResponse<ResponseDTO>.Fail($" Error: \n{errors}");
         }
-
-        var carteira = await _carteiraService.CreateAsync();
-
-        await _userManager.UpdateAsync(user);
-
+        
+        var carteira = await _carteiraService.CreateAsync(user.Id);
 
         return ApiResponse<ResponseDTO>.Ok(new ResponseDTO()
         {
             Status = "200",
-            Message = $"Usuário criado com sucesso. \nSeja bem vindo {user.UserName} ao Finance Edge Track!"
+            Message = $"Usuário criado com sucesso. Seja bem vindo {user.UserName} ao Finance Edge Track!"
         });
     }
 

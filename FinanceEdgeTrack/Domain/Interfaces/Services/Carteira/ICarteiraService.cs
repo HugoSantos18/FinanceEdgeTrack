@@ -5,7 +5,7 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 
 public interface ICarteiraService
 {
-    Task<Carteira> CreateAsync();
+    Task<Carteira> CreateAsync(string userId);
     Task<Carteira> GetCarteiraAsync();
     Task <ApiResponse<decimal>> AdicionarSaldoAsync(decimal valor);
     Task <ApiResponse<decimal>>DescontarSaldoAsync(decimal valor);

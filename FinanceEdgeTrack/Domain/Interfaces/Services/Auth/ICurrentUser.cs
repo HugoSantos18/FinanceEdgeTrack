@@ -2,6 +2,6 @@
 
 public interface ICurrentUser
 {
-    Guid UserId { get; }
+    string UserId { get; }
     string? Email { get;}
 }

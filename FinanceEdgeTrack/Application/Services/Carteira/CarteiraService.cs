@@ -22,18 +22,27 @@ public class CarteiraService : ICarteiraService
 
     public async Task<Carteira> GetCarteiraAsync()
     {
-        var carteira = await _uof.CarteiraRepository
-                         .Query()
-                         .FirstOrDefaultAsync(c => c.UserId.Equals(_currentUser.UserId));
-
-        return carteira ?? throw new InvalidOperationException(ResultMessages.WalletNotFound);
-    }
-
-    public async Task<Carteira> CreateAsync()
-    {
         var userId = _currentUser.UserId;
 
-        var exists = await GetCarteiraAsync();
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new UnauthorizedAccessException("Usuário não autenticado.");
+
+        return await GetByUserIdAsync(userId);
+    }
+
+    public async Task<Carteira> GetByUserIdAsync(string userId)
+    {
+        return await _uof.CarteiraRepository
+            .Query()
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+    }
+
+    public async Task<Carteira> CreateAsync(string userId)
+    {
+        var exists = await _uof.CarteiraRepository
+                               .Query()
+                               .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (exists is not null)
         {
@@ -41,8 +50,8 @@ public class CarteiraService : ICarteiraService
             throw new InvalidOperationException("Usuário já possui uma carteira.");
         }
 
-        var carteira = Carteira.CriarCarteira(userId.ToString());
-        _logger.LogInformation($"User encontrado com sucesso: {userId}");
+        var carteira = Carteira.CriarCarteira(userId);
+        _logger.LogInformation($"Criadno carteira para User: {userId}");
 
         await _uof.CarteiraRepository.CreateAsync(carteira);
         await _uof.CommitAsync();

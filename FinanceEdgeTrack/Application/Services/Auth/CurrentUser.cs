@@ -7,14 +7,14 @@ namespace FinanceEdgeTrack.Application.Services.Auth;
 public class CurrentUser : ICurrentUser
 {
     private readonly IHttpContextAccessor _accessor;
-    public Guid UserId => GetClaimGuid(ClaimTypes.NameIdentifier);
+    public string UserId => GetClaimGuid(ClaimTypes.NameIdentifier);
     public string Email => _accessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
 
     public CurrentUser(IHttpContextAccessor accessor) => _accessor = accessor;
     
-    private Guid GetClaimGuid(string type)
+    private string GetClaimGuid(string type)
     {
         var val = _accessor.HttpContext?.User?.FindFirstValue(type);
-        return string.IsNullOrEmpty(val) ? Guid.Empty : Guid.Parse(val);        
+        return string.IsNullOrEmpty(val) ? String.Empty : val;        
     }
 }

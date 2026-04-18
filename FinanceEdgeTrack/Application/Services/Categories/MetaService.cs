@@ -37,7 +37,7 @@ public class MetaService : IMetaService
     {
         var meta = await _uof.MetaRepository
                              .Query()
-                             .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+                             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
                              .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
         if (meta is null)
@@ -71,7 +71,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
         .Query()
-        .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+        .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
         .Where(m => m.MetaId == metaId)
         .SelectMany(m => m.Aportes)
         .OrderByDescending(a => a.Valor)
@@ -92,7 +92,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira.UserId == _currentUser.UserId)
             .OrderByDescending(m => m.DataInicio)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -111,7 +111,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .OrderByDescending(m => m.ValorAlvo)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -148,7 +148,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .OrderByDescending(m => m.ValorAtual)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -167,7 +167,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .OrderBy(m => m.DataInicio)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -186,7 +186,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
              .Query()
-             .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
              .OrderByDescending(m => m.DataInicio)
              .AsNoTracking()
              .ProjectToType<MetaDTO>();
@@ -205,7 +205,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .Where(m => m.Status == statusPagination.Status)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -230,7 +230,15 @@ public class MetaService : IMetaService
             return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
         }
 
-        var meta = _mapper.Map<Meta>(metaDto);
+        var meta = new Meta()
+        {
+            Titulo = metaDto.Titulo,
+            Descricao = metaDto.Descricao,
+            ValorAlvo = metaDto.ValorAlvo,
+            DataInicio = metaDto.DataInicio,
+            DataAlvo = metaDto.DataAlvo,
+            CarteiraId = carteira.CarteiraId
+        };
 
         if (meta is null)
         {
@@ -238,9 +246,7 @@ public class MetaService : IMetaService
             return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
         }
 
-        meta.CarteiraId = carteira.CarteiraId;
         carteira.Metas.Add(meta);
-
         await _uof.CommitAsync();
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
@@ -250,7 +256,7 @@ public class MetaService : IMetaService
     {
         var meta = await _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira != null && m.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
         if (meta is null)

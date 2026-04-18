@@ -12,7 +12,7 @@ public class CacheService : ICacheService
         _cache = cache;
     }
 
-    public string SetCacheKey(Guid id)
+    public string SetCacheKey(string id)
             => $"CacheKey_user{id}";
 
     public Task SetAsync<T>(string cacheKey, T data, TimeSpan expiration)

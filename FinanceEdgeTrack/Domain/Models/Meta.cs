@@ -14,7 +14,7 @@ public class Meta
     [Required(ErrorMessage = "É necessário um título para a categoria")]
     public string Titulo { get; set; } = default!;
 
-    public string? Descricao { get; private set; }
+    public string? Descricao { get; set; }
 
     [JsonIgnore]
     public Carteira? Carteira { get; private set; }
@@ -37,15 +37,15 @@ public class Meta
     [Range(typeof(decimal), "0", "999999999999")]
     public decimal ValorRestante { get; private set; }
 
-    public DateTime DataInicio { get; private set; }
+    public DateTime DataInicio { get; set; }
 
-    public DateTime DataAlvo { get; private set; }
+    public DateTime DataAlvo { get; set; }
 
     public DateTime? DataConclusao { get; private set; }
 
     public Status Status { get; private set; } = default!;
 
-    public List<AporteMetas>? Aportes { get; private set; } = new();
+    public List<AporteMetas>? Aportes { get; set; } = new();
 
 
     public decimal ValorRestanteParaCompletar()

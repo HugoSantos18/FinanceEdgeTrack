@@ -35,7 +35,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var despesa = await _uof.DespesaRepository
                                     .Query()
-                                    .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                    .Where(d => d.Carteira!.UserId! == _currentUser.UserId)
                                     .FirstOrDefaultAsync(d => d.DespesaId == id);
 
             if (despesa is null)
@@ -53,7 +53,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var query = _uof.DespesaRepository
                 .Query()
-                .Where(d => d.Carteira!= null && d.Carteira!.UserId.Equals(_currentUser.UserId))
+                .Where(d => d.Carteira!= null && d.Carteira!.UserId == _currentUser.UserId)
                 .OrderByDescending(d => d.Data)
                 .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
@@ -73,7 +73,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var query = _uof.DespesaRepository
                 .Query()
-                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
+                .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
                 .Where(d => d.Fixa == true)
                 .OrderByDescending(d => d.Valor)
                 .AsNoTracking()
@@ -93,7 +93,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var query = _uof.DespesaRepository
                 .Query()
-                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
+                .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
                 .OrderByDescending(d => d.Valor)
                 .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
@@ -112,7 +112,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var query = _uof.DespesaRepository
                 .Query()
-                .Where(d => d.Carteira != null && d.Carteira!.UserId.Equals(_currentUser.UserId))
+                .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
                 .OrderBy(d => d.Valor)
                 .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
@@ -137,11 +137,16 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.WalletNotFound);
             }
 
-            var despesa = _mapper.Map<Despesa>(despesaDto);
-            despesa.CarteiraId = carteira.CarteiraId;
+            var despesa = new Despesa(despesaDto.Valor, despesaDto.Fixa)
+            {
+                Titulo = despesaDto.Titulo,
+                Descricao = despesaDto.Descricao,
+                Data = despesaDto.Data,
+                CarteiraId = carteira.CarteiraId
+            };
 
-            carteira.DescontarSaldo(despesa.Valor);
             carteira.Despesas.Add(despesa);
+            carteira.DescontarSaldo(despesa.Valor);
 
             await _uof.DespesaRepository.CreateAsync(despesa);
             await _uof.CommitAsync();
@@ -153,7 +158,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var despesa = await _uof.DespesaRepository
                                     .Query()
-                                    .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                    .Where(d => d.Carteira!.UserId! == _currentUser.UserId)
                                     .FirstOrDefaultAsync(d => d.DespesaId == id);  
 
             if (despesa is null)
@@ -179,7 +184,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         {
             var despesa = await _uof.DespesaRepository
                                    .Query()
-                                   .Where(d => d.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                   .Where(d => d.Carteira!.UserId! == _currentUser.UserId)
                                    .FirstOrDefaultAsync(d => d.DespesaId == id);
 
             if (despesa is null)

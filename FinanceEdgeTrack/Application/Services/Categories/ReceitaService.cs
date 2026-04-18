@@ -37,7 +37,7 @@ public class ReceitaService : IReceitaService
     {
         var receita = await _uof.ReceitaRepository
                                 .Query()
-                                .Where(r => r.Carteira != null && r.Carteira.UserId.Equals(_currentUser.UserId))
+                                .Where(r => r.Carteira != null && r.Carteira.UserId == _currentUser.UserId)
                                 .FirstOrDefaultAsync(r => r.ReceitaId == id);
 
         if (receita is null)
@@ -53,7 +53,7 @@ public class ReceitaService : IReceitaService
     {
         var query = _uof.ReceitaRepository
             .Query()
-            .Where(r => r.Carteira != null && r.Carteira.UserId.Equals(_currentUser.UserId))
+            .Where(r => r.Carteira != null && r.Carteira.UserId == _currentUser.UserId)      
             .OrderByDescending(r => r.Data)
             .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
@@ -73,7 +73,7 @@ public class ReceitaService : IReceitaService
     {
         var query = _uof.ReceitaRepository
             .Query()
-            .Where(r => r.Carteira != null && r.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
             .OrderByDescending(r => r.Valor)
             .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
@@ -93,7 +93,7 @@ public class ReceitaService : IReceitaService
     {
         var query = _uof.ReceitaRepository
             .Query()
-            .Where(r => r.Carteira != null && r.Carteira!.UserId.Equals(_currentUser.UserId))
+            .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
             .OrderBy(r => r.Valor)
             .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
@@ -118,8 +118,13 @@ public class ReceitaService : IReceitaService
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
         }
 
-        var receita = _mapper.Map<Receita>(receitaDto);
-        receita.CarteiraId = carteira.CarteiraId;
+        var receita = new Receita(receitaDto.Valor)
+        {
+            Titulo = receitaDto.Titulo,
+            Descricao = receitaDto.Descricao,
+            Data = receitaDto.Data,
+            CarteiraId = carteira.CarteiraId,
+        };
 
         carteira.Receitas.Add(receita);
         carteira.AdicionarSaldo(receitaDto.Valor);
@@ -134,7 +139,7 @@ public class ReceitaService : IReceitaService
     {
         var receita = await _uof.ReceitaRepository
                                 .Query()
-                                .Where(r => r.Carteira!.UserId!.Equals(_currentUser.UserId))
+                                .Where(r => r.Carteira!.UserId! == _currentUser.UserId)
                                 .FirstOrDefaultAsync(r => r.ReceitaId == id);
 
         if (receita is null)

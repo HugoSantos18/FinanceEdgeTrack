@@ -3,6 +3,7 @@ using System;
 using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceEdgeTrack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260419165147_FixAportes")]
+    partial class FixAportes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,7 +34,7 @@ namespace FinanceEdgeTrack.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("MetaId")
+                    b.Property<Guid>("MetaId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Valor")
@@ -136,10 +139,6 @@ namespace FinanceEdgeTrack.Migrations
                 {
                     b.Property<Guid>("CarteiraId")
                         .HasColumnType("uuid");
-
-                    b.Property<long>("RowVersion")
-                        .IsConcurrencyToken()
-                        .HasColumnType("bigint");
 
                     b.Property<decimal>("Saldo")
                         .HasPrecision(15, 2)
@@ -414,7 +413,8 @@ namespace FinanceEdgeTrack.Migrations
                     b.HasOne("FinanceEdgeTrack.Domain.Models.Meta", null)
                         .WithMany("Aportes")
                         .HasForeignKey("MetaId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Carteira", b =>

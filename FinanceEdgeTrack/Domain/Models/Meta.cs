@@ -8,7 +8,9 @@ namespace FinanceEdgeTrack.Domain.Models;
 
 public class Meta
 {
+    [Key]
     public Guid MetaId { get; private set; } = Guid.NewGuid();
+    
     public Guid CarteiraId { get; set; }
 
     [Required(ErrorMessage = "É necessário um título para a categoria")]
@@ -43,9 +45,9 @@ public class Meta
 
     public DateTime? DataConclusao { get; private set; }
 
-    public Status Status { get; private set; } = default!;
+    public Status Status { get; private set; } = Status.EmAberto;
 
-    public List<AporteMetas>? Aportes { get; set; } = new();
+    public List<AporteMetas> Aportes { get; set; } = new List<AporteMetas>();
 
 
     public decimal ValorRestanteParaCompletar()
@@ -85,6 +87,13 @@ public class Meta
         Aportes ??= new List<AporteMetas>();
         Aportes.Add(novoAporte);
 
+        ValorAtual += novoAporte.Valor;
+        UltimoDepositoEmReais = novoAporte.Valor;
+        DataUltimoDeposito = DateTime.UtcNow;
+        PorcentagemAtual =
+        ValorAlvo == 0 ? 0 : (ValorAtual / ValorAlvo) * 100;
+        ValorRestante = ValorAlvo - ValorAtual;
+
         if (ValorTotalAportes() >= ValorAlvo)
         {
             FinalizarMeta();
@@ -110,16 +119,6 @@ public class Meta
         DataUltimoDeposito = DateTime.UtcNow;
         UltimoDepositoEmReais = Aportes[index].Valor;
     }
-
-    // verificar uso depois caso quebre algo com as novas alterações.
-    /*private decimal CalcularPorcentagemAtual()
-    {
-        if (ValorAlvo == 0)
-            return 0;
-
-        return (ValorAtual / ValorAlvo) * 100;
-    }
-    */
 
     private void FinalizarMeta()
     {

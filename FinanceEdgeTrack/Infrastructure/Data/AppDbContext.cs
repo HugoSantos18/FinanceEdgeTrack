@@ -1,6 +1,7 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
@@ -98,18 +99,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Aportes (1:N)
             entity.HasMany(m => m.Aportes)
                   .WithOne()
-                  .HasForeignKey(a => a.MetaId)
+                  .HasForeignKey("MetaId")
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
 
         // Aporte Metas
-        model.Entity<AporteMetas>()
-            .Property(a => a.Valor)
-            .HasPrecision(15, 2);
-
-        model.Entity<AporteMetas>()
-            .HasKey(a => a.AporteMetasId);
+        model.Entity<AporteMetas>(entity =>
+        {
+            entity.HasKey(a => a.AporteMetasId);
+            
+            entity.Property(a => a.Valor)
+                  .HasPrecision(18, 2)
+                  .IsRequired();
+        });
 
 
         // Receita

@@ -12,9 +12,6 @@ public class PaginationHeaderFilter : IActionFilter
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
-        // Esse filtro faz com que após executada uma ação, verifico se o object result é uma lista paginada, se for add no Header
-        // da response os metadatas da Pagination: "X-Pagination"
-
         if (context.Result is not ObjectResult objectResult)
             return;
 
@@ -39,7 +36,7 @@ public class PaginationHeaderFilter : IActionFilter
         };
 
         context.HttpContext.Response.Headers.Append(
-            "X-Pagination",
+            $"X-Pagination: {metadata.CurrentPage}; {metadata.TotalPages}; {metadata.HasPrevious}; {metadata.HasNext}",
             JsonSerializer.Serialize(metadata));
     }
 

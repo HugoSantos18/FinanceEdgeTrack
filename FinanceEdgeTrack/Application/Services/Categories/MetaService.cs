@@ -92,7 +92,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira.UserId == _currentUser.UserId)
+            .Where(m => m.Carteira != null && m.Carteira.UserId == _currentUser.UserId)
             .OrderByDescending(m => m.DataInicio)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -224,12 +224,6 @@ public class MetaService : IMetaService
     {
         var carteira = await _carteiraService.GetCarteiraAsync();
 
-        if (carteira is null)
-        {
-            _logger.LogWarning($"Carteira não encontrada para o User.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
-        }
-
         var meta = new Meta()
         {
             Titulo = metaDto.Titulo,
@@ -240,13 +234,7 @@ public class MetaService : IMetaService
             CarteiraId = carteira.CarteiraId
         };
 
-        if (meta is null)
-        {
-            _logger.LogInformation($"Não foi possível criar a meta, verifique os dados informados.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
-        }
-
-        carteira.Metas.Add(meta);
+        await _uof.MetaRepository.CreateAsync(meta);
         await _uof.CommitAsync();
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
@@ -292,55 +280,72 @@ public class MetaService : IMetaService
                 var meta = await _uof.MetaRepository
                                      .Query()
                                      .Include(m => m.Aportes)
-                                     .Include(m => m.CarteiraId == carteira.CarteiraId)
                                      .FirstOrDefaultAsync(m => m.MetaId == metaId
-                                     && carteira.UserId.Equals(_currentUser.UserId));
+                                     && m.CarteiraId == carteira.CarteiraId);
 
                 if (meta is null)
                     return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
-                decimal saldo = carteira.Saldo;
-                _logger.LogInformation($"Saldo atual: R${saldo:C2}");
-
-                if (saldo < aporteMetaDto.Valor)
+                if (carteira.Saldo < aporteMetaDto.Valor)
                     return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
 
                 carteira.DescontarSaldo(aporteMetaDto.Valor);
-
-                var novoAporte = new AporteMetas
-                {
-                    AporteMetasId = Guid.NewGuid(),
-                    MetaId = metaId,
-                    Valor = aporteMetaDto.Valor
-                };
-
+                var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
                 meta.RegistrarAporte(novoAporte);
 
-                await _uof.CommitAsync();
-                await transaction.CommitAsync();
+                await _uof.CarteiraRepository.UpdateAsync(carteira);
+                await _uof.MetaRepository.UpdateAsync(meta);
+                
+                // Atualização dos dados para consistency
+                meta = await _uof.MetaRepository
+                                 .Query()
+                                 .Include(m => m.Aportes)
+                                 .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
                 var metaDTO = _mapper.Map<MetaDTO>(meta);
+
+                await transaction.CommitAsync();
 
                 if (meta.Status == Status.Concluido)
                 {
                     var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
-
-                    return ApiResponse<MetaDTO>.Ok(metaDTO,
-                        $"🎉 Meta concluída em {dias} dias!");
+                    return ApiResponse<MetaDTO>.Ok(metaDTO, $"🎉 Meta concluída em {dias} dias!");
                 }
 
+                return ApiResponse<MetaDTO>.Ok(metaDTO, $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
 
-                return ApiResponse<MetaDTO>.Ok(metaDTO,
-                    $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
+                // ✅ Recarregar entidades com valores atuais
+                foreach (var entry in ex.Entries)
+                {
+                    if (entry.Entity is Carteira)
+                    {
+                        await entry.ReloadAsync();
+                        _logger.LogWarning($"Carteira recarregada. Novo saldo: {((Carteira)entry.Entity).Saldo}");
+                    }
+                    else if (entry.Entity is Meta)
+                    {
+                        await entry.ReloadAsync();
+                    }
+                }
+
+                _logger.LogWarning(ex, $"Concorrência na tentativa {attempt}/{MAX_RETRY} para meta {metaId}");
+
+                if (attempt == MAX_RETRY)
+                    return ApiResponse<MetaDTO>.Fail("Operação temporariamente indisponível. Tente novamente.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
                 await transaction.RollbackAsync();
+                return ApiResponse<MetaDTO>.Fail("Erro interno ao processar aporte");
             }
         }
 
-        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência. Tente novamente.");
+        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência persistente. Tente novamente mais tarde.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)

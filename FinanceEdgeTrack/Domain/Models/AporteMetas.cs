@@ -7,14 +7,23 @@ namespace FinanceEdgeTrack.Domain.Models;
 [Table("AporteMetas")]
 public class AporteMetas
 {
-    public Guid AporteMetasId { get;  set; }
+    [Key]
+    public Guid AporteMetasId { get; private set; } = Guid.NewGuid();
 
     [Required(ErrorMessage = "É necessário informar um valor para o aporte.")]
     [Range(typeof(decimal), "1", "999999999999")]
     public decimal Valor { get; set; }
 
-    [Required]
-    public Guid MetaId { get; set; }
+    public DateTime Data { get; set; } = DateTime.UtcNow;
 
-    public DateTime Data { get; set; } = DateTime.Now;
+    private AporteMetas() { }
+
+    public static AporteMetas Criar(decimal valor)
+    {
+        return new AporteMetas()
+        {
+            Valor = valor,
+            Data = DateTime.UtcNow
+        };
+    }
 }

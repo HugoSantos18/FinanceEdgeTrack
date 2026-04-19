@@ -16,7 +16,7 @@ namespace FinanceEdgeTrack.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return loggers.GetOrAdd(categoryName, name => new CustomerLogger(name, _config));
+            return loggers.GetOrAdd(categoryName, name =>new CustomerLogger(name, _config));
         }
 
         public void Dispose()

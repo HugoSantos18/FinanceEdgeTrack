@@ -93,7 +93,6 @@ public class AuthController : ControllerBase
         if (await _userManager.IsInRoleAsync(user, "Admin"))
             return BadRequest("Usuário já é Admin");
 
-        // Adicionar role Admin
         var result = await _userManager.AddToRoleAsync(user, "Admin");
 
         if (result.Succeeded)

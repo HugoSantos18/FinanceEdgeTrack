@@ -6,6 +6,7 @@ using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Enum;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
@@ -22,15 +23,22 @@ public class MetaService : IMetaService
     private readonly ICarteiraService _carteiraService;
     private readonly ICurrentUser _currentUser;
     private readonly ILogger<MetaService> _logger;
+    private readonly ICacheService _cacheService;
 
     public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteiraService,
-                       ICurrentUser currentUser, ILogger<MetaService> logger)
+                       ICurrentUser currentUser, ILogger<MetaService> logger, ICacheService cache)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteiraService;
         _currentUser = currentUser;
         _logger = logger;
+        _cacheService = cache;
+    }
+
+    private string CacheKey()
+    {
+        return _cacheService.SetCacheKey(_currentUser.UserId);
     }
 
     public async Task<ApiResponse<MetaDTO>> GetMetaPorIdAsync(Guid metaId)
@@ -92,7 +100,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
-            .Where(m => m.Carteira.UserId == _currentUser.UserId)
+            .Where(m => m.Carteira != null && m.Carteira.UserId == _currentUser.UserId)
             .OrderByDescending(m => m.DataInicio)
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
@@ -109,6 +117,11 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -123,11 +136,18 @@ public class MetaService : IMetaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMenorValorAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
             .Query()
             .AsNoTracking()
@@ -141,11 +161,18 @@ public class MetaService : IMetaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasQuaseConcluidasAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -160,11 +187,18 @@ public class MetaService : IMetaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(1));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisAntigaAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -179,11 +213,18 @@ public class MetaService : IMetaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisRecentesAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
              .Query()
              .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -198,11 +239,18 @@ public class MetaService : IMetaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasPorStatusAsync(StatusParams statusPagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
+
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -217,18 +265,14 @@ public class MetaService : IMetaService
             statusPagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
+
         return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
     }
 
     public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)
     {
         var carteira = await _carteiraService.GetCarteiraAsync();
-
-        if (carteira is null)
-        {
-            _logger.LogWarning($"Carteira não encontrada para o User.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
-        }
 
         var meta = new Meta()
         {
@@ -240,13 +284,7 @@ public class MetaService : IMetaService
             CarteiraId = carteira.CarteiraId
         };
 
-        if (meta is null)
-        {
-            _logger.LogInformation($"Não foi possível criar a meta, verifique os dados informados.");
-            return ApiResponse<MetaDTO>.Fail(ResultMessages.ValidMeta);
-        }
-
-        carteira.Metas.Add(meta);
+        await _uof.MetaRepository.CreateAsync(meta);
         await _uof.CommitAsync();
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
@@ -292,55 +330,71 @@ public class MetaService : IMetaService
                 var meta = await _uof.MetaRepository
                                      .Query()
                                      .Include(m => m.Aportes)
-                                     .Include(m => m.CarteiraId == carteira.CarteiraId)
                                      .FirstOrDefaultAsync(m => m.MetaId == metaId
-                                     && carteira.UserId.Equals(_currentUser.UserId));
+                                     && m.CarteiraId == carteira.CarteiraId);
 
                 if (meta is null)
                     return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
-                decimal saldo = carteira.Saldo;
-                _logger.LogInformation($"Saldo atual: R${saldo:C2}");
-
-                if (saldo < aporteMetaDto.Valor)
+                if (carteira.Saldo < aporteMetaDto.Valor)
                     return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
 
                 carteira.DescontarSaldo(aporteMetaDto.Valor);
-
-                var novoAporte = new AporteMetas
-                {
-                    AporteMetasId = Guid.NewGuid(),
-                    MetaId = metaId,
-                    Valor = aporteMetaDto.Valor
-                };
-
+                var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
                 meta.RegistrarAporte(novoAporte);
 
-                await _uof.CommitAsync();
-                await transaction.CommitAsync();
+                await _uof.CarteiraRepository.UpdateAsync(carteira);
+                await _uof.MetaRepository.UpdateAsync(meta);
+
+
+                meta = await _uof.MetaRepository
+                                 .Query()
+                                 .Include(m => m.Aportes)
+                                 .FirstOrDefaultAsync(m => m.MetaId == metaId);
 
                 var metaDTO = _mapper.Map<MetaDTO>(meta);
+
+                await transaction.CommitAsync();
 
                 if (meta.Status == Status.Concluido)
                 {
                     var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
-
-                    return ApiResponse<MetaDTO>.Ok(metaDTO,
-                        $"🎉 Meta concluída em {dias} dias!");
+                    return ApiResponse<MetaDTO>.Ok(metaDTO, $"🎉 Meta concluída em {dias} dias!");
                 }
 
+                return ApiResponse<MetaDTO>.Ok(metaDTO, $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
 
-                return ApiResponse<MetaDTO>.Ok(metaDTO,
-                    $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
+                foreach (var entry in ex.Entries)
+                {
+                    if (entry.Entity is Carteira)
+                    {
+                        await entry.ReloadAsync();
+                        _logger.LogWarning($"Carteira recarregada. Novo saldo: {((Carteira)entry.Entity).Saldo}");
+                    }
+                    else if (entry.Entity is Meta)
+                    {
+                        await entry.ReloadAsync();
+                    }
+                }
+
+                _logger.LogWarning(ex, $"Concorrência na tentativa {attempt}/{MAX_RETRY} para meta {metaId}");
+
+                if (attempt == MAX_RETRY)
+                    return ApiResponse<MetaDTO>.Fail("Operação temporariamente indisponível. Tente novamente.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
                 await transaction.RollbackAsync();
+                return ApiResponse<MetaDTO>.Fail("Erro interno ao processar aporte");
             }
         }
 
-        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência. Tente novamente.");
+        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência persistente. Tente novamente mais tarde.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)
@@ -361,7 +415,7 @@ public class MetaService : IMetaService
             _logger.LogWarning($"Carteira não encontrada para o User, verificar informações.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
         }
-        
+
         if (aporte is null)
         {
             _logger.LogWarning($"Não foi possível encontrar o aporte de ID {aporteMetaId}.");
@@ -371,8 +425,8 @@ public class MetaService : IMetaService
         var meta = await metas
                        .Where(m => m.Aportes!.Contains(aporte))
                        .FirstOrDefaultAsync();
-        
-        if(meta is null)
+
+        if (meta is null)
         {
             _logger.LogWarning($"Não foi possível encontrar a meta de ID {meta?.MetaId}.");
             return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);

@@ -13,7 +13,7 @@ public class CacheService : ICacheService
     }
 
     public string SetCacheKey(string id)
-            => $"CacheKey_user{id}";
+            => $"CacheKey_user_{id}";
 
     public Task SetAsync<T>(string cacheKey, T data, TimeSpan expiration)
     {

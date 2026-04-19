@@ -2,15 +2,16 @@
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.Services.Cache;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace FinanceEdgeTrack.Application.Services.Categories;
 
@@ -22,15 +23,22 @@ public class ReceitaService : IReceitaService
     private readonly IMapper _mapper;
     private readonly ILogger<ReceitaService> _logger;
     private readonly ICurrentUser _currentUser;
+    private readonly ICacheService _cacheService;
 
     public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
-                          ILogger<ReceitaService> logger, ICurrentUser currentUser)
+                          ILogger<ReceitaService> logger, ICurrentUser currentUser, ICacheService cache)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteira;
         _logger = logger;
         _currentUser = currentUser;
+        _cacheService = cache;
+    }
+
+    private string CacheKey()
+    {
+        return _cacheService.SetCacheKey(_currentUser.UserId);
     }
 
     public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
@@ -51,9 +59,14 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ListarReceitasAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
+
         var query = _uof.ReceitaRepository
             .Query()
-            .Where(r => r.Carteira != null && r.Carteira.UserId == _currentUser.UserId)      
+            .Where(r => r.Carteira != null && r.Carteira.UserId == _currentUser.UserId)
             .OrderByDescending(r => r.Data)
             .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
@@ -66,18 +79,25 @@ public class ReceitaService : IReceitaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
+
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
+
+
         var query = _uof.ReceitaRepository
             .Query()
             .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
             .OrderByDescending(r => r.Valor)
             .AsNoTracking()
             .ProjectToType<ReceitaDTO>();
-
 
         var receitasPaginadas = await PagedList<ReceitaDTO>.CreateAsync
             (
@@ -86,11 +106,18 @@ public class ReceitaService : IReceitaService
             pagination.PageSize
             );
 
+        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
+
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMenorValorAsync(PaginationParams pagination)
     {
+        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
+
+        if (cached != null)
+            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
+
         var query = _uof.ReceitaRepository
             .Query()
             .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
@@ -104,6 +131,8 @@ public class ReceitaService : IReceitaService
             pagination.PageNumber,
             pagination.PageSize
             );
+
+        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
 
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }

@@ -14,7 +14,7 @@ public class MetaDTO
 
     public decimal ValorAlvo { get; set; }
 
-    public decimal ValorRestante { get; set; }
+    public decimal ValorRestante { get; }
 
     [Range(0, 100)]
     public decimal PorcentagemAtual { get; set; }

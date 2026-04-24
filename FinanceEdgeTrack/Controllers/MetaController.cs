@@ -2,8 +2,6 @@
 using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Services;
-using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 

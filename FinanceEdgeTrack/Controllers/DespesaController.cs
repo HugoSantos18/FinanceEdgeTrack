@@ -82,7 +82,7 @@ public class DespesaController : ControllerBase
         if (!response.Success)
             return BadRequest(response);
 
-        return Ok(response); // deixar esse ou CreatedAtRouteResult (ver qual fica melhor)
+        return Ok(response); 
     }
 
     [HttpPut("{id}")]

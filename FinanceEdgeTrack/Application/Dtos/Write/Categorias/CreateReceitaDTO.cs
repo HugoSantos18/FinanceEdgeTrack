@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 
 public class CreateReceitaDTO

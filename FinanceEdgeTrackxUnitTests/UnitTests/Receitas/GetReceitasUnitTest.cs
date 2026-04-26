@@ -32,7 +32,6 @@ public class GetReceitasUnitTest
     [Fact]
     public async Task GetAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var id = Guid.NewGuid();
         var receitaDto = new ReceitaDTO
         {
@@ -46,10 +45,8 @@ public class GetReceitasUnitTest
             .Setup(s => s.ObterReceitaPorIdAsync(id))
             .ReturnsAsync(ApiResponse<ReceitaDTO>.Ok(receitaDto));
 
-        // act
         var result = await _helper.controller.GetAsync(id);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<ReceitaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -60,16 +57,13 @@ public class GetReceitasUnitTest
     [Fact]
     public async Task GetAsync_ReturnsNotFound_WhenServiceFails()
     {
-        // arrange
         var id = Guid.NewGuid();
         _helper.serviceMock
             .Setup(s => s.ObterReceitaPorIdAsync(id))
             .ReturnsAsync(ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive));
 
-        // act
         var result = await _helper.controller.GetAsync(id);
 
-        // assert
         var notFound = Assert.IsType<NotFoundObjectResult>(result);
         var response = Assert.IsType<ApiResponse<ReceitaDTO>>(notFound.Value);
         Assert.False(response.Success);

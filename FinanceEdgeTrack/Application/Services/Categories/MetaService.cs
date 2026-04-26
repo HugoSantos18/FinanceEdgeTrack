@@ -457,7 +457,7 @@ public class MetaService : IMetaService
 
         carteira.Metas.Remove(meta);
 
-        await _uof.CommitAsync();
+        await _uof.CommitAsync();   
 
         return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta));
     }

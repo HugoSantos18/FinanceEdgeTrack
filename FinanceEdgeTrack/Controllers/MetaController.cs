@@ -166,10 +166,10 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("aporte/{aporteId}")]
-    public async Task<IActionResult> DeleteAporte(Guid aporteId)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
-        var response = await _metaService.RemoverAporteAsync(aporteId);
+        var response = await _metaService.RemoverMetaAsync(id);
 
         if (!response.Success)
             return BadRequest(response);
@@ -177,11 +177,10 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpDelete("aporte/{aporteId}")]
+    public async Task<IActionResult> DeleteAporte(Guid aporteId)
     {
-        var response = await _metaService.RemoverMetaAsync(id);
+        var response = await _metaService.RemoverAporteAsync(aporteId);
 
         if (!response.Success)
             return BadRequest(response);

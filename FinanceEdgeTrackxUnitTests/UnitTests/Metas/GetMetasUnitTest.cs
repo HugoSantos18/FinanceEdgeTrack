@@ -10,11 +10,11 @@ using System.Reflection;
 
 namespace FinanceEdgeTrackxUnitTests.UnitTests.Metas;
 
-public class GetMetasUnitTeste
+public class GetMetasUnitTest
 {
     private readonly MetaUnitTestController _helper;
 
-    public GetMetasUnitTeste()
+    public GetMetasUnitTest()
     {
         _helper = new MetaUnitTestController();
     }
@@ -90,7 +90,6 @@ public class GetMetasUnitTeste
     [Fact]
     public async Task GetAporteAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var aporteId = Guid.NewGuid();
         var aporteDto = new AporteMetasDTO
         {
@@ -102,10 +101,8 @@ public class GetMetasUnitTeste
             .Setup(s => s.GetAportePorIdAsync(aporteId))
             .ReturnsAsync(ApiResponse<AporteMetasDTO>.Ok(aporteDto));
 
-        // act
         var result = await _helper.controller.GetAporteAsync(aporteId);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<AporteMetasDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -116,16 +113,13 @@ public class GetMetasUnitTeste
     [Fact]
     public async Task GetAporteAsync_ReturnsNotFound_WhenServiceFails()
     {
-        // arrange
         var metaId = Guid.NewGuid();
         _helper.serviceMock
             .Setup(s => s.GetAllAportesDaMetaPorIdAsync(metaId, It.IsAny<PaginationParams>()))
             .ReturnsAsync(ApiResponse<PagedList<AporteMetasDTO>>.Fail("Sem aportes ainda."));
 
-        // act
         var result = await _helper.controller.GetAllAportesAsync(metaId, new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<PagedList<AporteMetasDTO>>>(bad.Value);
         Assert.False(response.Success);
@@ -167,13 +161,11 @@ public class GetMetasUnitTeste
     [Fact]
     public async Task GetAllAportesAsync_ReturnsOk_WhenServiceRetursSuccess()
     {
-        // arrange
         var metaId = Guid.NewGuid();
         var aporte1 = new AporteMetasDTO { MetaId = metaId, Valor = 150 };
         var aporte2 = new AporteMetasDTO { MetaId = metaId, Valor = 200 };
         var items = new List<AporteMetasDTO> { aporte1, aporte2 };
 
-        // create PagedList<AporteMetasDTO> via non-public constructor
         var pagedListType = typeof(PagedList<AporteMetasDTO>);
         var ctor = pagedListType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance,
             null,
@@ -189,10 +181,8 @@ public class GetMetasUnitTeste
             .Setup(s => s.GetAllAportesDaMetaPorIdAsync(metaId, It.IsAny<PaginationParams>()))
             .ReturnsAsync(ApiResponse<PagedList<AporteMetasDTO>>.Ok(paged));
 
-        // act
         var result = await _helper.controller.GetAllAportesAsync(metaId, new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<PagedList<AporteMetasDTO>>>(ok.Value);
         Assert.True(response.Success);
@@ -205,7 +195,6 @@ public class GetMetasUnitTeste
     [Fact]
     public async Task GetAllAportesAsync_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var metaId = Guid.NewGuid();    
         var aporte = new AporteMetasDTO { MetaId = Guid.NewGuid(), Valor = 150 };
 
@@ -213,10 +202,8 @@ public class GetMetasUnitTeste
             .Setup(s => s.GetAllAportesDaMetaPorIdAsync(aporte.MetaId, It.IsAny<PaginationParams>()))
             .ReturnsAsync(ApiResponse<PagedList<AporteMetasDTO>>.Fail("Sem aportes ainda."));
 
-        // act
         var result = await _helper.controller.GetAllAportesAsync(aporte.MetaId, new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<PagedList<AporteMetasDTO>>>(bad.Value);
         Assert.False(response.Success);

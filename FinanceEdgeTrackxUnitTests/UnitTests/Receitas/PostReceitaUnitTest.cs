@@ -35,16 +35,13 @@ public class PostReceitaUnitTest
     [Fact]
     public async Task PostReceita_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var receitaDto = CreateSeed(0);
         _helper.serviceMock
             .Setup(s => s.CreateReceitaAsync(receitaDto))
             .ReturnsAsync(ApiResponse<ReceitaDTO>.Ok(_helper.mapper.Map<ReceitaDTO>(receitaDto)));
 
-        // act
         var result = await _helper.controller.Post(receitaDto);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<ReceitaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -56,16 +53,13 @@ public class PostReceitaUnitTest
     [Fact]
     public async Task PostReceita_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var receitaDto = CreateSeed(2);
         _helper.serviceMock
             .Setup(s => s.CreateReceitaAsync(receitaDto))
             .ReturnsAsync(ApiResponse<ReceitaDTO>.Fail("Não foi possível criar a receita."));
 
-        // act
         var result = await _helper.controller.Post(receitaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<ReceitaDTO>>(bad.Value);
         Assert.False(response.Success);
@@ -76,16 +70,13 @@ public class PostReceitaUnitTest
     [Fact]
     public async Task PostInvalidTittleReceita_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var receitaDto = CreateSeed(1);
         _helper.serviceMock
             .Setup(s => s.CreateReceitaAsync(receitaDto))
             .ReturnsAsync(ApiResponse<ReceitaDTO>.Fail("Não foi possível criar a receita."));
 
-        // act
         var result = await _helper.controller.Post(receitaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<ReceitaDTO>>(bad.Value);
         Assert.False(response.Success);

@@ -33,7 +33,6 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         Guid id = Guid.NewGuid();
         var despesaDTO = new DespesaDTO
         {
@@ -49,10 +48,8 @@ public class GetDespesaUnitTest
             .Setup(s => s.ObterDespesaPorIdAsync(id))
             .ReturnsAsync(ApiResponse<DespesaDTO>.Ok(despesaDTO));
 
-        // act
         var resultRequest = await _helper.controller.GetAsync(id);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(resultRequest);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -64,17 +61,14 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAsync_ReturnsNotFound_WhenServiceFails()
     {
-        // arrange
         var id = Guid.NewGuid();
         _helper.serviceMock
                .Setup(s => s.ObterDespesaPorIdAsync(id))
                .ReturnsAsync(ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa));
 
-        // act
         var resultRequest = await _helper.controller.GetAsync(id);
 
 
-        // assert
         var notFound = Assert.IsType<NotFoundObjectResult>(resultRequest);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(notFound.Value);
         Assert.False(response.Success);
@@ -84,17 +78,14 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAllAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var paged = CreateSeedAndPaginate();
 
         _helper.serviceMock
             .Setup(s => s.ListarDespesasAsync(It.IsAny<PaginationParams>()))
             .ReturnsAsync(ApiResponse<PagedList<DespesaDTO>>.Ok(paged));
 
-        // act
         var resultRequest = await _helper.controller.GetAllAsync(new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(resultRequest);
         var response = Assert.IsType<ApiResponse<PagedList<DespesaDTO>>>(ok.Value);
         Assert.True(response.Success);
@@ -104,15 +95,12 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAllAsync_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         _helper.serviceMock
                .Setup(s => s.ListarDespesasAsync(It.IsAny<PaginationParams>()))
                .ReturnsAsync(ApiResponse<PagedList<DespesaDTO>>.Fail("Sem depesas ainda."));
 
-        // act
         var resultRequest = await _helper.controller.GetAllAsync(new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(resultRequest);
         var response = Assert.IsType<ApiResponse<PagedList<DespesaDTO>>>(bad.Value);
         Assert.False(response.Success);
@@ -154,7 +142,6 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAllByMostValueDescendingAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var paged = CreateSeedAndPaginate();
         _helper.serviceMock
             .Setup(s => s.DespesasFiltradasMaiorValorAsync(It.IsAny<PaginationParams>()))
@@ -186,7 +173,6 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAllByLessValueAscendingAsync_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var paged = CreateSeedAndPaginate();
         _helper.serviceMock
             .Setup(s => s.DespesasFiltradasMenorValorAsync(It.IsAny<PaginationParams>()))
@@ -203,15 +189,12 @@ public class GetDespesaUnitTest
     [Fact]
     public async Task GetAllByLessValueAscendingAsync_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         _helper.serviceMock
             .Setup(s => s.DespesasFiltradasMenorValorAsync(It.IsAny<PaginationParams>()))
             .ReturnsAsync(ApiResponse<PagedList<DespesaDTO>>.Fail(ResultMessages.EmptyCollection));
 
-        // act
         var resultRequest = await _helper.controller.GetAllFilterByLessValueAscendingAsync(new PaginationParams { PageNumber = 1, PageSize = 10 });
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(resultRequest);
         var response = Assert.IsType<ApiResponse<PagedList<DespesaDTO>>>(bad.Value);
         Assert.False(response.Success);

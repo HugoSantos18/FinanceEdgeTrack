@@ -36,16 +36,13 @@ public class PostDespesaUnitTest
     [Fact]
     public async Task PostDespesa_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var despesaDto = CreateSeed(0);
         _helper.serviceMock
             .Setup(s => s.CreateDespesaAsync(despesaDto))
             .ReturnsAsync(ApiResponse<DespesaDTO>.Ok(_helper.mapper.Map<DespesaDTO>(despesaDto)));
 
-        // act
         var result = await _helper.controller.Post(despesaDto);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -56,16 +53,13 @@ public class PostDespesaUnitTest
     [Fact]
     public async Task PostDespesa_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var invalidDespesaDto = CreateSeed(3);
         _helper.serviceMock
             .Setup(s => s.CreateDespesaAsync(invalidDespesaDto))
             .ReturnsAsync(ApiResponse<DespesaDTO>.Fail("Não foi possível criar a despesa."));
 
-        // act
         var result = await _helper.controller.Post(invalidDespesaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(bad.Value);
         Assert.False(response.Success);
@@ -78,16 +72,13 @@ public class PostDespesaUnitTest
     [Fact]
     public async Task PostDespesaFixa_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var despesaDto = CreateSeed(0);
         _helper.serviceMock
             .Setup(s => s.CreateDespesaAsync(despesaDto))
             .ReturnsAsync(ApiResponse<DespesaDTO>.Ok(_helper.mapper.Map<DespesaDTO>(despesaDto)));
 
-        // act
         var result = await _helper.controller.Post(despesaDto);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -99,16 +90,13 @@ public class PostDespesaUnitTest
     [Fact]
     public async Task PostDespesaFixa_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var invalidDespesaDto = CreateSeed(2);
         _helper.serviceMock
             .Setup(s => s.CreateDespesaAsync(invalidDespesaDto))
             .ReturnsAsync(ApiResponse<DespesaDTO>.Fail("Não foi possível criar a despesa."));
 
-        // act
         var result = await _helper.controller.Post(invalidDespesaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<DespesaDTO>>(bad.Value);
         Assert.False(response.Success);

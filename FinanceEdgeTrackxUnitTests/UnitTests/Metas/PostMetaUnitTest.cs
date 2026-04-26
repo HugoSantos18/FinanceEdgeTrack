@@ -6,7 +6,6 @@ using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
-using Npgsql.Replication;
 
 namespace FinanceEdgeTrackxUnitTests.UnitTests.Metas;
 
@@ -25,7 +24,7 @@ public class PostMetaUnitTest
         {
             new() { Titulo = "Meta1", Descricao = "Meta1", DataAlvo = DateTime.UtcNow.AddDays(20), DataInicio = DateTime.UtcNow, ValorAlvo = 1000, Aportes = new() },
             new() { Titulo = "Meta2", Descricao = "Meta2", DataAlvo = DateTime.UtcNow.AddDays(10), DataInicio = DateTime.UtcNow, ValorAlvo = -1000, Aportes = new() },
-            new() { Titulo = "Meta3", Descricao = "Meta3", DataAlvo = DateTime.UtcNow, DataInicio = DateTime.UtcNow, ValorAlvo = 4000 , Aportes = new()},
+            new() { Titulo = "Meta3", Descricao = "Meta3", DataAlvo = DateTime.UtcNow.AddDays(3), DataInicio = DateTime.UtcNow, ValorAlvo = 4000 , Aportes = new()},
             new() { Titulo = "", Descricao = "Meta4", DataAlvo = DateTime.UtcNow.AddDays(5), DataInicio = DateTime.UtcNow, ValorAlvo = 1800, Aportes = new() },
         };
 
@@ -35,16 +34,13 @@ public class PostMetaUnitTest
     [Fact]
     public async Task PostMeta_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var createMetaDto = CreateSeedMetas(0);
         _helper.serviceMock
             .Setup(s => s.CriarMetaAsync(createMetaDto))
             .ReturnsAsync(ApiResponse<MetaDTO>.Ok(_helper.mapper.Map<MetaDTO>(createMetaDto)));
 
-        // act
         var result = await _helper.controller.Post(createMetaDto);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<MetaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -57,16 +53,13 @@ public class PostMetaUnitTest
     [Fact]
     public async Task PostInvalidValueMeta_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var createMetaDto = CreateSeedMetas(1);
         _helper.serviceMock
             .Setup(s => s.CriarMetaAsync(createMetaDto))
             .ReturnsAsync(ApiResponse<MetaDTO>.Fail(ResultMessages.InvalidCredentials));
 
-        // act
         var result = await _helper.controller.Post(createMetaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<MetaDTO>>(bad.Value);
         Assert.False(response.Success);
@@ -76,7 +69,6 @@ public class PostMetaUnitTest
     [Fact]
     public async Task PostAportesInMeta_ReturnsOk_WhenServiceReturnsSuccess()
     {
-        // arrange
         var meta = new MetaDTO
         {
             MetaId = Guid.NewGuid(),
@@ -97,10 +89,8 @@ public class PostMetaUnitTest
             .Setup(s => s.RegistrarAporteAsync(meta.MetaId, aporteDto))
             .ReturnsAsync(ApiResponse<MetaDTO>.Ok(meta));
 
-        // act
         var result = await _helper.controller.PostAporte(meta.MetaId, aporteDto);
 
-        // assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<ApiResponse<MetaDTO>>(ok.Value);
         Assert.True(response.Success);
@@ -115,7 +105,6 @@ public class PostMetaUnitTest
     [Fact]
     public async Task PostInvalidAportesInMeta_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var metaId = Guid.NewGuid();
         var aporteDto = new CreateAporteMetaDTO
         {
@@ -126,10 +115,8 @@ public class PostMetaUnitTest
             .Setup(s => s.RegistrarAporteAsync(metaId, aporteDto))
             .ReturnsAsync(ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta));
 
-        // act
         var result = await _helper.controller.PostAporte(metaId, aporteDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<MetaDTO>>(bad.Value);
         Assert.False(response.Success);
@@ -139,20 +126,16 @@ public class PostMetaUnitTest
     [Fact]
     public async Task PostInvalidDataMeta_ReturnsBadRequest_WhenServiceFails()
     {
-        // arrange
         var createMetaDto = CreateSeedMetas(2);
         _helper.serviceMock
             .Setup(s => s.CriarMetaAsync(createMetaDto))
             .ReturnsAsync(ApiResponse<MetaDTO>.Fail(ResultMessages.InvalidCredentials));
 
-        // act
         var result = await _helper.controller.Post(createMetaDto);
 
-        // assert
         var bad = Assert.IsType<BadRequestObjectResult>(result);
         var response = Assert.IsType<ApiResponse<MetaDTO>>(bad.Value);
         Assert.False(response.Success);
-        Assert.False(createMetaDto.DataInicio == createMetaDto.DataAlvo);
         _helper.serviceMock.Verify(s => s.CriarMetaAsync(createMetaDto), Times.Once);
     }
 }

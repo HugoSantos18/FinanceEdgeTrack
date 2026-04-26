@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("FinanceEdgeTrackxUnitTests")]
 
 namespace FinanceEdgeTrack.Application.Common.Pagination;
 
@@ -13,7 +15,7 @@ public class PagedList<T> : List<T>, IPagedList
     public bool HasPrevious => PageNumber > 1;
 
 
-    private PagedList(IEnumerable<T> items, int count, int pageNumber, int pageSize)
+    internal PagedList(IEnumerable<T> items, int count, int pageNumber, int pageSize)
     {
         TotalCount = count;
         PageNumber = pageNumber;

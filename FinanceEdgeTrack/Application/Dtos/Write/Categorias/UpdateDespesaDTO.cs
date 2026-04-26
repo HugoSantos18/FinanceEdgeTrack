@@ -2,7 +2,7 @@
 {
     public class UpdateDespesaDTO
     {
-        public Guid CategoriaId { get; set; }
+        public Guid DespesaId { get; set; }
         public string Titulo { get; set; } = default!;
         public string? Descricao { get; set; }
         public decimal Valor { get; set; }

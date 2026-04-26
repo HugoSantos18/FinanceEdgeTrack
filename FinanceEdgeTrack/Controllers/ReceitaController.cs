@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
 using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Services;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +12,10 @@ namespace FinanceEdgeTrack.Controllers;
 public class ReceitaController : ControllerBase
 {
     private readonly IReceitaService _receitaService;
-    private readonly ILogger<ReceitaController> _logger;
 
-
-    public ReceitaController(IReceitaService receitaService, ILogger<ReceitaController> logger)
+    public ReceitaController(IReceitaService receitaService)
     {
         _receitaService = receitaService;
-        _logger = logger;
     }
 
     [HttpGet("{id}", Name = "GetReceita")]
@@ -39,7 +35,7 @@ public class ReceitaController : ControllerBase
         var response = await _receitaService.ListarReceitasAsync(pagination);
 
         if (!response.Success)
-            return NotFound(response);
+            return BadRequest(response);
 
         return Ok(response);
     }

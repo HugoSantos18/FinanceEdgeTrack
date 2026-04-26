@@ -1,5 +1,4 @@
-﻿using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
-using FinanceEdgeTrack.Domain.Enum;
+﻿using FinanceEdgeTrack.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace FinanceEdgeTrack.Application.Dtos.Read.Metas;
@@ -14,7 +13,7 @@ public class MetaDTO
 
     public decimal ValorAlvo { get; set; }
 
-    public decimal ValorRestante { get; set; }
+    public decimal ValorRestante { get; }
 
     [Range(0, 100)]
     public decimal PorcentagemAtual { get; set; }
@@ -25,5 +24,5 @@ public class MetaDTO
     
     public Status Status { get; set; }
 
-    public List<AporteMetasDTO> Aportes { get;}
+    public List<AporteMetasDTO>? Aportes { get;}
 }

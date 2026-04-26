@@ -2,8 +2,6 @@
 using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Pagination.Filters;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
-using FinanceEdgeTrack.Application.Services;
-using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +13,10 @@ namespace FinanceEdgeTrack.Controllers;
 public class MetaController : ControllerBase
 {
     private readonly IMetaService _metaService;
-    private readonly ILogger<MetaController> _logger;
 
-    public MetaController(IMetaService metaService, ILogger<MetaController> logger)
+    public MetaController(IMetaService metaService)
     {
         _metaService = metaService;
-        _logger = logger;
     }
 
     [HttpGet("{id}", Name = "GetMeta")]
@@ -69,7 +65,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("maior-valor")]
-    public async Task<IActionResult> GetAllMetasFilterByMaiorValorAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllMetasFilterByMostValueAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.MetasFiltradasMaiorValorAsync(pagination);
 
@@ -80,7 +76,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("menor-valor")]
-    public async Task<IActionResult> GetAllMetasFilterByMenorValorAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllMetasFilterByLesserValueAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.MetasFiltradasMenorValorAsync(pagination);
 
@@ -91,7 +87,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("quase-feita")]
-    public async Task<IActionResult> GetAllMetasFilterByQuaseConcluidaAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllMetasFilterByAlmostDoneAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.MetasFiltradasQuaseConcluidasAsync(pagination);
 
@@ -102,7 +98,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("antigas")]
-    public async Task<IActionResult> GetAllMetasFilterByAntigasAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllMetasFilterByOldestAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.MetasFiltradasMaisAntigaAsync(pagination);
 
@@ -113,7 +109,7 @@ public class MetaController : ControllerBase
     }
 
     [HttpGet("recentes")]
-    public async Task<IActionResult> GetAllMetasFilterByRecentesAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllMetasFilterByRecentlyAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.MetasFiltradasMaisRecentesAsync(pagination);
 
@@ -170,10 +166,10 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("aporte/{aporteId}")]
-    public async Task<IActionResult> DeleteAporte(Guid aporteId)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
-        var response = await _metaService.RemoverAporteAsync(aporteId);
+        var response = await _metaService.RemoverMetaAsync(id);
 
         if (!response.Success)
             return BadRequest(response);
@@ -181,11 +177,10 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpDelete("aporte/{aporteId}")]
+    public async Task<IActionResult> DeleteAporte(Guid aporteId)
     {
-        var response = await _metaService.RemoverMetaAsync(id);
+        var response = await _metaService.RemoverAporteAsync(aporteId);
 
         if (!response.Success)
             return BadRequest(response);

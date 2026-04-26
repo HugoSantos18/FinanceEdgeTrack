@@ -14,7 +14,7 @@ public class CreateDespesaDTO
     [Range(1, double.MaxValue)]
     public decimal Valor { get; set; }
 
-    public DateTime Data { get; set; }
+    public DateTime Data { get; set; } = DateTime.UtcNow;
 
     public bool Fixa { get; set; } = default!;
 }

@@ -1,9 +1,7 @@
 ﻿using Asp.Versioning;
 using FinanceEdgeTrack.Application.Common.Pagination;
-using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
 using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceEdgeTrack.Controllers;
@@ -37,7 +35,7 @@ public class DespesaController : ControllerBase
         var response = await _despesaService.ListarDespesasAsync(pagination);
 
         if (!response.Success)
-            return NotFound(response);
+            return BadRequest(response);
 
         return Ok(response);
     }
@@ -54,7 +52,7 @@ public class DespesaController : ControllerBase
     }
 
     [HttpGet("maior-gasto")]
-    public async Task<IActionResult> GetAllFilterByValueDescendingAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllFilterByMostValueDescendingAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _despesaService.DespesasFiltradasMaiorValorAsync(pagination);
 
@@ -65,7 +63,7 @@ public class DespesaController : ControllerBase
     }
 
     [HttpGet("menor-gasto")]
-    public async Task<IActionResult> GetAllFilterByValueAscendingAsync([FromQuery] PaginationParams pagination)
+    public async Task<IActionResult> GetAllFilterByLessValueAscendingAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _despesaService.DespesasFiltradasMenorValorAsync(pagination);
 
@@ -84,7 +82,7 @@ public class DespesaController : ControllerBase
         if (!response.Success)
             return BadRequest(response);
 
-        return Ok(response); // deixar esse ou CreatedAtRouteResult (ver qual fica melhor)
+        return Ok(response); 
     }
 
     [HttpPut("{id}")]

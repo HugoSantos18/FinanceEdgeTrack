@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     private readonly IRoleService _roleService;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger, 
+    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger,
                           UserManager<ApplicationUser> userManager, IRoleService roleService)
     {
         _authService = authService;
@@ -83,24 +83,24 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> MakeAdmin([FromBody] MakeAdminDTO dto)
     {
         var currentAdmin = await _userManager.GetUserAsync(User);
-        _logger.LogWarning("Admin {AdminEmail} está promovendo usuário {TargetEmail} para Admin",
+        _logger.LogWarning($"Admin {currentAdmin?.Email} está promovendo usuário {dto.Email} para Admin",
             currentAdmin?.Email, dto.Email);
 
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null)
-            return NotFound("Usuário não encontrado");
+            return NotFound(ResultMessages.NotFoundUser);
 
         if (await _userManager.IsInRoleAsync(user, "Admin"))
-            return BadRequest("Usuário já é Admin");
+            return BadRequest(ResultMessages.UserAlreadyAdmin);
 
         var result = await _userManager.AddToRoleAsync(user, "Admin");
 
         if (result.Succeeded)
         {
-            _logger.LogInformation("Usuário {UserEmail} promovido a Admin por {AdminEmail}",
+            _logger.LogInformation($"Usuário {dto.Email} promovido a Admin por {currentAdmin?.Email}",
                 dto.Email, currentAdmin?.Email);
 
-            return Ok(new { message = "Usuário promovido a Admin com sucesso" });
+            return Ok(new { message = ResultMessages.AdminMakedSuccessfully });
         }
 
         return BadRequest(result.Errors);
@@ -111,7 +111,7 @@ public class AuthController : ControllerBase
     [Route("AddUserToRole")]
     public async Task<IActionResult> AddUserToRole(string email, string roleName)
     {
-        var result = await _roleService.AddUserToRole(email, roleName);
+        var result = await _roleService.AddUserToRoleAsync(email, roleName);
 
         if (result.Status == "400")
             return BadRequest(result);
@@ -125,7 +125,7 @@ public class AuthController : ControllerBase
     [Route("CreateRole")]
     public async Task<IActionResult> CreateRole(string roleName)
     {
-        var result = await _roleService.CreateRole(roleName);
+        var result = await _roleService.CreateRoleAsync(roleName);
 
         if (result.Status == "400")
             return BadRequest(result);

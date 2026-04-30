@@ -13,12 +13,10 @@ namespace FinanceEdgeTrack.Controllers;
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
-    private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(IDashboardService dashboardService, ILogger<DashboardController> logger)
+    public DashboardController(IDashboardService dashboardService)
     {
         _dashboardService = dashboardService;
-        _logger = logger;
     }
 
     [HttpGet("mensal")]

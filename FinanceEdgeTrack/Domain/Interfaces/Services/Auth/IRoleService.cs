@@ -4,6 +4,6 @@ namespace FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 
 public interface IRoleService
 {
-    Task<ResponseDTO> CreateRole(string roleName);
-    Task<ResponseDTO> AddUserToRole(string UserEmail, string roleName);
+    Task<ResponseDTO> CreateRoleAsync(string roleName);
+    Task<ResponseDTO> AddUserToRoleAsync(string UserEmail, string roleName);
 }

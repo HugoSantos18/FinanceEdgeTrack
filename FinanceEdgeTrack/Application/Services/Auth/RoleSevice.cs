@@ -20,7 +20,7 @@ public class RoleSevice : IRoleService
         _logger = logger;
     }
 
-    public async Task<ResponseDTO> CreateRole(string roleName)
+    public async Task<ResponseDTO> CreateRoleAsync(string roleName)
     {
         var roleExist = await _roleManager.RoleExistsAsync(roleName);
 
@@ -45,7 +45,7 @@ public class RoleSevice : IRoleService
         };
     }
 
-    public async Task<ResponseDTO> AddUserToRole(string UserEmail, string roleName)
+    public async Task<ResponseDTO> AddUserToRoleAsync(string UserEmail, string roleName)
     {
         var user = await _userManager.FindByEmailAsync(UserEmail);
 

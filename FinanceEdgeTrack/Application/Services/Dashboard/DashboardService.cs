@@ -15,11 +15,9 @@ public class DashboardService : IDashboardService
     private readonly IReceitaMetrics _receitaMetrics;
     private readonly ICurrentUser _currentUser;
     private readonly ICacheService _cacheService;
-    private readonly ILogger<DashboardService> _logger;
 
     public DashboardService(ICarteiraMetrics carteiraMetrics, IDespesaMetrics despesaMetrics, IMetaMetrics metaMetrics,
-                            IReceitaMetrics receitaMetrics, ICurrentUser currentUser, ICacheService cacheService,
-                            ILogger<DashboardService> logger)
+                            IReceitaMetrics receitaMetrics, ICurrentUser currentUser, ICacheService cacheService)
     {
         _carteiraMetrics = carteiraMetrics;
         _despesaMetrics = despesaMetrics;
@@ -27,7 +25,6 @@ public class DashboardService : IDashboardService
         _receitaMetrics = receitaMetrics;
         _currentUser = currentUser;
         _cacheService = cacheService;
-        _logger = logger;
     }
 
     private string CacheKey()
@@ -104,7 +101,7 @@ public class DashboardService : IDashboardService
         if (cached != null)
             return ApiResponse<DashboardConsolidadoNoMesDTO>.Ok(cached);
 
-        var daysInMonth = DateTime.DaysInMonth(year, month); // apenas para dividir os gasto pelos dias do mês.
+        var daysInMonth = DateTime.DaysInMonth(year, month); 
 
 
         var saldoTask = _carteiraMetrics.GetSaldoAtualUser();

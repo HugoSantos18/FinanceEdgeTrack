@@ -17,19 +17,16 @@ public class AuthService : IAuthenticationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _config;
     private readonly ICarteiraService _carteiraService;
-    private readonly ICurrentUser _currentUser;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                       IConfiguration config, ICarteiraService carteiraService,ILogger<AuthService> logger, 
-                       ICurrentUser currentUser)
+                       IConfiguration config, ICarteiraService carteiraService,ILogger<AuthService> logger)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _config = config;
         _carteiraService = carteiraService;
         _logger = logger;
-        _currentUser = currentUser;
     }
 
 

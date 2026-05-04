@@ -34,4 +34,6 @@ public static class ResultMessages
     public const string InsuficientData = $"Não foi possível coletar informações de metas do usuário.";
     public const string ErrorToCreateDashboard = $"Não foi possível gerar o dashboard, incosistência ao receber dados.";
     public const string InvalidDateDashboard = $"Precisa ser um ano e um mês válido para geração das informações.";
+    public const string AdminMakedSuccessfully = $"Usuário promovido a Admin com sucesso";
+    public const string UserAlreadyAdmin = $"Usuário já é Admin";
 }

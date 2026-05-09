@@ -105,19 +105,28 @@ public class Meta
         if (aporteRemovido is null)
             throw new ArgumentNullException(nameof(aporteRemovido));
 
-        int aporteAnterior = (Aportes.IndexOf(aporteRemovido) - 1);
+        int indexAnterior = Aportes.IndexOf(aporteRemovido) - 1;
         Aportes.Remove(aporteRemovido);
 
-        AtualizarHistoricoAporteRemoved(aporteAnterior);
+        ValorAtual -= aporteRemovido.Valor;
+        PorcentagemAtual = ValorAlvo == 0 ? 0 : (ValorAtual / ValorAlvo) * 100;
+        ValorRestante = ValorAlvo - ValorAtual;
+
+        AtualizarHistoricoAporteRemoved(indexAnterior);
     }
 
     private void AtualizarHistoricoAporteRemoved(int index)
     {
-        if (index < 0 || index > Aportes.Count)
-            throw new InvalidOperationException(ResultMessages.InvalidCredentials);
+        if (Aportes.Count == 0)
+        {
+            DataUltimoDeposito = default;
+            UltimoDepositoEmReais = 0;
+            return;
+        }
 
+        var targetIndex = Math.Max(0, index);
         DataUltimoDeposito = DateTime.UtcNow;
-        UltimoDepositoEmReais = Aportes[index].Valor;
+        UltimoDepositoEmReais = Aportes[targetIndex].Valor;
     }
 
     private void FinalizarMeta()

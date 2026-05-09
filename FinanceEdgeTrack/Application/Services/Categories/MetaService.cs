@@ -339,18 +339,14 @@ public class MetaService : IMetaService
                 if (carteira.Saldo < aporteMetaDto.Valor)
                     return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
 
-                carteira.DescontarSaldo(aporteMetaDto.Valor);
                 var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
                 meta.RegistrarAporte(novoAporte);
+               
+                carteira.DescontarSaldo(aporteMetaDto.Valor);
 
                 await _uof.CarteiraRepository.UpdateAsync(carteira);
                 await _uof.MetaRepository.UpdateAsync(meta);
-
-
-                meta = await _uof.MetaRepository
-                                 .Query()
-                                 .Include(m => m.Aportes)
-                                 .FirstOrDefaultAsync(m => m.MetaId == metaId);
+                await _uof.CommitAsync();
 
                 var metaDTO = _mapper.Map<MetaDTO>(meta);
 
@@ -437,7 +433,7 @@ public class MetaService : IMetaService
 
         await _uof.CommitAsync();
 
-        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(metas), $"Aporte no valor de {aporte.Valor:C2} removido com sucesso.");
+        return ApiResponse<MetaDTO>.Ok(_mapper.Map<MetaDTO>(meta), $"Aporte no valor de {aporte.Valor:C2} removido com sucesso.");
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverMetaAsync(Guid metaId)

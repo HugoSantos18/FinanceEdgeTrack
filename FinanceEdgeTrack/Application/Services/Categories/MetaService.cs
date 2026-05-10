@@ -317,80 +317,76 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<MetaDTO>> RegistrarAporteAsync(Guid metaId, CreateAporteMetaDTO aporteMetaDto)
     {
-        const int MAX_RETRY = 3;
+        if (aporteMetaDto.Valor <= 0)
+            return ApiResponse<MetaDTO>.Fail("O valor do aporte deve ser maior que zero.");
 
-        for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
+        using var transaction = await _uof.BeginTransactionAsync(); // mantém atomicidade
+
+        try
         {
-            using var transaction = await _uof.BeginTransactionAsync();
+            var carteira = await _carteiraService.GetCarteiraAsync();
 
-            try
-            {
-                var carteira = await _carteiraService.GetCarteiraAsync();
-
-                var meta = await _uof.MetaRepository
-                                     .Query()
-                                     .Include(m => m.Aportes)
-                                     .FirstOrDefaultAsync(m => m.MetaId == metaId
+            var meta = await _uof.MetaRepository
+                                 .Query()
+                                 .Include(m => m.Aportes)
+                                 .FirstOrDefaultAsync(m => m.MetaId == metaId
                                      && m.CarteiraId == carteira.CarteiraId);
 
-                if (meta is null)
-                    return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+            if (meta is null)
+                return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
 
-                if (carteira.Saldo < aporteMetaDto.Valor)
-                    return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
+            if (carteira.Saldo < aporteMetaDto.Valor)
+                return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
 
-                var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
-                meta.RegistrarAporte(novoAporte);
-               
-                carteira.DescontarSaldo(aporteMetaDto.Valor);
+            var saldoRows = await _uof.CarteiraRepository
+                .Query()
+                .Where(c => c.CarteiraId == carteira.CarteiraId
+                         && c.Saldo >= aporteMetaDto.Valor) // atomic guard
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Saldo, c => c.Saldo - aporteMetaDto.Valor));
 
-                await _uof.CarteiraRepository.UpdateAsync(carteira);
-                await _uof.MetaRepository.UpdateAsync(meta);
-                await _uof.CommitAsync();
+            if (saldoRows == 0)
+                return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
 
-                var metaDTO = _mapper.Map<MetaDTO>(meta);
+            var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
+            meta.RegistrarAporte(novoAporte);
 
-                await transaction.CommitAsync();
+            await _uof.CommitAsync();
+            await transaction.CommitAsync();
 
-                if (meta.Status == Status.Concluido)
-                {
-                    var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
-                    return ApiResponse<MetaDTO>.Ok(metaDTO, $"🎉 Meta concluída em {dias} dias!");
-                }
+            var metaDTO = _mapper.Map<MetaDTO>(meta);
 
-                return ApiResponse<MetaDTO>.Ok(metaDTO, $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
-            }
-            catch (DbUpdateConcurrencyException ex)
+            if (meta.Status == Status.Concluido)
             {
-                await transaction.RollbackAsync();
-
-                foreach (var entry in ex.Entries)
-                {
-                    if (entry.Entity is Carteira)
-                    {
-                        await entry.ReloadAsync();
-                        _logger.LogWarning($"Carteira recarregada. Novo saldo: {((Carteira)entry.Entity).Saldo}");
-                    }
-                    else if (entry.Entity is Meta)
-                    {
-                        await entry.ReloadAsync();
-                    }
-                }
-
-                _logger.LogWarning(ex, $"Concorrência na tentativa {attempt}/{MAX_RETRY} para meta {metaId}");
-
-                if (attempt == MAX_RETRY)
-                    return ApiResponse<MetaDTO>.Fail("Operação temporariamente indisponível. Tente novamente.");
+                var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
+                return ApiResponse<MetaDTO>.Ok(metaDTO, $"🎉 Meta concluída em {dias} dias!");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
-                await transaction.RollbackAsync();
-                return ApiResponse<MetaDTO>.Fail("Erro interno ao processar aporte");
-            }
+
+            return ApiResponse<MetaDTO>.Ok(metaDTO, $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
         }
-
-        return ApiResponse<MetaDTO>.Fail("Conflito de concorrência persistente. Tente novamente mais tarde.");
+        catch (DbUpdateConcurrencyException ex)
+        {
+            await transaction.RollbackAsync();
+            foreach (var entry in ex.Entries)
+            {
+                var pk = entry.Metadata.FindPrimaryKey()?.Properties
+                    .Select(p => $"{p.Name}={entry.Property(p.Name).CurrentValue}")
+                    ?? Enumerable.Empty<string>();
+                _logger.LogError(
+                    "Concurrency failure on {Entity} ({Pk}). State={State}. Original={Original}. Current={Current}",
+                    entry.Entity.GetType().Name,
+                    string.Join(",", pk),
+                    entry.State,
+                    string.Join(",", entry.Properties.Select(p => $"{p.Metadata.Name}:{p.OriginalValue}")),
+                    string.Join(",", entry.Properties.Select(p => $"{p.Metadata.Name}:{p.CurrentValue}")));
+            }
+            return ApiResponse<MetaDTO>.Fail("Erro de concorrência ao processar aporte");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
+            await transaction.RollbackAsync();
+            return ApiResponse<MetaDTO>.Fail("Erro interno ao processar aporte");
+        }
     }
 
     public async Task<ApiResponse<MetaDTO>> RemoverAporteAsync(Guid aporteMetaId)

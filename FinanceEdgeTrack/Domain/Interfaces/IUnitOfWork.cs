@@ -1,5 +1,4 @@
 ﻿using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using FinanceEdgeTrack.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FinanceEdgeTrack.Domain.Interfaces;

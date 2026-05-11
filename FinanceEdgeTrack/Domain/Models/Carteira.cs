@@ -17,9 +17,6 @@ public class Carteira
     [Required]
     public decimal Saldo { get; set; }
 
-    [ConcurrencyCheck]
-    public uint RowVersion { get; set; }
-
     public ICollection<Meta> Metas { get; private set; } = [];
     public ICollection<Receita> Receitas { get; private set; } = [];
     public ICollection<Despesa> Despesas { get; private set; } = [];

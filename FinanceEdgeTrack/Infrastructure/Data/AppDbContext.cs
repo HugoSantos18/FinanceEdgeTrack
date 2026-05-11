@@ -1,7 +1,6 @@
 ﻿using FinanceEdgeTrack.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace FinanceEdgeTrack.Infrastructure.Data;
 
@@ -36,6 +35,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(s => s.Saldo)
            .HasPrecision(15, 2);
+
+            // PostgreSQL xmin: token de concorrência otimista auto-incrementado pelo PG.
+            // O método é marcado obsoleto pelo Npgsql 8+, mas é o único que reconhece
+            // xmin como coluna de sistema (não tenta adicionar via AddColumn na migration).
+#pragma warning disable CS0618
+            entity.UseXminAsConcurrencyToken();
+#pragma warning restore CS0618
 
             // User (1:1)
             entity.HasOne<ApplicationUser>()
@@ -96,10 +102,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany(c => c.Metas)
                   .HasForeignKey(m => m.CarteiraId);
 
-            // Aportes (1:N)
+            // Aportes (1:N) — FK tipada e obrigatória
             entity.HasMany(m => m.Aportes)
                   .WithOne()
-                  .HasForeignKey("MetaId")
+                  .HasForeignKey(a => a.MetaId)
+                  .IsRequired()
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -320,71 +320,59 @@ public class MetaService : IMetaService
         if (aporteMetaDto.Valor <= 0)
             return ApiResponse<MetaDTO>.Fail("O valor do aporte deve ser maior que zero.");
 
-        using var transaction = await _uof.BeginTransactionAsync(); // mantém atomicidade
+        var carteira = await _carteiraService.GetCarteiraAsync();
+        if (carteira is null)
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.WalletNotFound);
+
+        var meta = await _uof.MetaRepository
+                             .Query()
+                             .Include(m => m.Aportes)
+                             .FirstOrDefaultAsync(m => m.MetaId == metaId
+                                 && m.CarteiraId == carteira.CarteiraId);
+
+        if (meta is null)
+            return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
+
+        using var transaction = await _uof.BeginTransactionAsync();
 
         try
         {
-            var carteira = await _carteiraService.GetCarteiraAsync();
-
-            var meta = await _uof.MetaRepository
-                                 .Query()
-                                 .Include(m => m.Aportes)
-                                 .FirstOrDefaultAsync(m => m.MetaId == metaId
-                                     && m.CarteiraId == carteira.CarteiraId);
-
-            if (meta is null)
-                return ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta);
-
-            if (carteira.Saldo < aporteMetaDto.Valor)
-                return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
-
+            // Débito atômico via SQL com guarda WHERE Saldo >= Valor — protege contra
+            // overdraft mesmo sob concorrência. O xmin (configurado no DbContext)
+            // garante a verificação otimista para outros campos da Carteira.
             var saldoRows = await _uof.CarteiraRepository
                 .Query()
                 .Where(c => c.CarteiraId == carteira.CarteiraId
-                         && c.Saldo >= aporteMetaDto.Valor) // atomic guard
+                         && c.Saldo >= aporteMetaDto.Valor)
                 .ExecuteUpdateAsync(s => s.SetProperty(c => c.Saldo, c => c.Saldo - aporteMetaDto.Valor));
 
             if (saldoRows == 0)
+            {
+                await transaction.RollbackAsync();
                 return ApiResponse<MetaDTO>.Fail("Saldo insuficiente para este aporte");
+            }
 
-            var novoAporte = AporteMetas.Criar(aporteMetaDto.Valor);
-            meta.RegistrarAporte(novoAporte);
+            var aporte = AporteMetas.Criar(meta.MetaId, aporteMetaDto.Valor);
+            meta.AdicionarAporte(aporte);
+            meta.AtualizarProgresso();
 
             await _uof.CommitAsync();
             await transaction.CommitAsync();
 
+            carteira.Saldo -= aporteMetaDto.Valor;
+
             var metaDTO = _mapper.Map<MetaDTO>(meta);
+            var mensagem = meta.Status == Status.Concluido
+                ? $"🎉 Meta concluída em {(meta.DataConclusao!.Value - meta.DataInicio).Days} dias!"
+                : $"Aporte de {aporteMetaDto.Valor:C2} registrado.";
 
-            if (meta.Status == Status.Concluido)
-            {
-                var dias = (meta.DataConclusao!.Value - meta.DataInicio).Days;
-                return ApiResponse<MetaDTO>.Ok(metaDTO, $"🎉 Meta concluída em {dias} dias!");
-            }
-
-            return ApiResponse<MetaDTO>.Ok(metaDTO, $"Aporte de {aporteMetaDto.Valor:C2} registrado.");
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            await transaction.RollbackAsync();
-            foreach (var entry in ex.Entries)
-            {
-                var pk = entry.Metadata.FindPrimaryKey()?.Properties
-                    .Select(p => $"{p.Name}={entry.Property(p.Name).CurrentValue}")
-                    ?? Enumerable.Empty<string>();
-                _logger.LogError(
-                    "Concurrency failure on {Entity} ({Pk}). State={State}. Original={Original}. Current={Current}",
-                    entry.Entity.GetType().Name,
-                    string.Join(",", pk),
-                    entry.State,
-                    string.Join(",", entry.Properties.Select(p => $"{p.Metadata.Name}:{p.OriginalValue}")),
-                    string.Join(",", entry.Properties.Select(p => $"{p.Metadata.Name}:{p.CurrentValue}")));
-            }
-            return ApiResponse<MetaDTO>.Fail("Erro de concorrência ao processar aporte");
+            return ApiResponse<MetaDTO>.Ok(metaDTO, mensagem);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Erro ao registrar aporte na meta {metaId}");
             await transaction.RollbackAsync();
+            _logger.LogError(ex, "Erro ao registrar aporte na meta {MetaId} para o usuário {UserId}",
+                metaId, _currentUser.UserId);
             return ApiResponse<MetaDTO>.Fail("Erro interno ao processar aporte");
         }
     }
@@ -426,6 +414,7 @@ public class MetaService : IMetaService
 
         carteira.AdicionarSaldo(aporte.Valor);
         meta.RemoverAporte(aporte);
+        meta.AtualizarProgresso();
 
         await _uof.CommitAsync();
 

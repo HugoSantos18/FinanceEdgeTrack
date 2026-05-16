@@ -142,7 +142,7 @@ public class ReceitaService : IReceitaService
 
         if (carteira is null)
         {
-            _logger.LogWarning($"Carteira do user é nula ou não existe, verificar se carteira já foi criada.");
+            _logger.LogWarning("Carteira do user é nula ou não existe, verificar se carteira já foi criada.");
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
         }
 
@@ -154,11 +154,12 @@ public class ReceitaService : IReceitaService
             CarteiraId = carteira.CarteiraId,
         };
 
-        carteira.Receitas.Add(receita);
-        carteira.AdicionarSaldo(receitaDto.Valor);
+        using var tx = await _uof.BeginTransactionAsync();
 
         await _uof.ReceitaRepository.CreateAsync(receita);
         await _uof.CommitAsync();
+        await _carteiraService.CreditarSaldoAsync(carteira.CarteiraId, receitaDto.Valor);
+        await tx.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }
@@ -193,6 +194,12 @@ public class ReceitaService : IReceitaService
     {
         var carteira = await _carteiraService.GetCarteiraAsync();
 
+        if (carteira is null)
+        {
+            _logger.LogWarning("Carteira do usuário corrente não foi encontrada.");
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
+        }
+
         var receita = await _uof.ReceitaRepository
                                 .Query()
                                 .Where(r => r.CarteiraId == carteira.CarteiraId)
@@ -204,17 +211,18 @@ public class ReceitaService : IReceitaService
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
         }
 
-        if (carteira is null)
-        {
-            _logger.LogWarning($"Não foi encontrado carteira de ID {carteira?.CarteiraId}");
-            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.WalletNotFound);
-        }
+        using var tx = await _uof.BeginTransactionAsync();
 
-        carteira.DescontarSaldo(receita.Valor);
-        carteira.Receitas.Remove(receita);
+        var debitou = await _carteiraService.DebitarSaldoComGuardaAsync(carteira.CarteiraId, receita.Valor);
+        if (!debitou)
+        {
+            await tx.RollbackAsync();
+            return ApiResponse<ReceitaDTO>.Fail(ResultMessages.InsufficientBalanceToRevert);
+        }
 
         await _uof.ReceitaRepository.DeleteAsync(receita);
         await _uof.CommitAsync();
+        await tx.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }

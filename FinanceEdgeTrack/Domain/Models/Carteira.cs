@@ -17,9 +17,6 @@ public class Carteira
     [Required]
     public decimal Saldo { get; set; }
 
-    [ConcurrencyCheck]
-    public uint RowVersion { get; set; }
-
     public ICollection<Meta> Metas { get; private set; } = [];
     public ICollection<Receita> Receitas { get; private set; } = [];
     public ICollection<Despesa> Despesas { get; private set; } = [];
@@ -32,14 +29,5 @@ public class Carteira
             UserId = userId,
             Saldo = 0
         };
-    }
-
-    public decimal AdicionarSaldo(decimal valor) => Saldo += valor;
-
-    public decimal DescontarSaldo(decimal valor)
-    {
-        if (Saldo < valor) throw new InvalidOperationException("Saldo insuficiente");
-        
-        return Saldo -= valor;
     }
 }

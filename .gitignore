@@ -370,3 +370,8 @@ UserSeed.cs
 
 # Secrets locais
 secrets.json
+
+# Claude Code (mantido apenas localmente, fora do repo)
+CLAUDE.md
+.claude/
+.claude.json

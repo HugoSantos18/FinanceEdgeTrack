@@ -3,6 +3,7 @@ using System;
 using FinanceEdgeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceEdgeTrack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260510161411_RowVersion")]
+    partial class RowVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,7 +34,7 @@ namespace FinanceEdgeTrack.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("MetaId")
+                    b.Property<Guid?>("MetaId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Valor")
@@ -137,6 +140,10 @@ namespace FinanceEdgeTrack.Migrations
                     b.Property<Guid>("CarteiraId")
                         .HasColumnType("uuid");
 
+                    b.Property<long>("RowVersion")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("Saldo")
                         .HasPrecision(15, 2)
                         .HasColumnType("numeric(15,2)");
@@ -144,12 +151,6 @@ namespace FinanceEdgeTrack.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.HasKey("CarteiraId");
 
@@ -416,8 +417,7 @@ namespace FinanceEdgeTrack.Migrations
                     b.HasOne("FinanceEdgeTrack.Domain.Models.Meta", null)
                         .WithMany("Aportes")
                         .HasForeignKey("MetaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("FinanceEdgeTrack.Domain.Models.Carteira", b =>

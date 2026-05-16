@@ -161,8 +161,17 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
             if (carteira is null)
             {
-                _logger.LogWarning($"Não foi encontrado a carteira de ID {carteira?.CarteiraId}");
+                _logger.LogWarning("Não foi encontrada a carteira para o usuário corrente.");
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.WalletNotFound);
+            }
+
+            using var tx = await _uof.BeginTransactionAsync();
+
+            var debitou = await _carteiraService.DebitarSaldoComGuardaAsync(carteira.CarteiraId, despesaDto.Valor);
+            if (!debitou)
+            {
+                await tx.RollbackAsync();
+                return ApiResponse<DespesaDTO>.Fail(ResultMessages.InsufficientBalance);
             }
 
             var despesa = new Despesa(despesaDto.Valor, despesaDto.Fixa)
@@ -173,11 +182,9 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 CarteiraId = carteira.CarteiraId
             };
 
-            carteira.Despesas.Add(despesa);
-            carteira.DescontarSaldo(despesa.Valor);
-
             await _uof.DespesaRepository.CreateAsync(despesa);
             await _uof.CommitAsync();
+            await tx.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }
@@ -221,10 +228,12 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
             }
 
-            await _carteiraService.AdicionarSaldoAsync(despesa.Valor);
-            await _uof.DespesaRepository.DeleteAsync(despesa);
+            using var tx = await _uof.BeginTransactionAsync();
 
+            await _uof.DespesaRepository.DeleteAsync(despesa);
             await _uof.CommitAsync();
+            await _carteiraService.CreditarSaldoAsync(despesa.CarteiraId, despesa.Valor);
+            await tx.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa), "Despesa removida com sucesso");
         }

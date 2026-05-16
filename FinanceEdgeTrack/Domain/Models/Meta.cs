@@ -1,7 +1,5 @@
-﻿using FinanceEdgeTrack.Domain.Enum;
+using FinanceEdgeTrack.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-using FinanceEdgeTrack.Application.Common.Responses;
 using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Domain.Models;
@@ -28,8 +26,8 @@ public class Meta
     [Range(typeof(decimal), "0", "999999999999")]
     public decimal ValorAtual { get; private set; } = 0;
 
-    [Range(typeof(decimal), "1", "999999999999")]
-    public decimal UltimoDepositoEmReais { get; private set; } = default!;
+    [Range(typeof(decimal), "0", "999999999999")]
+    public decimal UltimoDepositoEmReais { get; private set; }
 
     public DateTime DataUltimoDeposito { get; private set; }
 
@@ -47,14 +45,10 @@ public class Meta
 
     public Status Status { get; private set; } = Status.EmAberto;
 
-    public List<AporteMetas> Aportes { get; set; } = new List<AporteMetas>();
+    public List<AporteMetas> Aportes { get; private set; } = new List<AporteMetas>();
 
 
-    public decimal ValorRestanteParaCompletar()
-    {
-        ValorRestante = ValorAlvo - ValorAtual;
-        return ValorRestante;
-    }
+    public decimal ValorRestanteParaCompletar() => ValorAlvo - ValorAtual;
 
     public void AlterarStatus(Status novoStatus)
     {
@@ -67,81 +61,29 @@ public class Meta
     public DateTime AlterarDataAlvo(DateTime novaData)
     {
         if (novaData < DataInicio || novaData < DateTime.UtcNow)
-        {
             throw new InvalidOperationException("A meta deve ser alterada para uma data válida.");
-        }
 
         DataAlvo = novaData;
-
         return DataAlvo;
     }
 
-    public void RegistrarAporte(AporteMetas novoAporte)
+    public void RecalcularProgresso(decimal novoTotal, decimal ultimoValor, DateTime ultimaData)
     {
-        if (novoAporte is null) throw new InvalidOperationException("Aporte inválido.");
-
-
-        if (novoAporte.Valor <= 0)
-            throw new InvalidOperationException("Valor inválido");
-
-        Aportes ??= new List<AporteMetas>();
-        Aportes.Add(novoAporte);
-
-        ValorAtual += novoAporte.Valor;
-        UltimoDepositoEmReais = novoAporte.Valor;
-        DataUltimoDeposito = DateTime.UtcNow;
+        ValorAtual = novoTotal;
         PorcentagemAtual = ValorAlvo == 0 ? 0 : (ValorAtual / ValorAlvo) * 100;
-        ValorRestante = ValorAlvo - ValorAtual;
+        ValorRestante = Math.Max(0, ValorAlvo - ValorAtual);
+        UltimoDepositoEmReais = ultimoValor;
+        DataUltimoDeposito = ultimaData;
 
-        if (ValorTotalAportes() >= ValorAlvo)
-        {
-            FinalizarMeta();
-        }
+        if (ValorAtual >= ValorAlvo && Status != Status.Concluido)
+            Finalizar();
     }
 
-    public void RemoverAporte(AporteMetas aporteRemovido)
+    private void Finalizar()
     {
-        if (aporteRemovido is null)
-            throw new ArgumentNullException(nameof(aporteRemovido));
-
-        int indexAnterior = Aportes.IndexOf(aporteRemovido) - 1;
-        Aportes.Remove(aporteRemovido);
-
-        ValorAtual -= aporteRemovido.Valor;
-        PorcentagemAtual = ValorAlvo == 0 ? 0 : (ValorAtual / ValorAlvo) * 100;
-        ValorRestante = ValorAlvo - ValorAtual;
-
-        AtualizarHistoricoAporteRemoved(indexAnterior);
-    }
-
-    private void AtualizarHistoricoAporteRemoved(int index)
-    {
-        if (Aportes.Count == 0)
-        {
-            DataUltimoDeposito = default;
-            UltimoDepositoEmReais = 0;
-            return;
-        }
-
-        var targetIndex = Math.Max(0, index);
-        DataUltimoDeposito = DateTime.UtcNow;
-        UltimoDepositoEmReais = Aportes[targetIndex].Valor;
-    }
-
-    private void FinalizarMeta()
-    {
-        AlterarStatus(Status.Concluido);
+        Status = Status.Concluido;
         PorcentagemAtual = 100;
         ValorRestante = 0;
         DataConclusao = DateTime.UtcNow;
-    }
-
-
-    public decimal ValorTotalAportes()
-    {
-        if (Aportes is null)
-            return 0;
-
-        return Aportes.Sum(a => a.Valor);
     }
 }

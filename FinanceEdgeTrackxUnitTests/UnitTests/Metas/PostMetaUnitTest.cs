@@ -67,63 +67,6 @@ public class PostMetaUnitTest
     }
 
     [Fact]
-    public async Task PostAportesInMeta_ReturnsOk_WhenServiceReturnsSuccess()
-    {
-        var meta = new MetaDTO
-        {
-            MetaId = Guid.NewGuid(),
-            Titulo = "Meta Teste",
-            Descricao = "Descricao meta teste",
-            DataInicio = DateTime.UtcNow,
-            DataAlvo = DateTime.UtcNow.AddDays(20),
-            PorcentagemAtual = 0,
-            Status = Status.EmAberto,
-            ValorAlvo = 1200,
-        };
-        var aporteDto = new CreateAporteMetaDTO
-        {
-            Valor = 200
-        };
-
-        _helper.serviceMock
-            .Setup(s => s.RegistrarAporteAsync(meta.MetaId, aporteDto))
-            .ReturnsAsync(ApiResponse<MetaDTO>.Ok(meta));
-
-        var result = await _helper.controller.PostAporte(meta.MetaId, aporteDto);
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<ApiResponse<MetaDTO>>(ok.Value);
-        Assert.True(response.Success);
-        Assert.True(response.Data!.ValorAlvo > 0);
-        Assert.True(response.Data!.Status == Status.EmAberto); 
-        Assert.False(response.Data!.Titulo.IsNullOrEmpty());
-        Assert.Equal(meta.MetaId, response.Data!.MetaId);
-        Assert.Equal(meta.ValorAlvo, response.Data!.ValorAlvo);
-        _helper.serviceMock.Verify(s => s.RegistrarAporteAsync(meta.MetaId, aporteDto), Times.AtMost(3));
-    }
-
-    [Fact]
-    public async Task PostInvalidAportesInMeta_ReturnsBadRequest_WhenServiceFails()
-    {
-        var metaId = Guid.NewGuid();
-        var aporteDto = new CreateAporteMetaDTO
-        {
-            Valor = 200
-        };
-
-        _helper.serviceMock
-            .Setup(s => s.RegistrarAporteAsync(metaId, aporteDto))
-            .ReturnsAsync(ApiResponse<MetaDTO>.Fail(ResultMessages.NotFoundMeta));
-
-        var result = await _helper.controller.PostAporte(metaId, aporteDto);
-
-        var bad = Assert.IsType<BadRequestObjectResult>(result);
-        var response = Assert.IsType<ApiResponse<MetaDTO>>(bad.Value);
-        Assert.False(response.Success);
-        _helper.serviceMock.Verify(s => s.RegistrarAporteAsync(metaId, aporteDto), Times.AtMost(3));
-    }
-
-    [Fact]
     public async Task PostInvalidDataMeta_ReturnsBadRequest_WhenServiceFails()
     {
         var createMetaDto = CreateSeedMetas(2);

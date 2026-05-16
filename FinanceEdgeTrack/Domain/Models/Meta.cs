@@ -50,8 +50,6 @@ public class Meta
 
     public decimal ValorRestanteParaCompletar() => ValorAlvo - ValorAtual;
 
-    public decimal ValorTotalAportes() => Aportes?.Sum(a => a.Valor) ?? 0;
-
     public void AlterarStatus(Status novoStatus)
     {
         if (Status == Status.Concluido)
@@ -69,37 +67,13 @@ public class Meta
         return DataAlvo;
     }
 
-    public void AdicionarAporte(AporteMetas aporte)
+    public void RecalcularProgresso(decimal novoTotal, decimal ultimoValor, DateTime ultimaData)
     {
-        if (aporte is null)
-            throw new ArgumentNullException(nameof(aporte));
-
-        if (aporte.MetaId != MetaId)
-            throw new InvalidOperationException("Aporte não pertence a esta meta.");
-
-        Aportes ??= new List<AporteMetas>();
-        Aportes.Add(aporte);
-    }
-
-    public void RemoverAporte(AporteMetas aporte)
-    {
-        if (aporte is null)
-            throw new ArgumentNullException(nameof(aporte));
-
-        Aportes.Remove(aporte);
-    }
-
-    public void AtualizarProgresso()
-    {
-        Aportes ??= new List<AporteMetas>();
-
-        ValorAtual = Aportes.Sum(a => a.Valor);
+        ValorAtual = novoTotal;
         PorcentagemAtual = ValorAlvo == 0 ? 0 : (ValorAtual / ValorAlvo) * 100;
         ValorRestante = Math.Max(0, ValorAlvo - ValorAtual);
-
-        var ultimo = Aportes.OrderByDescending(a => a.Data).FirstOrDefault();
-        UltimoDepositoEmReais = ultimo?.Valor ?? 0;
-        DataUltimoDeposito = ultimo?.Data ?? default;
+        UltimoDepositoEmReais = ultimoValor;
+        DataUltimoDeposito = ultimaData;
 
         if (ValorAtual >= ValorAlvo && Status != Status.Concluido)
             Finalizar();

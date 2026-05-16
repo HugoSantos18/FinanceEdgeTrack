@@ -30,33 +30,10 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("aporte/{aporteId}", Name = "GetAporte")]
-    public async Task<IActionResult> GetAporteAsync(Guid aporteId)
-    {
-        var response = await _metaService.GetAportePorIdAsync(aporteId);
-
-        if (!response.Success)
-            return NotFound(response);
-
-        return Ok(response);
-    }
-
-
     [HttpGet("All")]
     public async Task<IActionResult> GetAllMetasAsync([FromQuery] PaginationParams pagination)
     {
         var response = await _metaService.GetAllMetasAsync(pagination);
-
-        if (!response.Success)
-            return BadRequest(response);
-
-        return Ok(response);
-    }
-
-    [HttpGet("{metaId}/aportes", Name = "GetAllAportesFromMeta")]
-    public async Task<IActionResult> GetAllAportesAsync(Guid metaId, [FromQuery] PaginationParams pagination)
-    {
-        var response = await _metaService.GetAllAportesDaMetaPorIdAsync(metaId, pagination);
 
         if (!response.Success)
             return BadRequest(response);
@@ -143,18 +120,6 @@ public class MetaController : ControllerBase
     }
 
 
-    [HttpPost("{metaId}/aporte")]
-    public async Task<IActionResult> PostAporte(Guid metaId, [FromBody] CreateAporteMetaDTO aporteDto)
-    {
-        var response = await _metaService.RegistrarAporteAsync(metaId, aporteDto);
-
-        if (!response.Success)
-            return BadRequest(response);
-
-        return Ok(response);
-    }
-
-
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(Guid id, UpdateMetaDTO metaDto)
     {
@@ -177,14 +142,4 @@ public class MetaController : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("aporte/{aporteId}")]
-    public async Task<IActionResult> DeleteAporte(Guid aporteId)
-    {
-        var response = await _metaService.RemoverAporteAsync(aporteId);
-
-        if (!response.Success)
-            return BadRequest(response);
-
-        return Ok(response);
-    }
 }

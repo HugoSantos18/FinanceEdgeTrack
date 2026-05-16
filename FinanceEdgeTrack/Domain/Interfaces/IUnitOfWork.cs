@@ -9,6 +9,7 @@ public interface IUnitOfWork
     IReceitaRepository ReceitaRepository { get; }
     IDespesaRepository DespesaRepository { get; }
     IMetaRepository MetaRepository { get; }
+    IAporteMetasRepository AporteMetasRepository { get; }
     Task<IDbContextTransaction> BeginTransactionAsync();
     Task CommitAsync();
     void Dispose();

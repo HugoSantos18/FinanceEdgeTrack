@@ -1,5 +1,4 @@
-﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Domain.Interfaces;
+﻿using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
 using FinanceEdgeTrack.Domain.Models;
@@ -60,45 +59,27 @@ public class CarteiraService : ICarteiraService
     }
 
 
-    public async Task<ApiResponse<decimal>> AdicionarSaldoAsync(decimal valor)
+    public async Task<bool> DebitarSaldoComGuardaAsync(Guid carteiraId, decimal valor)
     {
         if (valor <= 0)
-            return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
+            return false;
 
-        var carteira = await GetCarteiraAsync();
+        var rows = await _uof.CarteiraRepository
+            .Query()
+            .Where(c => c.CarteiraId == carteiraId && c.Saldo >= valor)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.Saldo, c => c.Saldo - valor));
 
-        carteira.AdicionarSaldo(valor);
-
-        await _uof.CommitAsync();
-
-        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Saldo adicionado com sucesso, novo saldo R${carteira.Saldo:C2}");
+        return rows == 1;
     }
 
-    public async Task<ApiResponse<decimal>> DescontarSaldoAsync(decimal valor)
+    public async Task CreditarSaldoAsync(Guid carteiraId, decimal valor)
     {
         if (valor <= 0)
-            return ApiResponse<decimal>.Fail(ResultMessages.MoreThanZero);
+            return;
 
-        var carteira = await GetCarteiraAsync();
-
-        if (valor > carteira.Saldo)
-        {
-            _logger.LogInformation($"Valor de retirada R${valor:C2} maior que saldo atual: R${carteira.Saldo:C2}");
-            return ApiResponse<decimal>.Fail(ResultMessages.InvalidPrice + $"\nSeu saldo atual: R${carteira.Saldo:C2}");
-        }
-
-        carteira.DescontarSaldo(valor);
-        
-        await _uof.CommitAsync();
-
-        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Valor descontado do saldo com sucesso, novo saldo: {carteira.Saldo:C2}");
+        await _uof.CarteiraRepository
+            .Query()
+            .Where(c => c.CarteiraId == carteiraId)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.Saldo, c => c.Saldo + valor));
     }
-
-    public async Task<ApiResponse<decimal>> ObterSaldoAsync()
-    {
-        var carteira = await GetCarteiraAsync();
-
-        return ApiResponse<decimal>.Ok(carteira.Saldo, $"Saldo atual: {carteira.Saldo}");
-    }
-
 }

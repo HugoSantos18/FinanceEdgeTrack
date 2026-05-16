@@ -13,6 +13,7 @@ public class UnitOfWork : IUnitOfWork
     private IDespesaRepository? _despesaRepository;
     private IReceitaRepository? _receitaRepository;
     private IMetaRepository? _metaRepository;
+    private IAporteMetasRepository? _aporteMetasRepository;
 
 
     public IDespesaRepository DespesaRepository
@@ -45,6 +46,14 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             return _carteiraRepository = _carteiraRepository ?? new CarteiraRepository(_context);
+        }
+    }
+
+    public IAporteMetasRepository AporteMetasRepository
+    {
+        get
+        {
+            return _aporteMetasRepository = _aporteMetasRepository ?? new AporteMetasRepository(_context);
         }
     }
 

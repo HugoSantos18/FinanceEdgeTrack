@@ -30,13 +30,4 @@ public class Carteira
             Saldo = 0
         };
     }
-
-    public decimal AdicionarSaldo(decimal valor) => Saldo += valor;
-
-    public decimal DescontarSaldo(decimal valor)
-    {
-        if (Saldo < valor) throw new InvalidOperationException("Saldo insuficiente");
-        
-        return Saldo -= valor;
-    }
 }

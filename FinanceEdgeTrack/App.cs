@@ -82,9 +82,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IMetaRepository, MetaRepository>();
+builder.Services.AddScoped<IAporteMetasRepository, AporteMetasRepository>();
 builder.Services.AddScoped<IReceitaService, ReceitaService>();
 builder.Services.AddScoped<IDespesaService, DespesaService>();
 builder.Services.AddScoped<IMetaService, MetaService>();
+builder.Services.AddScoped<IAporteMetasService, AporteMetasService>();
 builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -117,7 +119,7 @@ builder.Services.AddAuthentication(options =>
     var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
 
     if (secretKey.IsNullOrEmpty())
-        throw new Exception("JWT secretKey não configurado!");
+        throw new Exception("JWT secretKey nï¿½o configurado!");
 
     options.SaveToken = true;
     options.RequireHttpsMetadata = true;

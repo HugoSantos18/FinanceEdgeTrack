@@ -15,6 +15,8 @@ public static class ResultMessages
     public const string EmptyCollection = "Não foi possível encontrar nenhum resultado, coleção possivelmente vazia.";
     public const string MoreThanZero = "O valor deve ser maior que zero.";
     public const string WalletNotFound = "Ops, parece que você perdeu sua carteira. :´( ";
+    public const string InsufficientBalance = "Saldo insuficiente para este aporte.";
+    public const string InsufficientBalanceToRevert = "Saldo insuficiente para reverter esta operação.";
     public const string ValidAporte = "Deve ser feito um aporte válido, credenciais incorretas.";
     public const string ValidMeta = "Para finalizar a criação de uma meta, deve ser preenchido as credenciais corretamente.";
     public const string ValidCredentialsSuccess = "Concluído com sucesso!";

@@ -31,4 +31,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FinanceEdgeTrack.Application\FinanceEdgeTrack.Application.csproj" />
+    <ProjectReference Include="..\FinanceEdgeTrack.Infrastructure\FinanceEdgeTrack.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

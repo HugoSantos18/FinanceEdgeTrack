@@ -1,7 +1,7 @@
 ﻿
 using FinanceEdgeTrack.Controllers;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Infrastructure.Identity;
 using MapsterMapper;
 using Mapster;
 using Microsoft.AspNetCore.Identity;

@@ -1,9 +1,9 @@
 ﻿using Asp.Versioning;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read.Auth;
-using FinanceEdgeTrack.Application.Dtos.Write.Auth;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Application.DTOs.Read.Auth;
+using FinanceEdgeTrack.Application.DTOs.Write.Auth;
+using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Infrastructure.Identity;
 using FinanceEdgeTrack.Infrastructure.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

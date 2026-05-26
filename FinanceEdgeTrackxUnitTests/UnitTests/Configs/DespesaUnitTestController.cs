@@ -1,4 +1,4 @@
-﻿using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
+﻿using FinanceEdgeTrack.Application.Interfaces.Services.Categories;
 using Mapster;
 using MapsterMapper;
 using Moq;

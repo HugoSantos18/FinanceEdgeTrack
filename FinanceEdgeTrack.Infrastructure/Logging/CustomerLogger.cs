@@ -29,7 +29,7 @@ public class CustomerLogger : ILogger
 
     private void WriteLoggertxt(string logInfo)
     {
-        string directory = @"C:\Users\PICHAU\Desktop\FACULDADE HUGO IMPORTANTE\FinanceTrack\Logs";
+        string directory = Path.Combine(AppContext.BaseDirectory, "Logs");
 
         if (!Directory.Exists(directory))
             Directory.CreateDirectory(directory);

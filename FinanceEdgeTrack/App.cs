@@ -41,7 +41,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add(new ApiExceptionFilter());
+    options.Filters.Add<ApiExceptionFilter>();
     options.Filters.Add<PaginationHeaderFilter>();
 })
     .AddJsonOptions(options =>

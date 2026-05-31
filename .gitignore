@@ -362,8 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# Configurações sensíveis
-appsettings.json
+# Configurações sensíveis (apenas ambientes específicos; appsettings.json fica no repo com valores vazios)
 appsettings.Development.json
 appsettings.Production.json
 UserSeed.cs

@@ -51,10 +51,12 @@ public class TokenService : ITokenService
 
         var tokenValidationParameters = new TokenValidationParameters
         {
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            ValidateIssuerSigningKey = false,
+            ValidateAudience = true,
+            ValidateIssuer = true,
+            ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ValidAudience = config.GetSection("JWT").GetValue<string>("ValidAudience"),
+            ValidIssuer = config.GetSection("JWT").GetValue<string>("ValidIssuer"),
             ValidateLifetime = false
         };
 

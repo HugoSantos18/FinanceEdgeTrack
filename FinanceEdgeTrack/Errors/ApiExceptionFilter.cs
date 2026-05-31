@@ -6,13 +6,20 @@ namespace FinanceEdgeTrack.Errors;
 
 public class ApiExceptionFilter : ExceptionFilterAttribute
 {
+    private readonly IWebHostEnvironment _env;
+
+    public ApiExceptionFilter(IWebHostEnvironment env)
+    {
+        _env = env;
+    }
+
     public override void OnException(ExceptionContext context)
     {
         var error = new ErrorDetails
         {
             MessageError = context.Exception.Message,
             StatusCode = StatusCodes.Status500InternalServerError,
-            Trace = context.Exception.StackTrace
+            Trace = _env.IsDevelopment() ? context.Exception.StackTrace : null
         };
 
         context.Result = new ObjectResult(error)

@@ -129,8 +129,8 @@ public class AuthController : ControllerBase
 
         if (result.Succeeded)
         {
-            _logger.LogInformation($"Usuário {dto.Email} promovido a Admin por {currentAdmin?.Email}",
-                dto.Email, currentAdmin?.Email);
+            _logger.LogInformation("Usuário {UserId} promovido a Admin por {AdminId}",
+                user.Id, currentAdmin?.Id);
 
             return Ok(new { message = ResultMessages.AdminMakedSuccessfully });
         }

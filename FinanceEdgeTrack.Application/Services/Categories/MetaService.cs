@@ -90,6 +90,7 @@ public class MetaService : IMetaService
     {
         var query = _uof.MetaRepository
             .Query()
+            .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
             .AsNoTracking()
             .OrderBy(m => m.ValorAlvo)
             .ProjectToType<MetaDTO>();

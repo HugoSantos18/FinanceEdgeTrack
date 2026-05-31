@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -151,7 +152,23 @@ builder.Services.AddAuthorization(options =>
 // Swagger configuration
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "FinanceEdgeTrackApi", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FinanceEdgeTrack API",
+        Version = "v1",
+        Description = """
+            API de controle financeiro pessoal — despesas, receitas, metas e aportes.
+
+            **Autenticação:** Todos os endpoints exigem JWT Bearer, exceto `/Login` e `/Register`.
+            Informe o token no formato: `Bearer {seu_token}`.
+
+            **Rate Limiting:** Requisições em excesso retornam `429 Too Many Requests`.
+            Usuários autenticados têm limite por ID; requisições anônimas têm limite por IP.
+
+            **Autorização:** Endpoints do Dashboard e administração exigem role `Admin`.
+            Endpoints de CRUD (Despesas, Receitas, Metas, Aportes) exigem apenas autenticação.
+            """
+    });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
@@ -160,8 +177,9 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Bearer JWT",
+        Description = "Informe o token JWT no formato: **Bearer {token}**",
     });
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -176,6 +194,10 @@ builder.Services.AddSwaggerGen(options =>
             new string[]{ }
         }
     });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();

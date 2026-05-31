@@ -1,5 +1,4 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
-using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.DTOs.Read.Metas;
 using FinanceEdgeTrack.Application.DTOs.Write.Categorias;

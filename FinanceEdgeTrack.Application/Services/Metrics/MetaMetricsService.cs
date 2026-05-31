@@ -23,49 +23,54 @@ public class MetaMetricsService : IMetaMetrics
 
     public async Task<ApiResponse<MetasKPIsNoMesDTO>> GetKPIsMetasNoMes(int year, int month)
     {
-        var startDate = new DateTime(year, month, 1);
-        var endDate = startDate.AddMonths(1).AddDays(1);
+        var startDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
+        var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddTicks(-1), DateTimeKind.Utc);
 
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(m => m.DataInicio >= startDate && m.DataInicio <= endDate)
+            .ToListAsync();
 
-        var query = _uof.MetaRepository
-                    .Query()
-                    .Where(m => m.DataInicio >= startDate && m.DataConclusao <= endDate)
-                    .AsNoTracking();
-
-        var metas = await query.ToListAsync();
-
-        if (metas is null)
+        if (metas.Count == 0)
         {
-            _logger.LogError($"Não foi encontrado nenhuma informação na data: {month}/{year}.", metas);
-            return ApiResponse<MetasKPIsNoMesDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            _logger.LogInformation("Nenhuma meta encontrada para {Month}/{Year}", month, year);
+            
+            var metasKpisEmptyDTO = new MetasKPIsNoMesDTO
+            {
+                MetasIniciadasNoMes = 0,
+                TotalConcluidasNoMes = 0,
+                TotalPendentesNoMes = 0,
+                TotalCanceladasNoMes = 0,
+                ValorTotalRestanteParaCompletar = 0,
+                MediaDiasParaCompletar = 0
+            };
+            
+            return ApiResponse<MetasKPIsNoMesDTO>.Ok(metasKpisEmptyDTO, $"Nenhuma KPI encontrada em {month}-{year}");
         }
 
         int metasIniciadasNoMes = metas.Count;
 
-
         int metasConcluidasNoMes = metas
-                                  .Where(m => m.DataConclusao != null)
-                                  .Where(m => m.DataConclusao!.Value >= startDate && m.DataConclusao.Value <= endDate)
-                                  .Where(m => m.Status == Status.Concluido)
-                                  .Count();
-
+            .Count(m => m.Status == Status.Concluido && m.DataConclusao != null);
 
         int metasPendentesNoMes = metas
-                                 .Where(m => m.Status == Status.EmAberto)
-                                 .Count();
+            .Count(m => m.Status == Status.EmAberto);
 
         int metasCanceladasNoMes = metas
-                                  .Where(m => m.Status == Status.Cancelada)
-                                  .Count();
+            .Count(m => m.Status == Status.Cancelada);
 
         decimal valorRestanteParaCompletarTodas = metas
-                                                 .Where(m => m.Status == Status.EmAberto)
-                                                 .Sum(m => m.ValorRestanteParaCompletar());
+            .Where(m => m.Status == Status.EmAberto)
+            .Sum(m => m.ValorRestanteParaCompletar());
 
-        double mediaDias = metas
-                           .Where(m => m.Status == Status.Concluido)
-                           .Where(m => m.DataConclusao != null)
-                           .Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays);
+        var metasConcluidas = metas
+            .Where(m => m.Status == Status.Concluido && m.DataConclusao != null)
+            .ToList();
+
+        double mediaDias = metasConcluidas.Count > 0
+            ? metasConcluidas.Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays)
+            : 0;
 
 
         var metasKpisDTO = new MetasKPIsNoMesDTO
@@ -79,54 +84,59 @@ public class MetaMetricsService : IMetaMetrics
         };
 
 
-        return ApiResponse<MetasKPIsNoMesDTO>.Ok( metasKpisDTO, "KPIs");
+        return ApiResponse<MetasKPIsNoMesDTO>.Ok(metasKpisDTO, "KPIs");
     }
 
     public async Task<ApiResponse<MetasKPIsGeralDTO>> GetKPIsMetas()
     {
-        var query = _uof.MetaRepository
-                    .Query()
-                    .AsNoTracking();
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .ToListAsync();
 
-        var metas = await query.ToListAsync();
-
-        if (metas is null)
+        if (metas.Count == 0)
         {
-            _logger.LogInformation($"Não foi encontrado informações de KPIs em metas.");
-            return ApiResponse<MetasKPIsGeralDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            _logger.LogInformation("Nenhuma meta registrada para KPIs gerais");
+            
+            var metasKpisEmptyDTO = new MetasKPIsGeralDTO
+            {
+                MetasIniciadas = 0,
+                TotalConcluidas = 0,
+                TotalPendentes = 0,
+                TotalCanceladas = 0,
+                ValorTotalRestanteParaCompletarTodas = 0,
+            };
+
+            return ApiResponse<MetasKPIsGeralDTO>.Ok(metasKpisEmptyDTO, $"Sem nenhum KPI");
         }
 
-        int metasIniciadasNoMes = metas
-                                 .Count();
-
+        int totalMetas = metas.Count;
 
         int metasConcluidasNoMes = metas
-                                  .Where(m => m.Status == Status.Concluido)
-                                  .Where(m => m.DataConclusao != null)
-                                  .Count();
-
+            .Count(m => m.Status == Status.Concluido && m.DataConclusao != null);
 
         int metasPendentesNoMes = metas
-                                 .Where(m => m.Status == Status.EmAberto)
-                                 .Count();
+            .Count(m => m.Status == Status.EmAberto);
 
         int metasCanceladasNoMes = metas
-                                  .Where(m => m.Status == Status.Cancelada)
-                                  .Count();
+            .Count(m => m.Status == Status.Cancelada);
 
         decimal valorRestanteParaCompletarTodas = metas
-                                                 .Where(m => m.Status == Status.EmAberto)
-                                                 .Sum(m => m.ValorRestanteParaCompletar());
+            .Where(m => m.Status == Status.EmAberto)
+            .Sum(m => m.ValorRestanteParaCompletar());
 
-        double mediaDias = metas
-                           .Where(m => m.Status == Status.Concluido)
-                           .Where(m => m.DataConclusao != null)
-                           .Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays);
+        var metasConcluidas = metas
+            .Where(m => m.Status == Status.Concluido && m.DataConclusao != null)
+            .ToList();
+
+        double mediaDias = metasConcluidas.Count > 0
+            ? metasConcluidas.Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays)
+            : 0;
 
 
         var metasKpisDTO = new MetasKPIsGeralDTO
         {
-            MetasIniciadas = metasIniciadasNoMes,
+            MetasIniciadas = totalMetas,
             TotalConcluidas = metasConcluidasNoMes,
             TotalPendentes = metasPendentesNoMes,
             TotalCanceladas = metasCanceladasNoMes,
@@ -139,30 +149,29 @@ public class MetaMetricsService : IMetaMetrics
 
     public async Task<ApiResponse<MetasResumoGeralDTO>> GetMetricsMetas()
     {
-        var query = _uof.MetaRepository
-                        .Query()
-                        .AsNoTracking();
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .ToListAsync();
 
-        var metas = await query.ToListAsync();
+        if (metas.Count == 0)
+        {
+            _logger.LogInformation("Nenhuma meta foi registrada ainda");
+            var metasResumoEmptyDTO = new MetasResumoGeralDTO
+            {
+                TotalValorAlvo = 0,
+                TotalAportado = 0,
+                PercentualConclusao = 0
+            };
 
-        if (metas is null)
-            return ApiResponse<MetasResumoGeralDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            return ApiResponse<MetasResumoGeralDTO>.Ok(metasResumoEmptyDTO, $"Nenhuma meta encontrada");
+        }
 
-        decimal totalValorAlvo = metas
-                                 .Sum(m => m.ValorAlvo);
+        decimal totalValorAlvo = metas.Sum(m => m.ValorAlvo);
+        decimal totalAportado = metas.Sum(m => m.ValorAtual);
+        int totalConcluidas = metas.Count(m => m.Status == Status.Concluido);
 
-        decimal totalAportado = metas
-                                .Sum(m => m.ValorAtual);
-
-        int totalConcluidas = metas
-                              .Where(m => m.Status == Status.Concluido)
-                              .Count();
-
-        decimal percentualConcluido = ((totalConcluidas / metas.Count()) * 100);
-
-        if (percentualConcluido > 0 && totalValorAlvo != 0)
-            return ApiResponse<MetasResumoGeralDTO>.Fail($"{ResultMessages.InsuficientData}");
-
+        decimal percentualConcluido = ((decimal)totalConcluidas / metas.Count) * 100;
 
         var metasResumoDTO = new MetasResumoGeralDTO
         {
@@ -171,26 +180,30 @@ public class MetaMetricsService : IMetaMetrics
             PercentualConclusao = percentualConcluido
         };
 
-        return ApiResponse<MetasResumoGeralDTO>.Ok(metasResumoDTO, $"Metas gerais");
+        return ApiResponse<MetasResumoGeralDTO>.Ok(metasResumoDTO, "Todas as suas metas");
     }
 
     public async Task<ApiResponse<MetasResumoMensalDTO>> GetMetricsMetasNoMes(int year, int month)
     {
-        var startDate = new DateTime(year, month, 1);
-        var endDate = startDate.AddMonths(1).AddDays(1);
+        var startDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
+        var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddTicks(-1), DateTimeKind.Utc);
 
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(m => m.DataInicio >= startDate && m.DataInicio <= endDate)
+            .ToListAsync();
 
-        var query = _uof.MetaRepository
-                      .Query()
-                      .Where(m => m.DataInicio <= startDate && m.DataConclusao <= endDate)
-                      .AsNoTracking();
-
-        var metas = await query.ToListAsync();
-
-        if (metas is null)
+        if (metas.Count == 0)
         {
-            _logger.LogError($"Não foi encontrado nenhuma informação na data: {month}/{year}.", metas);
-            return ApiResponse<MetasResumoMensalDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            _logger.LogInformation("Nenhuma meta encontrada para {Month}/{Year}", month, year);
+            var metasResumoMensalEmptyDTO = new MetasResumoMensalDTO
+            {
+                TotalValorAlvoNoMes = 0,
+                TotalAportadoNoMes = 0,
+            };
+
+            return ApiResponse<MetasResumoMensalDTO>.Ok(metasResumoMensalEmptyDTO, $"Sem metas no mês");
         }
         decimal totalValorAlvoNoMes = metas
                                       .Sum(m => m.ValorAlvo);
@@ -211,18 +224,26 @@ public class MetaMetricsService : IMetaMetrics
 
     public async Task<ApiResponse<MetasResumoPeriodoDTO>> GetMetricsMetasNoPeriodo(DateTime start, DateTime end)
     {
-        var query = _uof.MetaRepository
-                      .Query()
-                      .Where(m => m.DataInicio >= start)
-                      .Where(m => m.DataAlvo <= end)
-                      .AsNoTracking();
+        var startUtc = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
-        var metas = await query.ToListAsync();
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(m => m.DataInicio >= startUtc && m.DataAlvo <= endUtc)
+            .ToListAsync();
 
-        if (metas is null)
+        if (metas.Count == 0)
         {
-            _logger.LogError($"Não foi encontrado metas no período: {start} - {end}", metas);
-            return ApiResponse<MetasResumoPeriodoDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            _logger.LogInformation("Nenhuma meta encontrada no período: {Start} - {End}", start, end);
+
+            var metasResumoPeriodoEmptyDTO = new MetasResumoPeriodoDTO
+            {
+                TotalValorAlvoNoPeriodo = 0,
+                TotalAportadoNoPeriodo = 0,
+            };
+
+            return ApiResponse<MetasResumoPeriodoDTO>.Ok(metasResumoPeriodoEmptyDTO, $"Sem nenhuma meta nesse período");
         }
 
         decimal totalValorAlvoNoPeriodo = metas
@@ -238,51 +259,57 @@ public class MetaMetricsService : IMetaMetrics
             TotalAportadoNoPeriodo = totalAportadoNoPeriodo,
         };
 
-        return ApiResponse<MetasResumoPeriodoDTO>.Ok(metasResumoPeriodoDTO, $"Metas mensais");
+        return ApiResponse<MetasResumoPeriodoDTO>.Ok(metasResumoPeriodoDTO, $"Metas encontradas no período: {start} - {end}");
     }
 
     public async Task<ApiResponse<MetasKPIsPeriodoDTO>> GetKPIsMetasNoPeriodo(DateTime start, DateTime end)
     {
-        var query = _uof.MetaRepository
-              .Query()
-              .Where(m => m.DataInicio >= start)
-              .Where(m => m.DataAlvo <= end)
-              .AsNoTracking();
+        var startUtc = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
-        var metas = await query.ToListAsync();
+        var metas = await _uof.MetaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(m => m.DataInicio >= startUtc && m.DataAlvo <= endUtc)
+            .ToListAsync();
 
-        if (metas is null)
+        if (metas.Count == 0)
         {
-            _logger.LogError($"Não foi encontrado metas no período: {start} - {end}", metas);
-            return ApiResponse<MetasKPIsPeriodoDTO>.Fail($"{ResultMessages.EmptyMetaCollection}");
+            _logger.LogInformation("Nenhuma meta encontrada no período: {Start} - {End}", start, end);
+
+            var metasKpisPeriodoEmptyDTO = new MetasKPIsPeriodoDTO
+            {
+                MetasIniciadasNoPeriodo = 0,
+                TotalConcluidasNoPeriodo = 0,
+                TotalPendentesNoPeriodo = 0,
+                TotalCanceladasNoPeriodo = 0,
+                ValorTotalRestanteParaCompletar = 0,
+            };
+            return ApiResponse<MetasKPIsPeriodoDTO>.Ok(metasKpisPeriodoEmptyDTO, $"Sem KPIs encontrados nesse período");
         }
 
-        int metasIniciadasNoPeriodo = metas
-                                 .Count();
-
+        int metasIniciadasNoPeriodo = metas.Count;
 
         int metasConcluidasNoPeriodo = metas
-                                  .Where(m => m.Status == Status.Concluido)
-                                  .Where(m => m.DataConclusao != null)
-                                  .Count();
-
+            .Count(m => m.Status == Status.Concluido && m.DataConclusao != null);
 
         int metasPendentesNoPeriodo = metas
-                                 .Where(m => m.Status == Status.EmAberto)
-                                 .Count();
+            .Count(m => m.Status == Status.EmAberto);
 
         int metasCanceladasNoPeriodo = metas
-                                  .Where(m => m.Status == Status.Cancelada)
-                                  .Count();
+            .Count(m => m.Status == Status.Cancelada);
 
         decimal valorRestanteParaCompletarTodas = metas
-                                                 .Where(m => m.Status == Status.EmAberto)
-                                                 .Sum(m => m.ValorRestanteParaCompletar());
+            .Where(m => m.Status == Status.EmAberto)
+            .Sum(m => m.ValorRestanteParaCompletar());
 
-        double mediaDias = metas
-                           .Where(m => m.Status == Status.Concluido)
-                           .Where(m => m.DataConclusao != null)
-                           .Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays);
+        var metasConcluidas = metas
+            .Where(m => m.Status == Status.Concluido && m.DataConclusao != null)
+            .ToList();
+
+        double mediaDias = metasConcluidas.Count > 0
+            ? metasConcluidas.Average(m => (m.DataConclusao!.Value - m.DataInicio).TotalDays)
+            : 0;
 
 
         var metasKpisPeriodoDTO = new MetasKPIsPeriodoDTO

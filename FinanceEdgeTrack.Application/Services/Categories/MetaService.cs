@@ -1,9 +1,7 @@
 ﻿using FinanceEdgeTrack.Application.Common.Pagination;
-using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Responses;
 using FinanceEdgeTrack.Application.DTOs.Read.Metas;
 using FinanceEdgeTrack.Application.DTOs.Write.Categorias;
-using FinanceEdgeTrack.Domain.Enums;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Application.Interfaces.Services.Cache;
@@ -23,22 +21,15 @@ public class MetaService : IMetaService
     private readonly ICarteiraService _carteiraService;
     private readonly ICurrentUser _currentUser;
     private readonly ILogger<MetaService> _logger;
-    private readonly ICacheService _cacheService;
 
     public MetaService(IMapper mapper, IUnitOfWork uof, ICarteiraService carteiraService,
-                       ICurrentUser currentUser, ILogger<MetaService> logger, ICacheService cache)
+                       ICurrentUser currentUser, ILogger<MetaService> logger)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteiraService;
         _currentUser = currentUser;
         _logger = logger;
-        _cacheService = cache;
-    }
-
-    private string CacheKey()
-    {
-        return _cacheService.SetCacheKey(_currentUser.UserId);
     }
 
     public async Task<ApiResponse<MetaDTO>> GetMetaPorIdAsync(Guid metaId)
@@ -78,11 +69,6 @@ public class MetaService : IMetaService
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -90,50 +76,36 @@ public class MetaService : IMetaService
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             pagination.PageNumber,
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
             .Query()
             .AsNoTracking()
             .OrderBy(m => m.ValorAlvo)
             .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             pagination.PageNumber,
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasQuaseConcluidasAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -141,25 +113,18 @@ public class MetaService : IMetaService
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             pagination.PageNumber,
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(1));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisAntigaAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -167,25 +132,18 @@ public class MetaService : IMetaService
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             pagination.PageNumber,
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasMaisRecentesAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
              .Query()
              .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -193,25 +151,18 @@ public class MetaService : IMetaService
              .AsNoTracking()
              .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             pagination.PageNumber,
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<PagedList<MetaDTO>>> MetasFiltradasPorStatusAsync(StatusParams statusPagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<MetaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<MetaDTO>>.Ok(cached);
-
         var query = _uof.MetaRepository
             .Query()
             .Where(m => m.Carteira != null && m.Carteira!.UserId == _currentUser.UserId)
@@ -219,16 +170,14 @@ public class MetaService : IMetaService
             .AsNoTracking()
             .ProjectToType<MetaDTO>();
 
-        var metasPaginadas = await PagedList<MetaDTO>.CreateAsync
+        var metasFiltradas = await PagedList<MetaDTO>.CreateAsync
             (
             query,
             statusPagination.PageNumber,
             statusPagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), metasPaginadas, TimeSpan.FromMinutes(2));
-
-        return ApiResponse<PagedList<MetaDTO>>.Ok(metasPaginadas);
+        return ApiResponse<PagedList<MetaDTO>>.Ok(metasFiltradas);
     }
 
     public async Task<ApiResponse<MetaDTO>> CriarMetaAsync(CreateMetaDTO metaDto)

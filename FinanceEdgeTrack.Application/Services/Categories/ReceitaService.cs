@@ -22,22 +22,15 @@ public class ReceitaService : IReceitaService
     private readonly IMapper _mapper;
     private readonly ILogger<ReceitaService> _logger;
     private readonly ICurrentUser _currentUser;
-    private readonly ICacheService _cacheService;
 
     public ReceitaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
-                          ILogger<ReceitaService> logger, ICurrentUser currentUser, ICacheService cache)
+                          ILogger<ReceitaService> logger, ICurrentUser currentUser)
     {
         _mapper = mapper;
         _uof = uof;
         _carteiraService = carteira;
         _logger = logger;
         _currentUser = currentUser;
-        _cacheService = cache;
-    }
-
-    private string CacheKey()
-    {
-        return _cacheService.SetCacheKey(_currentUser.UserId);
     }
 
     public async Task<ApiResponse<ReceitaDTO>> ObterReceitaPorIdAsync(Guid id)
@@ -58,11 +51,6 @@ public class ReceitaService : IReceitaService
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ListarReceitasAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
-
         var query = _uof.ReceitaRepository
             .Query()
             .Where(r => r.Carteira != null && r.Carteira.UserId == _currentUser.UserId)
@@ -78,19 +66,11 @@ public class ReceitaService : IReceitaService
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
-
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMaiorValorAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
-
-
         var query = _uof.ReceitaRepository
             .Query()
             .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
@@ -105,18 +85,11 @@ public class ReceitaService : IReceitaService
             pagination.PageSize
             );
 
-        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
-
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }
 
     public async Task<ApiResponse<PagedList<ReceitaDTO>>> ReceitasFiltradasMenorValorAsync(PaginationParams pagination)
     {
-        var cached = await _cacheService.TryGetAsync<PagedList<ReceitaDTO>>(CacheKey());
-
-        if (cached != null)
-            return ApiResponse<PagedList<ReceitaDTO>>.Ok(cached);
-
         var query = _uof.ReceitaRepository
             .Query()
             .Where(r => r.Carteira != null && r.Carteira!.UserId == _currentUser.UserId)
@@ -130,8 +103,6 @@ public class ReceitaService : IReceitaService
             pagination.PageNumber,
             pagination.PageSize
             );
-
-        await _cacheService.SetAsync(CacheKey(), receitasPaginadas, TimeSpan.FromMinutes(1));
 
         return ApiResponse<PagedList<ReceitaDTO>>.Ok(receitasPaginadas);
     }
@@ -177,6 +148,18 @@ public class ReceitaService : IReceitaService
             return ApiResponse<ReceitaDTO>.Fail(ResultMessages.NotFoundReceive);
         }
 
+        await using var tx = await _uof.BeginTransactionAsync();
+
+        if (receita.Valor > receita.Valor)
+            await _carteiraService.CreditarSaldoAsync(receita.CarteiraId, receitaDto.Valor - receita.Valor); // Reembolsa a diferença para o usuário
+
+        else if (receitaDto.Valor < receita.Valor)
+            await _carteiraService.DebitarSaldoComGuardaAsync(receita.CarteiraId, receitaDto.Valor - receita.Valor); // Debita a diferença da carteira do usuário
+
+        else if (receitaDto.Valor == receita.Valor) { _logger.LogInformation("Saldo não alterado"); } // Não altera o saldo da carteira do usuário
+
+        else { await tx.RollbackAsync(); return ApiResponse<ReceitaDTO>.Fail(ResultMessages.InvalidPrice); } // Caso o valor seja inválido, retorna erro de saldo inválido
+
         receita.Titulo = receitaDto.Titulo;
         receita.Descricao = receitaDto.Descricao;
         receita.Data = receitaDto.Data;
@@ -185,6 +168,7 @@ public class ReceitaService : IReceitaService
 
         await _uof.ReceitaRepository.UpdateAsync(receita!);
         await _uof.CommitAsync();
+        await tx.CommitAsync();
 
         return ApiResponse<ReceitaDTO>.Ok(_mapper.Map<ReceitaDTO>(receita));
     }

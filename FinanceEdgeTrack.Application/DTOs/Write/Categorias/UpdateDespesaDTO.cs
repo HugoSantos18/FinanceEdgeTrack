@@ -1,7 +1,10 @@
-﻿namespace FinanceEdgeTrack.Application.DTOs.Write.Categorias
+﻿using System.Text.Json.Serialization;
+
+namespace FinanceEdgeTrack.Application.DTOs.Write.Categorias
 {
     public class UpdateDespesaDTO
     {
+        [JsonIgnore]
         public Guid DespesaId { get; set; }
         public string Titulo { get; set; } = default!;
         public string? Descricao { get; set; }

@@ -95,7 +95,6 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
-builder.Services.AddScoped<ICarteiraMetrics, CarteiraMetricsService>();
 builder.Services.AddScoped<IDespesaMetrics, DespesaMetricsService>();
 builder.Services.AddScoped<IMetaMetrics, MetaMetricsService>();
 builder.Services.AddScoped<IReceitaMetrics, ReceitaMetricsService>();

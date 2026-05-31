@@ -15,7 +15,7 @@ public class Carteira
     public string UserId { get; set; } = null!;
 
     [Required]
-    public decimal Saldo { get; set; }
+    public decimal Saldo { get; private set; } 
 
     public ICollection<Meta> Metas { get; private set; } = [];
     public ICollection<Receita> Receitas { get; private set; } = [];

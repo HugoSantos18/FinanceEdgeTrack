@@ -21,21 +21,15 @@ namespace FinanceEdgeTrack.Application.Services.Categories
         private readonly ICurrentUser _currentUser;
         private readonly IMapper _mapper;
         private readonly ILogger<DespesaService> _logger;
-        private readonly ICacheService _cacheService;
 
         public DespesaService(IUnitOfWork uof, IMapper mapper, ICarteiraService carteira,
-            ICurrentUser currentUser, ILogger<DespesaService> logger, ICacheService cache)
+            ICurrentUser currentUser, ILogger<DespesaService> logger)
         {
             _mapper = mapper;
             _uof = uof;
             _carteiraService = carteira;
             _currentUser = currentUser;
             _logger = logger;
-            _cacheService = cache;
-        }
-        private string CacheKey()
-        {
-            return _cacheService.SetCacheKey(_currentUser.UserId);
         }
 
         public async Task<ApiResponse<DespesaDTO>> ObterDespesaPorIdAsync(Guid id)
@@ -78,11 +72,6 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFixasPaginadasAsync(PaginationParams pagination)
         {
-            var cached = await _cacheService.TryGetAsync<PagedList<DespesaDTO>>(CacheKey());
-
-            if (cached != null)
-                return ApiResponse<PagedList<DespesaDTO>>.Ok(cached);
-
             var query = _uof.DespesaRepository
                 .Query()
                 .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
@@ -91,25 +80,18 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 .AsNoTracking()
                 .ProjectToType<DespesaDTO>();
 
-            var despesasPaginadas = await PagedList<DespesaDTO>.CreateAsync
+            var despesasFiltradas = await PagedList<DespesaDTO>.CreateAsync
                 (
                 query,
                 pagination.PageNumber,
                 pagination.PageSize
                 );
 
-            await _cacheService.SetAsync(CacheKey(), despesasPaginadas, TimeSpan.FromMinutes(1));
-
-            return ApiResponse<PagedList<DespesaDTO>>.Ok(despesasPaginadas);
+            return ApiResponse<PagedList<DespesaDTO>>.Ok(despesasFiltradas);
         }
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMaiorValorAsync(PaginationParams pagination)
         {
-            var cached = await _cacheService.TryGetAsync<PagedList<DespesaDTO>>(CacheKey());
-
-            if (cached != null)
-                return ApiResponse<PagedList<DespesaDTO>>.Ok(cached);
-
             var query = _uof.DespesaRepository
                 .Query()
                 .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
@@ -124,18 +106,11 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 pagination.PageSize
                 );
 
-            await _cacheService.SetAsync(CacheKey(), despesasFiltradas, TimeSpan.FromMinutes(1));
-
             return ApiResponse<PagedList<DespesaDTO>>.Ok(despesasFiltradas);
         }
 
         public async Task<ApiResponse<PagedList<DespesaDTO>>> DespesasFiltradasMenorValorAsync(PaginationParams pagination)
         {
-            var cached = await _cacheService.TryGetAsync<PagedList<DespesaDTO>>(CacheKey());
-
-            if (cached != null)
-                return ApiResponse<PagedList<DespesaDTO>>.Ok(cached);
-
             var query = _uof.DespesaRepository
             .Query()
             .Where(d => d.Carteira != null && d.Carteira!.UserId == _currentUser.UserId)
@@ -149,8 +124,6 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 pagination.PageNumber,
                 pagination.PageSize
                 );
-
-            await _cacheService.SetAsync(CacheKey(), despesasFiltradas, TimeSpan.FromMinutes(1));
 
             return ApiResponse<PagedList<DespesaDTO>>.Ok(despesasFiltradas);
         }
@@ -202,6 +175,16 @@ namespace FinanceEdgeTrack.Application.Services.Categories
                 return ApiResponse<DespesaDTO>.Fail(ResultMessages.NotFoundDespesa);
             }
 
+            await using var tx = await _uof.BeginTransactionAsync();
+
+            if (despesaDto.Valor > despesa.Valor)
+                await _carteiraService.CreditarSaldoAsync(despesa.CarteiraId, despesaDto.Valor - despesa.Valor); // Reembolsa a diferença para o usuário
+
+            else if (despesaDto.Valor < despesa.Valor)
+                await _carteiraService.DebitarSaldoComGuardaAsync(despesa.CarteiraId, despesaDto.Valor - despesa.Valor); // Debita a diferença da carteira do usuário
+
+            else { await tx.RollbackAsync(); return ApiResponse<DespesaDTO>.Fail(ResultMessages.InvalidPrice); } // Caso o valor seja inválido, retorna erro de saldo inválido
+
             despesa.Titulo = despesaDto.Titulo!;
             despesa.Descricao = despesaDto.Descricao;
             despesa.Data = despesaDto.Data;
@@ -210,6 +193,7 @@ namespace FinanceEdgeTrack.Application.Services.Categories
 
             await _uof.DespesaRepository.UpdateAsync(despesa);
             await _uof.CommitAsync();
+            await tx.CommitAsync();
 
             return ApiResponse<DespesaDTO>.Ok(_mapper.Map<DespesaDTO>(despesa));
         }

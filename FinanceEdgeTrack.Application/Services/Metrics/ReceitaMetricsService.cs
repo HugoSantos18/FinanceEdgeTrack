@@ -22,18 +22,22 @@ public class ReceitaMetricsService : IReceitaMetrics
 
     public async Task<ApiResponse<ReceitasGeralDTO>> GetReceitaMetrics()
     {
-        var query = _uof.ReceitaRepository
-                       .Query()
-                       .AsNoTracking();
+        var receitas = await _uof.ReceitaRepository
+            .Query()
+            .AsNoTracking()
+            .ToListAsync();
 
-        var receitas = await query.ToListAsync();
-
-        if (receitas is null)
+        if (receitas.Count == 0)
         {
-            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
-            return ApiResponse<ReceitasGeralDTO>.Fail(ResultMessages.EmptyCollection);
-        }
+            _logger.LogInformation("Nenhuma receita registrada ainda");
+            
+            var receitaGeralEmptyDTO = new ReceitasGeralDTO
+            {
+                ValorTotalReceitas = 0
+            };
 
+            return ApiResponse<ReceitasGeralDTO>.Ok(receitaGeralEmptyDTO, $"Nenhuma receita registrada ainda");
+        }
 
         decimal valorTotalReceitas = receitas
                                     .Sum(r => r.Valor);
@@ -49,20 +53,25 @@ public class ReceitaMetricsService : IReceitaMetrics
 
     public async Task<ApiResponse<ReceitasResumoMensalDTO>> GetReceitaMetricsNoMes(int year, int month)
     {
-        var startDate = new DateTime(year, month, 1);
-        var endDate = startDate.AddMonths(month).AddDays(1);
+        var startDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
+        var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddTicks(-1), DateTimeKind.Utc);
 
-        var query = _uof.ReceitaRepository
-                          .Query()
-                          .Where(r => r.Data >= startDate && r.Data <= endDate)
-                          .AsNoTracking();
+        var receitas = await _uof.ReceitaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(r => r.Data >= startDate && r.Data <= endDate)
+            .ToListAsync();
 
-        var receitas = await query.ToListAsync();
-
-        if (receitas is null)
+        if (receitas.Count == 0)
         {
-            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
-            return ApiResponse<ReceitasResumoMensalDTO>.Fail(ResultMessages.EmptyCollection);
+            _logger.LogInformation("Receitas no mês {Month}/{Year} ainda não registradas", month, year);
+            
+            var receitaResumoMensalEmptyDTO = new ReceitasResumoMensalDTO
+            {
+                ValorTotalReceitasNoMes = 0
+            };
+            
+            return ApiResponse<ReceitasResumoMensalDTO>.Ok(receitaResumoMensalEmptyDTO, $"Nenhuma receita registrada ainda em {month}-{year}");
         }
 
         decimal valorReceitasTotalNoMes = receitas
@@ -80,18 +89,25 @@ public class ReceitaMetricsService : IReceitaMetrics
 
     public async Task<ApiResponse<ReceitasResumoPeriodoDTO>> GetReceitaMetricsNoPeriodo(DateTime start, DateTime end)
     {
-        var query = _uof.ReceitaRepository
-                          .Query()
-                          .Where(r => r.Data >= start)
-                          .Where(r => r.Data <= end)
-                          .AsNoTracking();
+        var startUtc = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
-        var receitas = await query.ToListAsync();
+        var receitas = await _uof.ReceitaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(r => r.Data >= startUtc && r.Data <= endUtc)
+            .ToListAsync();
 
-        if (receitas is null)
+        if (receitas.Count == 0)
         {
-            _logger.LogError(exception: new NullReferenceException(), ResultMessages.EmptyCollection);
-            return ApiResponse<ReceitasResumoPeriodoDTO>.Fail(ResultMessages.EmptyCollection);
+            _logger.LogError("Erro ao buscar receitas no período: {Start} - {End}", start.ToShortDateString(), end.ToShortDateString());
+
+            var receitaResumoPeriodoEmptyDTO = new ReceitasResumoPeriodoDTO
+            {
+                ValorTotalReceitasNoPeriodo = 0
+            };
+
+            return ApiResponse<ReceitasResumoPeriodoDTO>.Ok(receitaResumoPeriodoEmptyDTO, $"Nenhuma receita registrada ainda no período {start.ToShortDateString()} - {end.ToShortDateString()}");
         }
 
         decimal valorReceitasTotalNoPeriodo = receitas

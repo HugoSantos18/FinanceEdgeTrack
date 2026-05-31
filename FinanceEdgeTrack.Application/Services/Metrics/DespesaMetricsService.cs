@@ -2,7 +2,6 @@
 using FinanceEdgeTrack.Application.DTOs.Read.Dashboard.Despesas;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Application.Interfaces.Services.Metrics;
-using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinanceEdgeTrack.Application.Services.Metrics;
@@ -20,20 +19,27 @@ public class DespesaMetricsService : IDespesaMetrics
 
     public async Task<ApiResponse<DespesasResumoMensalDTO>> GetDespesaMetricsNoMes(int year, int month)
     {
-        var startDate = new DateTime(year, month, 1);
-        var endDate = startDate.AddMonths(1).AddDays(1);
+        var startDate = DateTime.SpecifyKind(new DateTime(year, month, 1), DateTimeKind.Utc);
+        var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddTicks(-1), DateTimeKind.Utc);
 
-        var query = _uof.DespesaRepository
+        var despesasDoMes = await _uof.DespesaRepository
             .Query()
             .AsNoTracking()
-            .Where(d => d.Data >= startDate && d.Data <= endDate);
-
-        var despesasDoMes = await query.ToListAsync();
+            .Where(d => d.Data >= startDate && d.Data <= endDate)
+            .ToListAsync();
 
         if (despesasDoMes.Count == 0)
         {
             _logger.LogInformation($"Despesas no mês {startDate.Month.ToString()} ainda não registradas");
-            return ApiResponse<DespesasResumoMensalDTO>.Fail($"{ResultMessages.EmptyCollection}");
+
+            var despesaResumoMensalEmptyDTO = new DespesasResumoMensalDTO
+            {
+                ValorTotalDespesasFixasNoMes = 0,
+                ValorTotalDespesasNoMes = 0,
+                ValorTotalOutrasDespesasNoMes = 0
+            };
+
+            return ApiResponse<DespesasResumoMensalDTO>.Ok(despesaResumoMensalEmptyDTO, $"Nenhuma despesa registrada ainda no mês {month}");
         }
 
         decimal gastosFixos = despesasDoMes
@@ -59,15 +65,24 @@ public class DespesaMetricsService : IDespesaMetrics
 
     public async Task<ApiResponse<DespesasGeralDTO>> GetDespesaMetricsTotal()
     {
-        var query = _uof.DespesaRepository
-                        .Query()
-                        .AsNoTracking();
+        var despesas = await _uof.DespesaRepository
+            .Query()
+            .AsNoTracking()
+            .ToListAsync();
 
+        if (despesas.Count == 0)
+        {
+            _logger.LogInformation($"Sem nenhuma despesa registrada ainda");
 
-        var despesas = await query.ToListAsync();
+            var despesaResumoGeralEmptyDTO = new DespesasGeralDTO
+            {
+                ValorTotalDespesasFixas = 0,
+                ValorTotalDespesas = 0,
+                ValorTotalOutrasDespesas = 0
+            };
 
-        if (despesas is null)
-            return ApiResponse<DespesasGeralDTO>.Fail($"{ResultMessages.NotFoundDespesa}");
+            return ApiResponse<DespesasGeralDTO>.Ok(despesaResumoGeralEmptyDTO, $"Nenhuma despesa registrada ainda");
+        }
 
         decimal gastosFixos = despesas
                               .Where(d => d.Fixa)
@@ -92,20 +107,27 @@ public class DespesaMetricsService : IDespesaMetrics
 
     public async Task<ApiResponse<DespesasResumoPeriodoDTO>> GetDespesaMetricsNoPeriodo(DateTime start, DateTime end)
     {
-        var query = _uof.DespesaRepository
-                       .Query()
-                       .Where(d => d.Data >= start)
-                       .Where(d => d.Data <= end)
-                       .AsNoTracking();
+        var startUtc = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
+        var despesas = await _uof.DespesaRepository
+            .Query()
+            .AsNoTracking()
+            .Where(d => d.Data >= startUtc && d.Data <= endUtc)
+            .ToListAsync();
 
-        var despesas = await query.ToListAsync();
-
-        if (despesas is null)
+        if (despesas.Count == 0)
         {
-            _logger.LogError($"Erro ao buscar despesas no perído: {start.ToShortDateString()} - {end.ToShortDateString()}.", despesas);
-            return ApiResponse<DespesasResumoPeriodoDTO>.Fail($"{ResultMessages.NotFoundDespesa}");
+            _logger.LogError("Erro ao buscar despesas no período: {Start} - {End}", start.ToShortDateString(), end.ToShortDateString());
 
+            var despesaResumoPeriodoEmptyDTO = new DespesasResumoPeriodoDTO
+            {
+                ValorTotalDespesasFixasNoPeriodo = 0,
+                ValorTotalDespesasNoPeriodo = 0,
+                ValorTotalOutrasDespesasNoPeriodo = 0
+            };
+
+            return ApiResponse<DespesasResumoPeriodoDTO>.Ok(despesaResumoPeriodoEmptyDTO, $"Nenhuma despesa registrada no período {start.ToShortDateString()} - {end.ToShortDateString()}");
         }
 
         decimal gastosFixos = despesas

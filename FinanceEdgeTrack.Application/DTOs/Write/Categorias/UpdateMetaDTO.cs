@@ -1,10 +1,12 @@
 ﻿using FinanceEdgeTrack.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Application.DTOs.Write.Categorias;
 
 public class UpdateMetaDTO
 {
+    [JsonIgnore]
     public Guid MetaId { get; set; }
     
     [Required(ErrorMessage = "É necessário um título para a Meta.")]

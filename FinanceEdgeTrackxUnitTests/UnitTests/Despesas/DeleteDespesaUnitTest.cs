@@ -1,5 +1,5 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read.Categorias;
+using FinanceEdgeTrack.Application.DTOs.Read.Categorias;
 using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

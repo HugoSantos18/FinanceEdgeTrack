@@ -1,6 +1,6 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Domain.Enum;
+using FinanceEdgeTrack.Application.DTOs.Read.Metas;
+using FinanceEdgeTrack.Domain.Enums;
 using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

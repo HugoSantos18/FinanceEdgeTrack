@@ -1,5 +1,5 @@
 ﻿using FinanceEdgeTrack.Controllers;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
+using FinanceEdgeTrack.Application.Interfaces.Services.Dashboard;
 using Moq;
 
 namespace FinanceEdgeTrackxUnitTests.UnitTests.Configs;

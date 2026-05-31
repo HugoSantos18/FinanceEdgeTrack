@@ -1,0 +1,25 @@
+using FinanceEdgeTrack.Error;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace FinanceEdgeTrack.Errors;
+
+public class ApiExceptionFilter : ExceptionFilterAttribute
+{
+    public override void OnException(ExceptionContext context)
+    {
+        var error = new ErrorDetails
+        {
+            MessageError = context.Exception.Message,
+            StatusCode = StatusCodes.Status500InternalServerError,
+            Trace = context.Exception.StackTrace
+        };
+
+        context.Result = new ObjectResult(error)
+        {
+            StatusCode = error.StatusCode
+        };
+
+        context.ExceptionHandled = true;
+    }
+}

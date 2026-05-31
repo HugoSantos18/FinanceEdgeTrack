@@ -1,0 +1,30 @@
+﻿using FinanceEdgeTrack.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace FinanceEdgeTrack.Application.DTOs.Read.Metas;
+
+public class MetaDTO 
+{
+    public Guid MetaId { get; set; } 
+
+    public string Titulo { get; set; } = default!;
+    
+    public string? Descricao { get; set; }
+
+    public decimal ValorAlvo { get; set; }
+
+    public decimal ValorRestante { get; }
+
+    [Range(0, 100)]
+    public decimal PorcentagemAtual { get; set; }
+    
+    public DateTime DataInicio { get; set; }
+    
+    public DateTime DataAlvo { get; set; }
+    
+    public Status Status { get; set; }
+
+    [JsonIgnore]
+    public List<AporteMetasDTO>? Aportes { get;}
+}

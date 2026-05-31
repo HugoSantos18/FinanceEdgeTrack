@@ -1,0 +1,23 @@
+﻿using FinanceEdgeTrack.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace FinanceEdgeTrack.Application.DTOs.Write.Categorias;
+
+public class UpdateMetaDTO
+{
+    [JsonIgnore]
+    public Guid MetaId { get; set; }
+    
+    [Required(ErrorMessage = "É necessário um título para a Meta.")]
+    public string Titulo { get; set; } = default!;
+
+    [Range(typeof(decimal), "1" ,"99999999")]
+    public decimal ValorAlvo { get; set; }
+    
+    public DateTime DataAlvo { get; set; }
+    
+    public Status Status { get; set; }
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}

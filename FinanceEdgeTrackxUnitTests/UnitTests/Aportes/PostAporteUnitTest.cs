@@ -1,6 +1,6 @@
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read.Metas;
-using FinanceEdgeTrack.Application.Dtos.Write.Categorias;
+using FinanceEdgeTrack.Application.DTOs.Read.Metas;
+using FinanceEdgeTrack.Application.DTOs.Write.Categorias;
 using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

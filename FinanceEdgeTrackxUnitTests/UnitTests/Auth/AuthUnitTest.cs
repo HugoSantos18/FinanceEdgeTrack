@@ -1,8 +1,8 @@
 ﻿using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read;
-using FinanceEdgeTrack.Application.Dtos.Read.Auth;
-using FinanceEdgeTrack.Application.Dtos.Write.Auth;
-using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Application.DTOs.Read;
+using FinanceEdgeTrack.Application.DTOs.Read.Auth;
+using FinanceEdgeTrack.Application.DTOs.Write.Auth;
+using FinanceEdgeTrack.Infrastructure.Identity;
 using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -170,8 +170,8 @@ public class AuthUnitTest
         var result = await _helper.controller.MakeAdmin(makeAdmDto);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var value = ok.Value as dynamic;
-        Assert.Equal(ResultMessages.AdminMakedSuccessfully, (string)value.message);
+        var messageValue = ok.Value?.GetType().GetProperty("message")?.GetValue(ok.Value) as string;
+        Assert.Equal(ResultMessages.AdminMakedSuccessfully, messageValue);
         _helper.userManagerServiceMock.Verify(um => um.AddToRoleAsync(targetUser, "Admin"), Times.Once);
     }
 

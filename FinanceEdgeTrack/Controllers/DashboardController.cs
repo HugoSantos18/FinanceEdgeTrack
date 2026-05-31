@@ -1,5 +1,5 @@
 ﻿using Asp.Versioning;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
+using FinanceEdgeTrack.Application.Interfaces.Services.Dashboard;
 using FinanceEdgeTrack.Infrastructure.Config;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

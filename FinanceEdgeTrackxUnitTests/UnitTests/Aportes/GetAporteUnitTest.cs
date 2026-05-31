@@ -1,6 +1,6 @@
 using FinanceEdgeTrack.Application.Common.Pagination;
 using FinanceEdgeTrack.Application.Common.Responses;
-using FinanceEdgeTrack.Application.Dtos.Read.Metas;
+using FinanceEdgeTrack.Application.DTOs.Read.Metas;
 using FinanceEdgeTrackxUnitTests.UnitTests.Configs;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

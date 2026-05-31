@@ -1,25 +1,27 @@
-using FinanceEdgeTrack.Application.Common.Pagination.Filters;
-using FinanceEdgeTrack.Application.Services.Auth;
-using FinanceEdgeTrack.Application.Services.Cache;
+using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
+using FinanceEdgeTrack.Application.Interfaces.Services.Cache;
+using FinanceEdgeTrack.Application.Interfaces.Services.Carteira;
+using FinanceEdgeTrack.Application.Interfaces.Services.Categories;
+using FinanceEdgeTrack.Application.Interfaces.Services.Dashboard;
+using FinanceEdgeTrack.Application.Interfaces.Services.Metrics;
+using FinanceEdgeTrack.Application.Mappings;
 using FinanceEdgeTrack.Application.Services.CarteiraService;
 using FinanceEdgeTrack.Application.Services.Categories;
 using FinanceEdgeTrack.Application.Services.Dashboard;
 using FinanceEdgeTrack.Application.Services.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces;
-using FinanceEdgeTrack.Domain.Interfaces.Metrics;
 using FinanceEdgeTrack.Domain.Interfaces.Repositories;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Cache;
-using FinanceEdgeTrack.Domain.Interfaces.Services.CarteiraService;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Categories;
-using FinanceEdgeTrack.Domain.Interfaces.Services.Dashboard;
-using FinanceEdgeTrack.Domain.Models;
+using FinanceEdgeTrack.Errors;
+using FinanceEdgeTrack.Extensions;
+using FinanceEdgeTrack.Filters;
+using FinanceEdgeTrack.Infrastructure.Auth;
+using FinanceEdgeTrack.Infrastructure.Cache;
 using FinanceEdgeTrack.Infrastructure.Config;
 using FinanceEdgeTrack.Infrastructure.Data;
 using FinanceEdgeTrack.Infrastructure.Extensions;
+using FinanceEdgeTrack.Infrastructure.Identity;
+using FinanceEdgeTrack.Infrastructure.Logging;
 using FinanceEdgeTrack.Infrastructure.Repositories;
-using FinanceEdgeTrack.Infrastructure.Seed;
-using FinanceEdgeTrack.Logging;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +34,7 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+MapsterMappingConfig.ConfigurarMapeamento();
 builder.Services.AddMapster();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -92,7 +95,6 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleSevice>();
-builder.Services.AddScoped<ICarteiraMetrics, CarteiraMetricsService>();
 builder.Services.AddScoped<IDespesaMetrics, DespesaMetricsService>();
 builder.Services.AddScoped<IMetaMetrics, MetaMetricsService>();
 builder.Services.AddScoped<IReceitaMetrics, ReceitaMetricsService>();
@@ -102,7 +104,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 
 
-// Add Loging provider
+// Add Logging provider
 builder.Logging.AddProvider(new CustomerLoggerProvider(new CustomerLoggerProviderConfig
 {
     LogLevel = LogLevel.Information
@@ -117,9 +119,6 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(options =>
 {
     var secretKey = jwtSettings.SecretKey ?? throw new ArgumentException("Invalid Key");
-
-    if (secretKey.IsNullOrEmpty())
-        throw new Exception("JWT secretKey n�o configurado!");
 
     options.SaveToken = true;
     options.RequireHttpsMetadata = true;
@@ -187,12 +186,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
-}
-
-if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("SEED_ADMIN") == "true")
-{
-    using var scope = app.Services.CreateScope();
-    await UserSeed.SeedAdminAsync(scope.ServiceProvider);
 }
 
 app.UseHttpsRedirection();

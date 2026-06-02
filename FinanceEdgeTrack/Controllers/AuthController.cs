@@ -67,16 +67,15 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>Renova o access token utilizando um refresh token válido. Requer role <b>Admin</b>.</summary>
+    /// <summary>Renova o access token utilizando um refresh token válido.</summary>
     /// <param name="tokenModelDto">Par de tokens (AccessToken e RefreshToken) para renovação.</param>
     [HttpPost("refresh")]
-    [Authorize(Policy = Role.Admin)]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<TokenModelDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> RefreshToken([FromQuery] TokenModelDTO tokenModelDto)
+    public async Task<IActionResult> RefreshToken([FromBody] TokenModelDTO tokenModelDto)
     {
         var response = await _authService.RefreshToken(tokenModelDto);
 

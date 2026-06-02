@@ -136,7 +136,7 @@ public class AuthService : IAuthenticationService
 
         var user = await _userManager.FindByNameAsync(username);
 
-        if (user is null || user.RefreshTokenExpire <= DateTime.Now || user.RefreshToken != refreshToken)
+        if (user is null || user.RefreshTokenExpire <= DateTime.UtcNow || user.RefreshToken != refreshToken)
         {
             _logger.LogInformation($"Erro ao adicionar um novo refreshToken ao usuário, verifique as credenciais.");
             return ApiResponse<TokenModelDTO>.Fail(ResultMessages.InvalidRefreshToken);

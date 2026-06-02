@@ -26,6 +26,7 @@ public class RegisterModelUserDTO
 
     [Required]
     [MaxLength(14)]
+    [RegularExpression(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$", ErrorMessage = "CPF deve estar no formato 000.000.000-00")]
     public string CPF { get; set; } = default!;
 
     public DateTime DataNascimento { get; set; }

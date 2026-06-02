@@ -154,6 +154,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .IsRequired();
 
 
+        // ApplicationUser — CPF único por usuário
+        model.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasIndex(u => u.CPF)
+                  .IsUnique();
+        });
+
         base.OnModelCreating(model);
     }
 }

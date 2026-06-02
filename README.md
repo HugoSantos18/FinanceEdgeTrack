@@ -1,6 +1,6 @@
 <div align="center">
 
-# FinanceEdgeTrack API
+# FinanceEdgeTrack API 🚀
 
 **API REST para controle financeiro pessoal — despesas, receitas, metas com aportes progressivos e dashboards analíticos.**
 

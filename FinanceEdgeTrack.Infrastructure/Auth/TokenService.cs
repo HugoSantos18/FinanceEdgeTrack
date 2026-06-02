@@ -1,4 +1,3 @@
-using FinanceEdgeTrack.Infrastructure.Config;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,11 +10,13 @@ public class TokenService : ITokenService
 {
     public JwtSecurityToken GenerateAccessToken(IEnumerable<Claim> claims, IConfiguration config)
     {
-        var secretKey = config.GetSection("JWT").GetValue<string>("SecretKey");
-        var privateKey = Encoding.UTF8.GetBytes(secretKey);
+        var secretKey = config.GetSection("JWT").GetValue<string>("SecretKey")
+            ?? throw new ArgumentException("JWT SecretKey não configurado.");
 
         if (secretKey.Length < 32)
-            throw new Exception("JWT SecretKey deve ter no mínimo 32 caracteres");
+            throw new ArgumentException("JWT SecretKey deve ter no mínimo 32 caracteres");
+
+        var privateKey = Encoding.UTF8.GetBytes(secretKey);
 
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
 
@@ -57,6 +58,8 @@ public class TokenService : ITokenService
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ValidAudience = config.GetSection("JWT").GetValue<string>("ValidAudience"),
             ValidIssuer = config.GetSection("JWT").GetValue<string>("ValidIssuer"),
+            // false por design: no fluxo de refresh o access token chega expirado.
+            // A segurança é garantida pela validação do refresh token no banco (AuthService.RefreshToken).
             ValidateLifetime = false
         };
 

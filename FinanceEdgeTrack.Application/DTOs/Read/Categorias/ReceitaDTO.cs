@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace FinanceEdgeTrack.Application.DTOs.Read.Categorias;
+﻿namespace FinanceEdgeTrack.Application.DTOs.Read.Categorias;
 
 public class ReceitaDTO
 {

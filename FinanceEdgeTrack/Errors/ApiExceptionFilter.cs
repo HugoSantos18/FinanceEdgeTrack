@@ -1,4 +1,4 @@
-using FinanceEdgeTrack.Error;
+using FinanceEdgeTrackAPI.Error;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

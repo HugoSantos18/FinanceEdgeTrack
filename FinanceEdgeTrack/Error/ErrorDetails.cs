@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 
-namespace FinanceEdgeTrack.Error;
+namespace FinanceEdgeTrackAPI.Error;
 
 public class ErrorDetails
 {

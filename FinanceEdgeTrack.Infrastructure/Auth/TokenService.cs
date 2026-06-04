@@ -58,8 +58,6 @@ public class TokenService : ITokenService
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ValidAudience = config.GetSection("JWT").GetValue<string>("ValidAudience"),
             ValidIssuer = config.GetSection("JWT").GetValue<string>("ValidIssuer"),
-            // false por design: no fluxo de refresh o access token chega expirado.
-            // A segurança é garantida pela validação do refresh token no banco (AuthService.RefreshToken).
             ValidateLifetime = false
         };
 

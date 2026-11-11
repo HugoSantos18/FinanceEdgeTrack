@@ -16,6 +16,15 @@
 # Mono auto generated files
 mono_crash.*
 
+# Files not be commited
+*.bin
+*.obj
+bin
+obj
+
+# Docker
+
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

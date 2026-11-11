@@ -11,7 +11,9 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                              ?? Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                             ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+                             ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+                             ?? throw new InvalidOperationException(
+                "Connection string não encontrada. Configure a variável de ambiente 'DB_CONNECTION_STRING' ou 'ConnectionStrings__DefaultConnection'");
 
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -23,12 +25,6 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
                 .Build();
 
             connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException(
-                "Connection string não encontrada. Configure a variável de ambiente 'DB_CONNECTION_STRING' ou 'ConnectionStrings__DefaultConnection'");
         }
 
         optionsBuilder.UseNpgsql(connectionString);

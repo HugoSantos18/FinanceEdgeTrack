@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Domain.Entities;
 
-public class Meta
+public sealed class Meta
 {
     [Key]
     public Guid MetaId { get; private set; } = Guid.NewGuid();

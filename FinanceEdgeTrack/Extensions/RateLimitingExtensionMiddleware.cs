@@ -1,7 +1,5 @@
 using FinanceEdgeTrack.Infrastructure.Config;
 using FinanceEdgeTrack.Infrastructure.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Threading.RateLimiting;
 
 namespace FinanceEdgeTrack.Extensions;
 

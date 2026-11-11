@@ -38,4 +38,6 @@
     <ProjectReference Include="..\FinanceEdgeTrack.Infrastructure\FinanceEdgeTrack.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+
 </Project>

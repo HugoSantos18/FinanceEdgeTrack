@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Domain.Entities;
 
-public class Despesa
+public sealed class Despesa
 {
     public Guid DespesaId { get; private set; } = Guid.NewGuid();
     public Guid CarteiraId { get; set; }

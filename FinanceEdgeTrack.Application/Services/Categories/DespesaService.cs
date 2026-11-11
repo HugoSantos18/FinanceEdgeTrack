@@ -4,7 +4,6 @@ using FinanceEdgeTrack.Application.DTOs.Read.Categorias;
 using FinanceEdgeTrack.Application.DTOs.Write.Categorias;
 using FinanceEdgeTrack.Domain.Interfaces;
 using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
-using FinanceEdgeTrack.Application.Interfaces.Services.Cache;
 using FinanceEdgeTrack.Application.Interfaces.Services.Carteira;
 using FinanceEdgeTrack.Application.Interfaces.Services.Categories;
 using FinanceEdgeTrack.Domain.Entities;

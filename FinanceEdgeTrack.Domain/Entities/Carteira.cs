@@ -5,7 +5,7 @@ namespace FinanceEdgeTrack.Domain.Entities;
 
 
 [Table("Carteira")]
-public class Carteira
+public sealed class Carteira
 {
     [Key]
     [Required]

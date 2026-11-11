@@ -5,7 +5,7 @@ namespace FinanceEdgeTrack.Domain.Entities;
 
 
 [Table("AporteMetas")]
-public class AporteMetas
+public sealed class AporteMetas
 {
     [Key]
     public Guid AporteMetasId { get; private set; } = Guid.NewGuid();

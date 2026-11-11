@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace FinanceEdgeTrack.Domain.Entities;
 
-public class Receita
+public sealed class Receita
 {
     public Guid ReceitaId { get; private set; } = Guid.NewGuid();
     public Guid CarteiraId { get; set; }

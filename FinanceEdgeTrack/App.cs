@@ -1,4 +1,4 @@
-using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
+ using FinanceEdgeTrack.Application.Interfaces.Services.Auth;
 using FinanceEdgeTrack.Application.Interfaces.Services.Cache;
 using FinanceEdgeTrack.Application.Interfaces.Services.Carteira;
 using FinanceEdgeTrack.Application.Interfaces.Services.Categories;
